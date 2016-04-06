@@ -1,6 +1,4 @@
 <?php
-//echo "maintenance";
-//exit;
 require_once('config/Initialize.php');
 
 /*
