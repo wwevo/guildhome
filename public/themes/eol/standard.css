@@ -1,0 +1,197 @@
+body, html {
+    padding: 0; margin: 0;
+    background-color: #fff8e7;
+    font-family: "Verdana", Arial, sans;
+}
+
+.form label {
+    position: relative;
+    display: block;
+    clear: both;
+}
+
+.form label .hint {
+    display: none;
+}
+
+.form textarea {
+    display: block;
+    min-height: 96px;
+    min-width: 480px;
+    width: 100%;
+}
+
+body > div {
+    width: 960px;
+    margin: 0 auto;
+}
+
+body > div > header {
+    height: 280px;
+    clear: both;
+    background-image: url('/themes/eol/images/retro/header.jpg');
+    background-repeat: no-repeat;
+}
+
+body > div > header h1 {
+    display: none;
+}
+
+body > div > section.main {
+    padding: 0 12px;
+}
+
+body > div > section.main > h2 {
+    margin-top: 12px;
+}
+
+
+table {
+    width: 95%;
+    margin: 0 auto;
+    border-collapse: collapse;
+}
+
+body > div > section.main th {
+    background-color: #eda73e;
+}
+
+body > div > section.main th,
+body > div > section.main td {
+    padding: 4px;
+}
+
+body > div > section.main table,
+body > div > section.main th,
+body > div > section.main td {
+    border: 1px solid black;
+}
+
+body > div > section.nav {
+    height: 50px;
+    line-height: 50px;
+    clear: both;
+    background-image: url('/themes/eol/images/retro/navbar.png');
+    background-repeat: no-repeat;
+    padding: 0 12.5px;
+}
+
+body > div > section.nav .user-menu {
+    float: right;
+}
+
+body > div > section.nav .user-menu a {
+    font-size: 14px;
+    color: black;
+    text-decoration: none;
+}
+
+body > div > section.nav .site-menu {
+    float: left;
+}
+
+body > div > section.nav .site-menu a {
+    font-size: 20px;
+    color: black;
+    text-decoration: none;
+    display: inline-block;
+    margin-right: 12px;
+}
+
+body > div > section.nav a:hover,
+body > div > section.nav a.active {
+    color: black;
+    text-decoration: underline;
+}
+
+body > div > aside {
+    display: block;
+    width: 15%;
+    float: left;
+    min-height: 200px;
+}
+
+body > div > aside {
+    margin-top: 5px;
+    border-top: 3px solid #eda73e;
+    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#eda73e), to(#faec9b));
+    background-image: -webkit-linear-gradient(#eda73e, #faec9b);
+    background-image:
+        -moz-linear-gradient(#eda73e, #faec9b),
+        -moz-linear-gradient(#eda73e, #faec9b);
+    background-image:
+        -o-linear-gradient(#eda73e, #faec9b),
+        -o-linear-gradient(#eda73e, #faec9b);
+    background-image: 
+        linear-gradient(#eda73e, #faec9b),
+        linear-gradient(#eda73e, #faec9b);
+    -moz-background-size: 3px 100%;
+    background-size: 3px 100%;
+    background-position: 0 0, 100% 0;
+    background-repeat: no-repeat; 
+}
+
+article.activity {
+    margin: 0.5em 0;
+    border-bottom: 2px solid #eda73e;
+    background-image: linear-gradient(to bottom, #eda73e 40px, #FFFFFF 40px);
+}
+
+section.main a {
+    color: #3399ff;
+    text-decoration: none;
+}
+
+section.main a:hover {
+    text-decoration: underline;
+}
+
+article.activity img {
+    float: left;
+    margin-right: 6px;
+}
+
+article.activity section.content {
+    clear: both;
+    margin: 0 0.5em;
+}
+
+article.activity section.logged_in {
+    clear: both;
+    text-align: right;
+}
+
+section.settings form > label {
+    float: left;
+}
+
+article.comment {
+    margin: 0.5em 0;
+    border-bottom: 2px solid #eda73e;
+    background-image: linear-gradient(to bottom, #eda73e 40px, #FFFFFF 40px);
+}
+
+article.comment a {
+    color: #3399ff;
+    text-decoration: none;
+}
+
+article.comment a:hover {
+    text-decoration: underline;
+}
+
+article.comment img {
+    float: left;
+    margin-right: 6px;
+}
+
+article.comment section.content {
+    clear: both;
+    margin: 0 0.5em;
+}
+
+article.comment section.logged_in {
+    clear: both;
+    text-align: right;
+}
+

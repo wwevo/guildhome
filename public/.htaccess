@@ -1,0 +1,9 @@
+#AddType x-mapp-php7 .php .html .htm
+RewriteEngine on
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond $1 !^(index\.php)
+RewriteRule ^(.*)$ /index.php/$1 [L]
+
+# apache > 2.2.15
+#FallbackResource /index.php
