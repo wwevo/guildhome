@@ -13,8 +13,8 @@
             </select>
             <textarea id="activity_content" name="activity[content]" placeholder="{##activity_content_text##}">{##activity_content##}</textarea>
             {##activity_content_validation##}<br />
-            Date: <input type="date" name="activity[date]" placeholder="Date" value="" />
-            Time: <input type="time" name="activity[time]" placeholder="Time" value="" /><br />
+            Date: <input type="date" name="activity[date]" placeholder="Date" value="{##activity_date##}" />
+            Time: <input type="time" name="activity[time]" placeholder="Time" value="{##activity_time##}" /><br />
             <input disabled="disabled" type="checkbox" name="activity[calendar]" value="calendar" /> Display event on calendar<br />
             <input disabled="disabled" type="checkbox" name="activity[repeat]" value="repeat" /> Repeat Events 
             <select disabled="disabled" name="activity[schedule]">
@@ -22,7 +22,7 @@
                 <option value="2">Biweekly</option>
                 <option value="3">Monthly</option>
             </select><br />
-            <input type="checkbox" name="activity[comments]" value="comments" /> Allow comments for this event<br />
+            <input type="checkbox" {##activity_comments_checked##} name="activity[comments]" value="comments" /> Allow comments for this event<br />
         </fieldset>
         <fieldset disabled="disabled">
             <legend>Event signups</legend>
