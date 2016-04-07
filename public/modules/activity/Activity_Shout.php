@@ -156,7 +156,7 @@ class Activity_Shout extends Activity {
         $content = (isset($env->post('activity')['content'])) ? $env->post('activity')['content'] : $act->content;
         
         $view = new View();
-        $view->setTmpl(file('views/activity/update_activity_form.php'), array(
+        $view->setTmpl(file('views/activity/update_activity_shout_form.php'), array(
             '{##form_action##}' => '/activity/shout/update/' . $id,
             '{##activity_content##}' => $content,
             '{##activity_content_validation##}' => $msg->fetch('activity_shout_content_validation'),
