@@ -44,6 +44,15 @@ class Activity_Event extends Activity {
                 $this->activity_menu();
                 $page->addContent('{##main##}', $this->getNewActivityForm());
                 break;
+            case 'update' :
+                if (!$login->isLoggedIn()) {
+                    return false;
+                }
+                $page = Page::getInstance();
+                $page->setContent('{##main##}', '<h2>Update shout</h2>');
+                $this->activity_menu();
+                $page->addContent('{##main##}', $this->getUpdateActivityForm($id));
+                break;
             case 'delete' :
                 if (!$login->isLoggedIn()) {
                     return false;
@@ -165,6 +174,30 @@ class Activity_Event extends Activity {
             '{##activity_title##}' => $env->post('activity')['title'],
             '{##activity_title_validation##}' => $msg->fetch('activity_event_title_validation'),
             '{##activity_content##}' => $env->post('activity')['content'],
+            '{##activity_content_validation##}' => $msg->fetch('activity_event_content_validation'),
+            '{##preview_text##}' => 'Preview',
+            '{##draft_text##}' => 'Save as draft',
+            '{##submit_text##}' => 'Submit',
+        ));
+        $view->replaceTags();
+        return $view;
+    }
+
+    function getUpdateActivityForm($id) {
+        $env = Env::getInstance();
+        $msg = Msg::getInstance();
+
+        $act = $this->getActivity($id);
+
+        $title = (isset($env->post('activity')['title'])) ? $env->post('activity')['title'] : $act->title;
+        $content = (isset($env->post('activity')['content'])) ? $env->post('activity')['content'] : $act->description;
+
+        $view = new View();
+        $view->setTmpl(file('views/activity/update_activity_event_form.php'), array(
+            '{##form_action##}' => '/activity/event/update/' . $id,
+            '{##activity_title##}' => $title,
+            '{##activity_title_validation##}' => $msg->fetch('activity_event_title_validation'),
+            '{##activity_content##}' => $content,
             '{##activity_content_validation##}' => $msg->fetch('activity_event_content_validation'),
             '{##preview_text##}' => 'Preview',
             '{##draft_text##}' => 'Save as draft',
