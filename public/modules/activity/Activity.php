@@ -87,6 +87,7 @@ class Activity {
                     WHERE activities.id = $id
                     ORDER BY activities.create_time DESC LIMIT 1;";
         $query = $db->query($sql);
+        
         if ($query !== false AND $query->num_rows == 1) {
             $result = $query->fetch_object();
             return $result;
@@ -123,6 +124,11 @@ class Activity {
                 $shout = new Activity_Shout();
                 $activity_shout = $shout->getActivity($act->id);
                 $content = Parsedown::instance()->text($activity_shout->content);
+                if (isset($activity_shout->comments_activated) AND $activity_shout->comments_activated == '1') {
+                    $allow_comments = TRUE;
+                } else {
+                    $allow_comments = FALSE;
+                }
                 $delete_link = '/activity/shout/delete/' . $act->id;
                 $update_link = '/activity/shout/update/' . $act->id;
                 $comment_link = '/comment/activity/view/' . $act->id;
@@ -130,11 +136,16 @@ class Activity {
             case '2' : 
                 $event = new Activity_Event();
                 $activity_event = $event->getActivity($act->id);
+                if (isset($activity_event->comments_activated) AND $activity_event->comments_activated == '1') {
+                    $allow_comments = TRUE;
+                } else {
+                    $allow_comments = FALSE;
+                }
                 
-                    $event_data =  Parsedown::instance()->text($activity_event->title);
-                    $event_data .= Parsedown::instance()->text($activity_event->description);
-                    $event_data .= $activity_event->date . " @ ";
-                    $event_data .= $activity_event->time;
+                $event_data =  Parsedown::instance()->text($activity_event->title);
+                $event_data .= Parsedown::instance()->text($activity_event->description);
+                $event_data .= $activity_event->date . " @ ";
+                $event_data .= $activity_event->time;
                     
                 $content = $event_data;
                 $delete_link = '/activity/event/delete/' . $act->id;
@@ -148,11 +159,14 @@ class Activity {
         $subView->addContent('{##activity_identity##}', $identity->getIdentityById($act->userid, 0));
         $subView->addContent('{##avatar##}', $identity->getAvatarByUserId($act->userid));
 
+        if ($allow_comments === TRUE) {
+            $comment = new Comment();
+            $comment_count = $comment->getCommentCount($act->id);
+            $subView->addContent('{##comment_link##}', $comment_link);
+            $subView->addContent('{##comment_link_text##}',  'comments (' . $comment_count . ')');
+        }
+        
         $login = new Login();
-        $comment = new Comment();
-        $comment_count = $comment->getCommentCount($act->id);
-        $subView->addContent('{##comment_link##}', $comment_link);
-        $subView->addContent('{##comment_link_text##}',  'comments (' . $comment_count . ')');
         if ($login->isLoggedIn()) {
             $memberView = new View();
             $memberView->setTmpl($view->getSubTemplate('{##activity_logged_in##}'));
