@@ -22,7 +22,7 @@
                 <option value="2">Biweekly</option>
                 <option value="3">Monthly</option>
             </select><br />
-            <input type="checkbox" name="activity[comments]" value="comments" /> Allow comments for this event<br />
+            <input type="checkbox" {##activity_comments_checked##} name="activity[comments]" value="0" /> Allow comments for this event<br />
         </fieldset>
         <fieldset disabled="disabled">
             <legend>Event signups</legend>
