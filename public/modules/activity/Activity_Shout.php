@@ -82,7 +82,7 @@ class Activity_Shout extends Activity {
             case 'new' :
                 if ($this->validateActivity() === true) {
                     if ($this->saveActivity() === true) {
-                        header("Location: /activities");
+                        header("Location: /activities/shouts");
                     }
                 } else {
                     $this->get('new', $id);
@@ -91,7 +91,7 @@ class Activity_Shout extends Activity {
             case 'update' :
                 if ($this->validateActivity() === true) {
                     if ($this->updateActivity($id) === true) {
-                        header("Location: /activities");
+                        header("Location: /activities/shouts");
                     }
                 } else {
                     $this->get('update', $id);
@@ -101,11 +101,11 @@ class Activity_Shout extends Activity {
                 if (isset($env->post('activity')['submit'])) {
                     if ($env->post('activity')['submit'] === 'delete') {
                         if ($this->deleteActivity($id) === true) {
-                            header("Location: /activities");
+                            header("Location: /activities/shouts");
                         }
                     }
                     if ($env->post('activity')['submit'] === 'cancel') {
-                        header("Location: /activities");
+                        header("Location: /activities/shouts");
                     }
                 }
                 break;
@@ -114,7 +114,7 @@ class Activity_Shout extends Activity {
     
     function getActivity($id) {
         $db = db::getInstance();
-        $sql = "SELECT activity_shouts.content AS content, activities.userid AS userid
+        $sql = "SELECT activity_shouts.comments_activated as comments_activated, activity_shouts.content AS content, activities.userid AS userid
                     FROM activity_shouts
                     INNER JOIN activities
                     ON activities.id = activity_shouts.activity_id
@@ -135,11 +135,14 @@ class Activity_Shout extends Activity {
         $env = Env::getInstance();
         $msg = Msg::getInstance();
 
+        $comments_checked = (!empty($env->post('activity')['comments']) AND $env->post('activity')['comments'] !== NULL) ? 'checked="checked"' : '';
+
         $view = new View();
         $view->setTmpl(file('views/activity/new_activity_shout_form.php'), array(
             '{##form_action##}' => '/activity/shout/new',
             '{##activity_content##}' => $env->post('activity')['content'],
             '{##activity_content_validation##}' => $msg->fetch('activity_shout_content_validation'),
+            '{##activity_comments_checked##}' => $comments_checked,
             '{##preview_text##}' => 'Preview',
             '{##draft_text##}' => 'Save as draft',
             '{##submit_text##}' => 'say it loud',
@@ -155,11 +158,15 @@ class Activity_Shout extends Activity {
         $act = $this->getActivity($id);
         $content = (isset($env->post('activity')['content'])) ? $env->post('activity')['content'] : $act->content;
         
+        $comments_checked = (isset($env->post('activity')['comments'])) ? $env->post('activity')['comments'] : $act->comments_activated;
+        $comments_checked = ($comments_checked == '1') ? 'checked="' . $comments_checked . '"' : '';
+
         $view = new View();
         $view->setTmpl(file('views/activity/update_activity_shout_form.php'), array(
             '{##form_action##}' => '/activity/shout/update/' . $id,
             '{##activity_content##}' => $content,
             '{##activity_content_validation##}' => $msg->fetch('activity_shout_content_validation'),
+            '{##activity_comments_checked##}' => $comments_checked,
             '{##preview_text##}' => 'Preview',
             '{##draft_text##}' => 'Save as draft',
             '{##submit_text##}' => "i'm sure now!",
@@ -195,7 +202,7 @@ class Activity_Shout extends Activity {
             $msg->add('activity_shout_content_validation', 'Say something!! Please :)');
             $errors = true;
         }
-
+        
         if ($errors === false) {
             return true;
         }
@@ -212,7 +219,9 @@ class Activity_Shout extends Activity {
         // save 'shout' specific data
         $activity_id = $db->insert_id;
         $content = $env->post('activity')['content'];
-        $sql = "INSERT INTO activity_shouts (activity_id, content) VALUES ('$activity_id', '$content');";
+        $allow_comments = isset($env->post('activity')['comments']) ? '1' : '0';
+
+        $sql = "INSERT INTO activity_shouts (activity_id, content, comments_activated) VALUES ('$activity_id', '$content', '$allow_comments');";
         $query = $db->query($sql);
         if ($query !== false) {
             $env->clear_post('activity');
@@ -233,9 +242,13 @@ class Activity_Shout extends Activity {
         }
         
         $content = $env->post('activity')['content'];
+        $allow_comments = isset($env->post('activity')['comments']) ? '1' : '0';
+        
         $sql = "UPDATE activity_shouts SET
-                        content = '$content'
+                        content = '$content',
+                        comments_activated = '$allow_comments'
                     WHERE activity_id = '$id';";
+        
         $query = $db->query($sql);
         if ($query !== false) {
             $env->clear_post('activity');
