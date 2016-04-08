@@ -21,35 +21,46 @@ class Profile {
     function get($slug = NULL) {
         $login = new Login();
         $page = Page::getInstance();
-        $page->setContent('{##main##}', '<h2>Registered Members</h2>');
         
         if (empty($slug)) {
+            $page->setContent('{##main##}', '<h2>Registered Members</h2>');
             $page->addContent('{##main##}', $this->getUsersView());
         } else {
+            $page->setContent('{##main##}', '<h2>Profile</h2>');
             $db = db::getInstance();
             $user = $this->getUsers($db->real_escape_string($slug))[0];
+            
+            $view = new View();
+            $view->setTmpl(file('views/profile/profile_main.php'));
+
             if (is_object($user)) {
+                $subView = new View();
+                $subView->setTmpl($view->getSubTemplate('{##profile_badge##}'));
+                $identity = new Identity();
+                $subView->addContent('{##rank##}', $user->rank_description);
+                $subView->addContent('{##display_name##}', $user->username);
+                $subView->addContent('{##avatar##}', $identity->getAvatarByUserId($user->id));
+
                 if ($user->id == $login->currentUserID()) { // it's-a-me!
+                    $subView->addContent('{##email##}', $user->email);
+
                     $settings = new Settings();
-                    $page->addContent('{##main##}', 
-                        $user->rank_description . '<br />' .
-                        $user->username . '<br />' .
-                        $user->email . '<hr />'
-                    );
-                    $page->addContent('{##main##}', '<p>use any image url</p>');
-                    $page->addContent('{##main##}', $settings->getUpdateSettingForm('avatar'));
-                    $page->addContent('{##main##}', '<p>just copy and paste from your guild wars account page. Only account and guilds are required, characters would be nice.</p>');
-                    $page->addContent('{##main##}', $settings->getUpdateSettingForm('api_key'));
-                } else {
-                    $page->addContent('{##main##}',
-                        $user->rank_description . '<br />' .
-                        $user->username
-                    );
+                    $view->addContent('{##main##}', '<p>Desired Displayname</p>');
+                    $view->addContent('{##main##}', $settings->getUpdateSettingForm('display_name'));
+                    $view->addContent('{##main##}', '<p>use any image url, only direct links will work</p>');
+                    $view->addContent('{##main##}', $settings->getUpdateSettingForm('avatar'));
+                    $view->addContent('{##main##}', '<p>just copy and paste from your guild wars account page. Only account and guilds are required, characters would be nice.</p>');
+                    $view->addContent('{##main##}', $settings->getUpdateSettingForm('api_key'));
                 }
+                $subView->replaceTags();
+                $view->addContent('{##profile_badge##}', $subView);
             } else {
-                $page->addContent('{##main##}', 'unknown user');
+                $view->addContent('{##main##}', 'unknown user');
             }
+            $view->replaceTags();
+            $page->addContent('{##main##}', $view);
         }
+
     }
 
     public function getUsers($user = null) {
