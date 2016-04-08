@@ -195,3 +195,11 @@ article.comment section.logged_in {
     text-align: right;
 }
 
+section.profile .profile_badge img {
+    float: left;
+    margin-right: 16px;
+}
+
+section.profile hr {
+    clear: both;
+}
