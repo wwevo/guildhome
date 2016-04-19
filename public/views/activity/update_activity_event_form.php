@@ -22,11 +22,11 @@
                 <option value="2">Biweekly</option>
                 <option value="3">Monthly</option>
             </select><br />
-            <input type="checkbox" {##activity_comments_checked##} name="activity[comments]" value="comments" /> Allow comments for this event<br />
+            <input type="checkbox" {##activity_comments_checked##} name="activity[comments]" value="1" /> Allow comments for this event<br />
         </fieldset>
-        <fieldset disabled="disabled">
+        <fieldset>
             <legend>Event signups</legend>
-            <input  type="checkbox" {##activity_signups_checked##} name="activity[signups]" value="signups" /> Allow signups<br />
+            <input type="checkbox" {##activity_signups_checked##} name="activity[signups]" value="1" /> Allow signups<br />
             <input disabled="disabled" type="checkbox" name="activity[signups_min]" value="signups_min" /> Minimum signups for event to happen
             <input type="number" name="activity[signups_min_val]" value="{##signups_min_val##}" /><br />
             <input disabled="disabled" type="checkbox" name="activity[signups_max]" value="signups_max" /> Maximum signups for this event

@@ -107,7 +107,7 @@ class Activity_Event extends Activity {
 
     function getActivity($id) {
         $db = db::getInstance();
-        $sql = "SELECT activity_events.title AS title, activity_events.description AS description, activity_events.date AS date, activity_events.time AS time, activity_events.comments_activated AS comments_activated, activities.userid AS userid
+        $sql = "SELECT activity_events.title AS title, activity_events.description AS description, activity_events.date AS date, activity_events.time AS time, activity_events.comments_activated AS comments_activated, activity_events.signups_activated AS signups_activated, activities.userid AS userid
                     FROM activity_events
                     INNER JOIN activities
                     ON activities.id = activity_events.activity_id
@@ -126,9 +126,13 @@ class Activity_Event extends Activity {
         $env = Env::getInstance();
         $msg = Msg::getInstance();
 
+        print_r($env->post('activity'));
         $comments_checked = (!empty($env->post('activity')['comments']) AND $env->post('activity')['comments'] !== NULL) ? 'checked="checked"' : '';
         $signups_checked = (!empty($env->post('activity')['signups']) AND $env->post('activity')['signups'] !== NULL) ? 'checked="checked"' : '';
 
+        echo $comments_checked;
+        echo $signups_checked;
+        
         $view = new View();
         $view->setTmpl(file('views/activity/new_activity_event_form.php'), array(
             '{##form_action##}' => '/activity/event/new',
@@ -164,7 +168,7 @@ class Activity_Event extends Activity {
         $comments_checked = (is_null($env->post('activity')['comments'])) ? $act->comments_activated : $env->post('activity')['comments'];
         $comments_checked = ($comments_checked === '1') ? 'checked="' . $comments_checked . '"' : '';
 
-        $signups_checked = (is_null($env->post('activity')['comments'])) ? $act->signups_activated : $env->post('activity')['signups'];
+        $signups_checked = (is_null($env->post('activity')['signups'])) ? $act->signups_activated : $env->post('activity')['signups'];
         $signups_checked = ($signups_checked === '1') ? 'checked="' . $signups_checked . '"' : '';
 
         $view = new View();
@@ -179,6 +183,7 @@ class Activity_Event extends Activity {
             '{##activity_time##}' => $time,
             '{##activity_time_validation##}' => $msg->fetch('activity_event_time_validation'),
             '{##activity_comments_checked##}' => $comments_checked,
+            '{##activity_signups_checked##}' => $signups_checked,
             '{##preview_text##}' => 'Preview',
             '{##draft_text##}' => 'Save as draft',
             '{##submit_text##}' => 'Submit',
@@ -241,13 +246,15 @@ class Activity_Event extends Activity {
         $this->save($type = 2); // 2=event
         // save 'event' specific data
         $activity_id = $db->insert_id;
+        
         $event_type = $env->post('activity')['event_type'];
         $title = $env->post('activity')['title'];
         $description = $env->post('activity')['content'];
         $time = $env->post('activity')['time'];
         $date = $env->post('activity')['date'];
-        $allow_comments = $env->post('activity')['comments'];
-        $allow_signups = $env->post('activity')['signups'];
+        
+        $allow_comments = isset($env->post('activity')['comments']) ? '1' : '0';
+        $allow_signups = isset($env->post('activity')['signups']) ? '1' : '0';
 
         $sql = "INSERT INTO activity_events (activity_id, event_type, title, description, date, time, calendar_activated, schedule_activated, comments_activated, signups_activated, template_activated) VALUES ('$activity_id', '$event_type', '$title', '$description', '$date', '$time', '0', '0', '$allow_comments', '$allow_signups', '0');";
 
@@ -266,6 +273,7 @@ class Activity_Event extends Activity {
 
         $userid = $login->currentUserID();
         $actid = $this->getActivity($id)->userid;
+
         if ($userid != $actid) {
             return false;
         }
@@ -276,6 +284,7 @@ class Activity_Event extends Activity {
         $time = $env->post('activity')['time'];
         $date = $env->post('activity')['date'];
         $allow_comments = isset($env->post('activity')['comments']) ? '1' : '0';
+        $allow_signups = isset($env->post('activity')['signups']) ? '1' : '0';
         
         $sql = "UPDATE activity_events SET
                         title = '$title',
@@ -283,9 +292,11 @@ class Activity_Event extends Activity {
                         description = '$description',
                         time = '$time',
                         date = '$date',
-                        comments_activated = '$allow_comments'
+                        comments_activated = '$allow_comments',
+                        signups_activated = '$allow_signups'
                     WHERE activity_id = '$id';";
 
+        
         $query = $db->query($sql);
         if ($query !== false) {
             $env->clear_post('activity');
