@@ -47,12 +47,19 @@ class Identity {
         return '/themes/eol/images/guild_avatar.png';
     }
     
-    function getIdentityById($user, $identity) {
+    function getIdentityById($user_id, $identity) {
+        $settings = new Settings();
         $profile = new Profile();
-        if ($identity == 0) {
-            $user = $profile->getUsers($user)[0];
+
+        $display_name = $settings->getSettingByKey('display_name', $user_id);
+        if ($display_name !== false AND !empty($display_name)) {
+            return $display_name;
         }
-        return $user->username;
+
+        if ($identity == 0) {
+            $user = $profile->getUsers($user_id)[0];
+            return $user->username;
+        }
     }
     
 }
