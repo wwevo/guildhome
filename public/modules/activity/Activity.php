@@ -95,13 +95,17 @@ class Activity {
         return false;
     }
     
-    function getActivities() {
+    function getActivities($interval = NULL) {
         $db = db::getInstance();
+        
+        $interval = (is_numeric($interval) AND $interval <= 10) ? $interval : NULL;
+        $interval = !is_null($interval) ? "HAVING create_time >= DATE_SUB(CURDATE(), INTERVAL $interval DAY)" : '';
+        
         $sql = "SELECT activities.id, activities.userid, from_unixtime(activities.create_time) AS create_time, activities.type AS type, activity_types.description AS type_description
                     FROM activities
                     INNER JOIN activity_types
                     ON activities.type = activity_types.id
-                    HAVING create_time >= DATE_SUB(CURDATE(), INTERVAL 10 DAY)
+                    $interval
                     ORDER BY activities.create_time DESC;";
         $query = $db->query($sql);
 
@@ -192,7 +196,8 @@ class Activity {
     function getAllActivitiesView($type = NULL) {
         $view = new View();
         $view->setTmpl(file('views/activity/list_all_activities.php'));
-        $activities = $this->getActivities();
+        $activities = ($type === NULL) ? $this->getActivities(10) : $this->getActivities();
+
         if (false !== $activities) {
             $activity_loop = NULL;
             foreach ($activities as $act) {
