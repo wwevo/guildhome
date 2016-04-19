@@ -26,7 +26,7 @@
         </fieldset>
         <fieldset disabled="disabled">
             <legend>Event signups</legend>
-            <input disabled="disabled" type="checkbox" name="activity[signups]" value="signups" /> Allow signups<br />
+            <input  type="checkbox" {##activity_signups_checked##} name="activity[signups]" value="signups" /> Allow signups<br />
             <input disabled="disabled" type="checkbox" name="activity[signups_min]" value="signups_min" /> Minimum signups for event to happen
             <input type="number" name="activity[signups_min_val]" value="{##signups_min_val##}" /><br />
             <input disabled="disabled" type="checkbox" name="activity[signups_max]" value="signups_max" /> Maximum signups for this event
