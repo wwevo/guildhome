@@ -127,6 +127,7 @@ class Activity_Event extends Activity {
         $msg = Msg::getInstance();
 
         $comments_checked = (!empty($env->post('activity')['comments']) AND $env->post('activity')['comments'] !== NULL) ? 'checked="checked"' : '';
+        $signups_checked = (!empty($env->post('activity')['signups']) AND $env->post('activity')['signups'] !== NULL) ? 'checked="checked"' : '';
 
         $view = new View();
         $view->setTmpl(file('views/activity/new_activity_event_form.php'), array(
@@ -140,6 +141,7 @@ class Activity_Event extends Activity {
             '{##activity_time##}' => $env->post('activity')['time'],
             '{##activity_time_validation##}' => $msg->fetch('activity_event_time_validation'),
             '{##activity_comments_checked##}' => $comments_checked,
+            '{##activity_signups_checked##}' => $signups_checked,
             '{##preview_text##}' => 'Preview',
             '{##draft_text##}' => 'Save as draft',
             '{##submit_text##}' => 'Submit',
@@ -161,7 +163,10 @@ class Activity_Event extends Activity {
 
         $comments_checked = (is_null($env->post('activity')['comments'])) ? $act->comments_activated : $env->post('activity')['comments'];
         $comments_checked = ($comments_checked === '1') ? 'checked="' . $comments_checked . '"' : '';
-                
+
+        $signups_checked = (is_null($env->post('activity')['comments'])) ? $act->signups_activated : $env->post('activity')['signups'];
+        $signups_checked = ($signups_checked === '1') ? 'checked="' . $signups_checked . '"' : '';
+
         $view = new View();
         $view->setTmpl(file('views/activity/update_activity_event_form.php'), array(
             '{##form_action##}' => '/activity/event/update/' . $id,
@@ -242,8 +247,9 @@ class Activity_Event extends Activity {
         $time = $env->post('activity')['time'];
         $date = $env->post('activity')['date'];
         $allow_comments = $env->post('activity')['comments'];
+        $allow_signups = $env->post('activity')['signups'];
 
-        $sql = "INSERT INTO activity_events (activity_id, event_type, title, description, date, time, calendar_activated, schedule_activated, comments_activated, signups_activated, template_activated) VALUES ('$activity_id', '$event_type', '$title', '$description', '$date', '$time', '0', '0', '$allow_comments', '0', '0');";
+        $sql = "INSERT INTO activity_events (activity_id, event_type, title, description, date, time, calendar_activated, schedule_activated, comments_activated, signups_activated, template_activated) VALUES ('$activity_id', '$event_type', '$title', '$description', '$date', '$time', '0', '0', '$allow_comments', '$allow_signups', '0');";
 
         $query = $db->query($sql);
         if ($query !== false) {
