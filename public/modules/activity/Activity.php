@@ -118,6 +118,9 @@ class Activity {
         return false;
     }
     
+    /*
+     * Spaghetti-Code at it's best :)
+     */
     function getSubView($act = NULL, $view = NULL) {
         $subView = new View();
         $subView->setTmpl($view->getSubTemplate('{##activity_loop##}'));

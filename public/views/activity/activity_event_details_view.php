@@ -4,8 +4,10 @@
     Date: {##activity_date##}<br />
     Time: {##activity_time##}<br />
     {##activity_logged_in##}
-    <form method="post" action="{##form_action##}">
+    <form method="post" action="{##signup##}">
         <input type="submit" name="activity[signup]" value="{##signup_text##}" />
+    </form>
+    <form method="post" action="{##signout##}">
         <input type="submit" name="activity[signout]" value="{##signout_text##}" />
     </form>
     {/##activity_logged_in##}

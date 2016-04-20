@@ -27,11 +27,11 @@
         <fieldset>
             <legend>Event signups</legend>
             <input type="checkbox" {##activity_signups_checked##} name="activity[signups]" value="1" /> Allow signups<br />
-            <input disabled="disabled" type="checkbox" name="activity[signups_min]" value="signups_min" /> Minimum signups for event to happen
+            <input {##activity_signups_min_checked##} type="checkbox" name="activity[signups_min]" value="1" /> Minimum signups for event to happen
             <input type="number" name="activity[signups_min_val]" value="{##signups_min_val##}" /><br />
-            <input disabled="disabled" type="checkbox" name="activity[signups_max]" value="signups_max" /> Maximum signups for this event
+            <input {##activity_signups_max_checked##} type="checkbox" name="activity[signups_max]" value="1" /> Maximum signups for this event
             <input type="number" name="activity[signups_max_val]" value="{##signups_max_val##}" /><br />
-            <input disabled="disabled" type="checkbox" name="activity[signups]" value="signups" /> Keep signups open beyond set limit<br />
+            <input {##activity_keep_signups_open_checked##} type="checkbox" name="activity[keep_signups_open]" value="1" /> Keep signups open beyond set limit<br />
         </fieldset>
         <fieldset disabled="disabled">
             <legend>Class registration</legend>
