@@ -35,6 +35,12 @@ class Activity_Event extends Activity {
                 $this->activity_menu();
                 $page->addContent('{##main##}', $this->getAllActivitiesView('2')); // 2 = event 
                 break;
+            case 'details' :
+                $page = Page::getInstance();
+                $page->setContent('{##main##}', '<h2>Event details</h2>');
+                $this->activity_menu();
+                $page->addContent('{##main##}', $this->getActivityDetailsView($id)); // 2 = event 
+                break;
             case 'new' :
                 if (!$login->isLoggedIn()) {
                     return false;
@@ -72,6 +78,9 @@ class Activity_Event extends Activity {
             return false;
         }
         switch ($alpha) {
+            case 'details' :
+                    $this->get('details', $id);
+                break;
             case 'new' :
                 if ($this->validateActivity() === true) {
                     if ($this->saveActivity() === true) {
@@ -126,7 +135,6 @@ class Activity_Event extends Activity {
         $env = Env::getInstance();
         $msg = Msg::getInstance();
 
-        print_r($env->post('activity'));
         $comments_checked = (!empty($env->post('activity')['comments']) AND $env->post('activity')['comments'] !== NULL) ? 'checked="checked"' : '';
         $signups_checked = (!empty($env->post('activity')['signups']) AND $env->post('activity')['signups'] !== NULL) ? 'checked="checked"' : '';
 
@@ -192,6 +200,56 @@ class Activity_Event extends Activity {
         return $view;
     }
 
+    function getActivityDetailsView($id) {
+        $env = Env::getInstance();
+        $msg = Msg::getInstance();
+
+        $act = $this->getActivity($id);
+
+        $title = (!empty($env->post('activity')['title'])) ? $env->post('activity')['title'] : $act->title;
+        $content = (!empty($env->post('activity')['content'])) ? $env->post('activity')['content'] : $act->description;
+        $date = (!empty($env->post('activity')['date'])) ? $env->post('activity')['date'] : $act->date;
+        $time = (!empty($env->post('activity')['time'])) ? $env->post('activity')['time'] : $act->time;
+
+        $comments_checked = $act->comments_activated;
+        $signups_checked = $act->signups_activated;
+
+        $view = new View();
+        $view->setTmpl(file('views/activity/activity_event_details_view.php'), array(
+            '{##form_action##}' => '',
+            '{##activity_title##}' => $title,
+            '{##activity_content##}' => $content,
+            '{##activity_date##}' => $date,
+            '{##activity_time##}' => $time,
+            '{##activity_comments_checked##}' => $comments_checked,
+            '{##activity_signups_checked##}' => $signups_checked,
+        ));
+        
+        $login = new Login();
+        if ($login->isLoggedIn()) {
+            $memberView = new View();
+            $memberView->setTmpl($view->getSubTemplate('{##activity_logged_in##}'));
+            $memberView->addContent('{##signup_text##}', 'Signup');
+            $memberView->addContent('{##signout_text##}', 'Signout');
+            $memberView->replaceTags();
+            $view->addContent('{##activity_logged_in##}',  $memberView);
+        } else {
+            $view->addContent('{##activity_logged_in##}',  '<a href="/login">Log in</a> to sign up!');
+        }
+        
+        if ($login->isLoggedIn() AND $login->currentUserID() === $act->userid) {
+            $adminView = new View();
+            $adminView->setTmpl($view->getSubTemplate('{##activity_admin##}'));
+            $adminView->addContent('{##admin_content##}', 'Manage subscriptions');
+            $adminView->replaceTags();
+            $view->addContent('{##activity_admin##}',  $adminView);
+        }
+
+        
+        $view->replaceTags();
+        return $view;
+    }
+    
     function getDeleteActivityForm($id) {
         $env = Env::getInstance();
         $msg = Msg::getInstance();
