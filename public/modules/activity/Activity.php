@@ -195,6 +195,7 @@ class Activity {
             $detailsView->addContent('{##details_link_text##}',  'details');
             $detailsView->replaceTags();
         }
+
         $subView->addContent('{##activity_details##}',  $detailsView);
         $subView->replaceTags();
         return $subView;
