@@ -8,6 +8,9 @@
     {##activity_content##}
     </section>
     <a href="{##comment_link##}">{##comment_link_text##}</a>
+    {##activity_details##}
+    <a href="{##details_link##}">{##details_link_text##}</a>
+    {/##activity_details##}
     {##activity_logged_in##}
     <section class="logged_in">
         <a href="{##update_link##}">{##update_link_text##}</a>

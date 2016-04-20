@@ -136,6 +136,7 @@ class Activity {
                 $delete_link = '/activity/shout/delete/' . $act->id;
                 $update_link = '/activity/shout/update/' . $act->id;
                 $comment_link = '/comment/activity/view/' . $act->id;
+                $details_link = '';
                 break;
             case '2' : 
                 $event = new Activity_Event();
@@ -147,7 +148,7 @@ class Activity {
                 }
                 
                 $event_data =  Parsedown::instance()->text($activity_event->title);
-                $event_data .= Parsedown::instance()->text($activity_event->description);
+                // $event_data .= Parsedown::instance()->text($activity_event->description);
                 $event_data .= $activity_event->date . " @ ";
                 $event_data .= $activity_event->time;
                     
@@ -155,6 +156,7 @@ class Activity {
                 $delete_link = '/activity/event/delete/' . $act->id;
                 $update_link = '/activity/event/update/' . $act->id;
                 $comment_link = '/comment/activity/view/' . $act->id;
+                $details_link = '/activity/event/details/' . $act->id;
                 break;
         }
         $subView->addContent('{##activity_content##}',  $content);
@@ -183,6 +185,17 @@ class Activity {
             $memberView->replaceTags();
             $subView->addContent('{##activity_logged_in##}',  $memberView);
         }
+
+        if ($details_link == '') {
+            $detailsView = '';
+        } else {
+            $detailsView = new View();
+            $detailsView->setTmpl($view->getSubTemplate('{##activity_details##}'));
+            $detailsView->addContent('{##details_link##}', $details_link);
+            $detailsView->addContent('{##details_link_text##}',  'details');
+            $detailsView->replaceTags();
+        }
+        $subView->addContent('{##activity_details##}',  $detailsView);
         $subView->replaceTags();
         return $subView;
     }
