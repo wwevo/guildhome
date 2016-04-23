@@ -11,7 +11,12 @@
         <input type="submit" name="activity[signout]" value="{##signout_text##}" />
     </form>
     {/##activity_logged_in##}
+    <section>
+        {##signups##}
+    </section>
     {##activity_admin##}
+    <section>
         {##admin_content##}
+    </section>
     {/##activity_admin##}
 </section>

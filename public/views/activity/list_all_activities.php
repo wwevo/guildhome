@@ -5,7 +5,7 @@
     on {##activity_published##},<br />
     <strong>{##activity_identity##}</strong> posted <strong>{##activity_type##}</strong>.
     <section class="content">
-    {##activity_content##}
+        {##activity_content##}
     </section>
     <a href="{##comment_link##}">{##comment_link_text##}</a>
     {##activity_details##}
