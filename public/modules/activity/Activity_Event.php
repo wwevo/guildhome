@@ -79,10 +79,8 @@ class Activity_Event extends Activity {
         }
         switch ($alpha) {
             case 'signup' :
-                    $this->get('details', $id);
-                break;
             case 'signout' :
-                    $this->get('details', $id);
+                    $this->toggleSignup($login->currentUserID(), $id);
                 break;
             case 'new' :
                 if ($this->validateActivity() === true) {
@@ -116,6 +114,48 @@ class Activity_Event extends Activity {
                 break;
         }
     }
+    
+    function toggleSignup($user_id, $event_id) {
+        $db = db::getInstance();
+        $sql = "SELECT * FROM activity_events_signups_user WHERE user_id = '$user_id' AND event_id = '$event_id';";
+        $query = $db->query($sql);
+        if ($query !== false AND $query->num_rows >= 1) {
+            $sql = "DELETE FROM activity_events_signups_user 
+                        WHERE user_id = '$user_id' AND event_id = '$event_id';";
+            $query = $db->query($sql);        
+        } else {
+            $sql = "INSERT INTO activity_events_signups_user (event_id, user_id, registration_id, preferred) VALUES ('$event_id', '$user_id', '', '0');";
+            $query = $db->query($sql);        
+        }
+
+        if ($query !== false) {
+            return true;
+        }
+        return false;
+    }
+    
+    function getSignupCountByEventId($event_id) {
+        $db = db::getInstance();
+        $sql = "SELECT * FROM activity_events_signups_user WHERE event_id = '$event_id';";
+        $query = $db->query($sql);
+        if ($query !== false AND $query->num_rows >= 1) {
+            return $query->num_rows;
+        }
+        return '0';
+    }
+    
+    function getSignupsByEventId($event_id) {
+        $db = db::getInstance();
+        $sql = "SELECT * FROM activity_events_signups_user WHERE event_id = '$event_id';";
+        $query = $db->query($sql);
+        if ($query !== false AND $query->num_rows >= 1) {
+            while ($result_row = $query->fetch_object()) {
+                $signups[] = $result_row->user_id;
+            }
+            return $signups;
+        }
+        return false;
+    }
 
     function getActivity($id) {
         $db = db::getInstance();
@@ -125,7 +165,7 @@ class Activity_Event extends Activity {
                     aes.maximal_signups_activated AS maximal_signups_activated, aes.maximal_signups AS maximal_signups, aes.signup_open_beyond_maximal AS signup_open_beyond_maximal, 
                     aes.class_registration_enabled AS class_registration_enabled,aes.roles_registration_enabled, aes.preference_selection_enabled AS preference_selection_enabled
                     FROM activity_events ae
-                    LEFT JOIN  activities a ON ae.activity_id = a.id 
+                    LEFT JOIN activities a ON ae.activity_id = a.id 
                     LEFT JOIN activity_events_signups aes ON ae.activity_id = aes.event_id
                     WHERE ae.activity_id = '$id';";
         
@@ -243,6 +283,21 @@ class Activity_Event extends Activity {
         $comments_checked = $act->comments_activated;
         $signups_checked = $act->signups_activated;
 
+        if ($signups_checked) {
+            $signed_up_users = $this->getSignupsByEventId($id);
+            if (is_array($signed_up_users)) {
+                foreach ($signed_up_users as $key => $user_id) {
+                    $identity = new Identity();
+                    $signed_up_users[$key] = $identity->getIdentityById($user_id, 0);
+                }
+                $signed_up_users = implode(', ', $signed_up_users);
+            } else {
+                $signed_up_users = 'No signups so far! Be the first!';
+            }
+        } else {
+            $signed_up_users = '';
+        }
+        
         $view = new View();
         $view->setTmpl(file('views/activity/activity_event_details_view.php'), array(
             '{##activity_title##}' => $title,
@@ -251,8 +306,8 @@ class Activity_Event extends Activity {
             '{##activity_time##}' => $time,
             '{##activity_comments_checked##}' => $comments_checked,
             '{##activity_signups_checked##}' => $signups_checked,
+            '{##signups##}' => $signed_up_users,
         ));
-        
         $login = new Login();
         $memberView = new View();
         $memberView->setTmpl($view->getSubTemplate('{##activity_logged_in##}'));

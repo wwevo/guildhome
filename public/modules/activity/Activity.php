@@ -144,6 +144,7 @@ class Activity {
             case '2' : 
                 $event = new Activity_Event();
                 $activity_event = $event->getActivity($act->id);
+                
                 if (isset($activity_event->comments_activated) AND $activity_event->comments_activated == '1') {
                     $allow_comments = TRUE;
                 } else {
@@ -156,6 +157,19 @@ class Activity {
                 $event_data .= $activity_event->time;
                     
                 $content = $event_data;
+                if ($activity_event->signups_activated) {
+                    $content .= "<br />Signed up:" . $event->getSignupCountByEventId($act->id);
+                }
+                
+                if ($activity_event->maximal_signups_activated) {
+                    $content .= "/" . $activity_event->maximal_signups;
+                }
+
+                if ($activity_event->minimal_signups_activated) {
+                    $content .= " (" . $activity_event->minimal_signups . " req)";
+                }
+
+
                 $delete_link = '/activity/event/delete/' . $act->id;
                 $update_link = '/activity/event/update/' . $act->id;
                 $comment_link = '/comment/activity/view/' . $act->id;
