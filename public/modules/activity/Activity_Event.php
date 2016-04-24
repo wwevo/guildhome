@@ -81,6 +81,7 @@ class Activity_Event extends Activity {
             case 'signup' :
             case 'signout' :
                     $this->toggleSignup($login->currentUserID(), $id);
+                    header("Location: /activities/events");
                 break;
             case 'new' :
                 if ($this->validateActivity() === true) {
@@ -395,45 +396,27 @@ class Activity_Event extends Activity {
         $signups_max_val = !empty($env->post('activity')['signups_max_val']) ? $env->post('activity')['signups_max_val'] : '0';
         $keep_signups_open = isset($env->post('activity')['keep_signups_open']) ? '1' : '0';
 
-        $sql = "INSERT INTO activity_events_signups (event_id, minimal_signups_activated, minimal_signups, maximal_signups_activated, maximal_signups, signup_open_beyond_maximal, class_registration_enabled, roles_registration_enabled, preference_selection_enabled) VALUES ('$activity_id', '$signups_min', '$signups_min_val', '$signups_max', '$signups_max_val', '$keep_signups_open', '0', '0', '0');";
-          //  echo $sql; exit;
+        $sql = "SELECT * FROM activity_events_signups WHERE event_id = '$activity_id';";
         $query = $db->query($sql);
-        if ($query !== false) {
+        if ($db->affected_rows == 0) {
+            $sql = "INSERT INTO activity_events_signups (event_id, minimal_signups_activated, minimal_signups, maximal_signups_activated, maximal_signups, signup_open_beyond_maximal, class_registration_enabled, roles_registration_enabled, preference_selection_enabled) VALUES ('$activity_id', '$signups_min', '$signups_min_val', '$signups_max', '$signups_max_val', '$keep_signups_open', '0', '0', '0');";
+        } else {
+            $sql = "UPDATE activity_events_signups
+                        SET 
+                            minimal_signups_activated = '$signups_min',
+                            minimal_signups = '$signups_min_val',
+                            maximal_signups_activated = '$signups_max',
+                            maximal_signups = '$signups_max_val',
+                            signup_open_beyond_maximal = '$keep_signups_open',
+                            class_registration_enabled = '0',
+                            roles_registration_enabled = '0',
+                            preference_selection_enabled = '0'
+                        WHERE event_id = '$activity_id';";
+        }
+        $query = $db->query($sql);
+        if ($db->affected_rows > 0) {
             return true;
         }
-        return false;
-    }
-    
-    function updateSignups($activity_id) {
-        $db = db::getInstance();
-        $env = Env::getInstance();
-
-        $signups_min = isset($env->post('activity')['signups_min']) ? '1' : '0';
-        $signups_max = isset($env->post('activity')['signups_max']) ? '1' : '0';
-        $signups_min_val = !empty($env->post('activity')['signups_min_val']) ? $env->post('activity')['signups_min_val'] : '0';
-        $signups_max_val = !empty($env->post('activity')['signups_max_val']) ? $env->post('activity')['signups_max_val'] : '0';
-        $keep_signups_open = isset($env->post('activity')['keep_signups_open']) ? '1' : '0';
-
-        $sql = "UPDATE activity_events_signups
-                    SET 
-                        minimal_signups_activated = '$signups_min',
-                        minimal_signups = '$signups_min_val',
-                        maximal_signups_activated = '$signups_max',
-                        maximal_signups = '$signups_max_val',
-                        signup_open_beyond_maximal = '$keep_signups_open',
-                        class_registration_enabled = '0',
-                        roles_registration_enabled = '0',
-                        preference_selection_enabled = '0'
-                    WHERE event_id = '$activity_id';";
-
-        $query = $db->query($sql);
-        if ($db->affected_rows > 0 AND $query !== false) {
-            return true;
-        } else {
-            if ($this->saveSignups($activity_id) !== false) {
-                return true;
-            }
-        } 
         return false;
     }
     
@@ -499,8 +482,14 @@ class Activity_Event extends Activity {
                     WHERE activity_id = '$id';";
 
         $query = $db->query($sql);
-        if ($db->affected_rows > 0 AND $query !== false) {
-            if ($this->updateSignups($id) !== false) {
+
+//        echo $sql;
+//        var_dump($query);
+//        var_dump($db->affected_rows);
+//        exit;
+
+        if ($db->affected_rows > 0 OR $query !== false) {
+            if ($this->saveSignups($id) !== false) {
                 $env->clear_post('activity');
                 return true;
             }
