@@ -425,8 +425,9 @@ class Activity_Event extends Activity {
                         roles_registration_enabled = '0',
                         preference_selection_enabled = '0'
                     WHERE event_id = '$activity_id';";
+
         $query = $db->query($sql);
-        if ($db->affected_rows !== 0 OR $query !== false) {
+        if ($db->affected_rows > 0 AND $query !== false) {
             return true;
         } else {
             if ($this->saveSignups($activity_id) !== false) {
@@ -498,7 +499,7 @@ class Activity_Event extends Activity {
                     WHERE activity_id = '$id';";
 
         $query = $db->query($sql);
-        if ($db->affected_rows !== 0 OR $query !== false) {
+        if ($db->affected_rows > 0 AND $query !== false) {
             if ($this->updateSignups($id) !== false) {
                 $env->clear_post('activity');
                 return true;

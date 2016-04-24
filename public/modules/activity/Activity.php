@@ -169,7 +169,6 @@ class Activity {
                     $content .= " (" . $activity_event->minimal_signups . " req)";
                 }
 
-
                 $delete_link = '/activity/event/delete/' . $act->id;
                 $update_link = '/activity/event/update/' . $act->id;
                 $comment_link = '/comment/activity/view/' . $act->id;
