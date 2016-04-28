@@ -19,15 +19,16 @@ class Profile {
     }
     
     function get($slug = NULL) {
-        $login = new Login();
         $page = Page::getInstance();
         
         if (empty($slug)) {
             $page->setContent('{##main##}', '<h2>Registered Members</h2>');
             $page->addContent('{##main##}', $this->getUsersView());
         } else {
-            $page->setContent('{##main##}', '<h2>Profile</h2>');
+            $login = new Login();
             $db = db::getInstance();
+
+            $page->setContent('{##main##}', '<h2>Profile</h2>');
             $user = $this->getUsers($db->real_escape_string($slug))[0];
             
             $view = new View();
@@ -51,6 +52,10 @@ class Profile {
                     $view->addContent('{##main##}', $settings->getUpdateSettingForm('avatar'));
                     $view->addContent('{##main##}', '<p>just copy and paste from your guild wars account page. Only account and guilds are required, characters would be nice.</p>');
                     $view->addContent('{##main##}', $settings->getUpdateSettingForm('api_key'));
+                    
+                    $activity_event = new Activity_Event();
+                    $view->addContent('{##main##}', '<p>Event Schedule</p>');
+                    $view->addContent('{##main##}', $activity_event->getSignupsByUserIdView($login->currentUserID()));
                 }
                 $subView->replaceTags();
                 $view->addContent('{##profile_badge##}', $subView);

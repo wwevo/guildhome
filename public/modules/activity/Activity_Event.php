@@ -7,7 +7,7 @@
  */
 
 /**
- * Description of Activity_Shout
+ * Description of Activity_Event
  *
  * @author Christian Voigt <chris at notjustfor.me>
  */
@@ -19,12 +19,7 @@ class Activity_Event extends Activity {
         Toro::addRoute(["/activity/event/:alpha/:alpha" => "Activity_Event"]);
     }
 
-    function create_tables() {
-        $db = db::getInstance();
-        $sql = "INSERT INTO activity_types (id, name, description)
-                            VALUES('2', 'event', 'an event');";
-        $result = $db->query($sql);
-    }
+    function create_tables() {}
 
     function get($alpha = '', $id = NULL) {
         $login = new Login();
@@ -161,7 +156,7 @@ class Activity_Event extends Activity {
     function getActivity($id) {
         $db = db::getInstance();
 
-        $sql = "SELECT ae.title AS title, ae.description AS description, ae.date AS date, ae.time AS time, ae.comments_activated AS comments_activated, 
+        $sql = "SELECT ae.activity_id AS activity_id, ae.title AS title, ae.description AS description, ae.date AS date, ae.time AS time, ae.comments_activated AS comments_activated, 
                     ae.signups_activated AS signups_activated, a.userid AS userid, aes.event_id, aes.minimal_signups_activated AS minimal_signups_activated, aes.minimal_signups AS minimal_signups, 
                     aes.maximal_signups_activated AS maximal_signups_activated, aes.maximal_signups AS maximal_signups, aes.signup_open_beyond_maximal AS signup_open_beyond_maximal, 
                     aes.class_registration_enabled AS class_registration_enabled,aes.roles_registration_enabled, aes.preference_selection_enabled AS preference_selection_enabled
@@ -276,10 +271,10 @@ class Activity_Event extends Activity {
 
         $act = $this->getActivity($id);
 
-        $title = (!empty($env->post('activity')['title'])) ? $env->post('activity')['title'] : $act->title;
-        $content = (!empty($env->post('activity')['content'])) ? $env->post('activity')['content'] : $act->description;
-        $date = (!empty($env->post('activity')['date'])) ? $env->post('activity')['date'] : $act->date;
-        $time = (!empty($env->post('activity')['time'])) ? $env->post('activity')['time'] : $act->time;
+        $title = $act->title;
+        $content = $act->description;
+        $date = $act->date;
+        $time = $act->time;
 
         $comments_checked = $act->comments_activated;
         $signups_checked = $act->signups_activated;
@@ -418,6 +413,42 @@ class Activity_Event extends Activity {
             return true;
         }
         return false;
+    }
+    
+    function getSignupsByUserId($user_id) {
+        $db = db::getInstance();
+        $sql = "SELECT * FROM activity_events_signups_user WHERE user_id = '$user_id';";
+        $query = $db->query($sql);
+        if ($query !== false AND $query->num_rows >= 1) {
+            while ($result_row = $query->fetch_object()) {
+                $signups[] = $this->getActivity($result_row->event_id);
+            }
+            return $signups;
+        }
+        return false;
+    }
+
+    function getSignupsByUserIdView($user_id) {
+        $signups = $this->getSignupsByUserId($user_id);
+        $view = new View();
+        $view->setTmpl(file('views/activity/activity_signups_view.php'));
+        if (is_array($signups)) {
+            $signups_loop = NULL;
+            foreach ($signups as $signup) {
+                $subView = new View();
+                $subView->setTmpl($view->getSubTemplate('{##signups_loop##}'));
+                $subView->addContent('{##activity_title##}', $signup->title);
+                $subView->addContent('{##activity_details_link##}', '/activity/event/details/' . $signup->activity_id);
+                $subView->addContent('{##activity_details_link_text##}', 'Event details');
+                $subView->addContent('{##activity_event_date##}', $signup->date);
+                $subView->addContent('{##activity_event_time##}', $signup->time);
+                $subView->replaceTags();
+                $signups_loop .= $subView;
+            }
+            $view->addContent('{##signups_loop##}',  $signups_loop);
+        }
+        $view->replaceTags();
+        return $view;
     }
     
     function saveActivity() {
