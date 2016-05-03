@@ -73,14 +73,14 @@ class Profile {
         if (is_null($user)) {
             $sql = "SELECT users.id, users.username, users.email, user_ranks.id AS rank, user_ranks.description AS rank_description
                         FROM users
-                        INNER JOIN user_ranks
+                        LEFT JOIN user_ranks
                         ON users.rank = user_ranks.id
                         WHERE users.rank != '0'
                         ORDER BY users.id ASC;";
         } else {
             $sql = "SELECT users.id, users.username, users.email, user_ranks.id AS rank, user_ranks.description AS rank_description
                         FROM users
-                        INNER JOIN user_ranks
+                        LEFT JOIN user_ranks
                         ON users.rank = user_ranks.id
                         WHERE users.id = '" . $user . "'
                         OR users.username = '" . $user . "';";

@@ -28,7 +28,7 @@ class gw2api {
             if ($slug == 'dump') {
                 $page->addContent('{##main##}', $this->dumpAllDataView());
             } else {
-                $page->addContent('{##main##}', $settings->getUpdateSettingForm('gw2apikey'));
+                $page->addContent('{##main##}', $settings->getUpdateSettingForm('api_key'));
                 $page->addContent('{##main##}', $this->getImportForm());
                 $page->addContent('{##main##}', $this->getImportedData());
                 // $page->addContent('{##main##}', '<a href="/gw2api/dump">Data-dump (test)</a> : this may take a few seconds to process!');
