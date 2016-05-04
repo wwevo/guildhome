@@ -32,7 +32,7 @@ class Profile {
             $user = $this->getUsers($db->real_escape_string($slug))[0];
             
             $view = new View();
-            $view->setTmpl(file('views/profile/profile_main.php'));
+            $view->setTmpl(file('themes/' . constant('theme') . '/views/profile/profile_main.php'));
 
             if (is_object($user)) {
                 $subView = new View();
@@ -100,7 +100,7 @@ class Profile {
 
     public function getUsersView() {
         $view = new View();
-        $view->setTmpl(file('views/core/login/all_users_view.php'));
+        $view->setTmpl(file('themes/' . constant('theme') . '/views/core/login/all_users_view.php'));
 
         $all_users = null;
         $users = $this->getUsers();

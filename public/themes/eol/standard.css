@@ -133,8 +133,18 @@ body > div > aside {
 
 article.activity {
     margin: 0.5em 0;
-    border-bottom: 2px solid #eda73e;
     background-image: linear-gradient(to bottom, #eda73e 40px, #FFFFFF 40px);
+}
+
+article.activity h3, 
+article.activity section.date {
+    font-size: 16px; line-height: 20px; margin: 0; padding: 0;
+}
+
+
+article.activity section.description {
+    border-top: 1px solid #eda73e;
+    border-bottom: 1px solid #eda73e;
 }
 
 section.main a {

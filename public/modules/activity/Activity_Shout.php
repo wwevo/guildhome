@@ -138,7 +138,7 @@ class Activity_Shout extends Activity {
         $comments_checked = (!empty($env->post('activity')['comments']) AND $env->post('activity')['comments'] !== NULL) ? 'checked="checked"' : '';
 
         $view = new View();
-        $view->setTmpl(file('views/activity/new_activity_shout_form.php'), array(
+        $view->setTmpl(file('themes/' . constant('theme') . '/views/activity/new_activity_shout_form.php'), array(
             '{##form_action##}' => '/activity/shout/new',
             '{##activity_content##}' => $env->post('activity')['content'],
             '{##activity_content_validation##}' => $msg->fetch('activity_shout_content_validation'),
@@ -162,7 +162,7 @@ class Activity_Shout extends Activity {
         $comments_checked = ($comments_checked == '1') ? 'checked="' . $comments_checked . '"' : '';
 
         $view = new View();
-        $view->setTmpl(file('views/activity/update_activity_shout_form.php'), array(
+        $view->setTmpl(file('themes/' . constant('theme') . '/views/activity/update_activity_shout_form.php'), array(
             '{##form_action##}' => '/activity/shout/update/' . $id,
             '{##activity_content##}' => $content,
             '{##activity_content_validation##}' => $msg->fetch('activity_shout_content_validation'),
@@ -183,7 +183,7 @@ class Activity_Shout extends Activity {
         $content = $act->content;
         
         $view = new View();
-        $view->setTmpl(file('views/activity/delete_activity_form.php'), array(
+        $view->setTmpl(file('themes/' . constant('theme') . '/views/activity/delete_activity_form.php'), array(
             '{##form_action##}' => '/activity/shout/delete/' . $id,
             '{##activity_content##}' => $content,
             '{##submit_text##}' => "delete",

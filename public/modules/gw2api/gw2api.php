@@ -88,7 +88,7 @@ class gw2api {
     
     function getImportForm() {
         $view = new View();
-        $view->setTmpl(file('views/gw2api/import_form.php'));
+        $view->setTmpl(file('themes/' . constant('theme') . '/views/gw2api/import_form.php'));
         $view->addContent('{##form_action##}', '/gw2api/import');
         $view->addContent('{##gw2api_import_submit_text##}', 'Import!');
         $view->replaceTags();
@@ -99,7 +99,7 @@ class gw2api {
         $settings = new Settings();
 
         $view = new View();
-        $view->setTmpl(file('views/gw2api/show_imported_data.php'));
+        $view->setTmpl(file('themes/' . constant('theme') . '/views/gw2api/show_imported_data.php'));
         $view->addContent('{##data##}', "<pre>" . print_r(json_decode($settings->getSettingByKey('gw2apidata'), true), true) . "</pre>");
         $view->replaceTags();
         return $view;
@@ -107,7 +107,7 @@ class gw2api {
     
     function dumpAllDataView() {
         $view = new View();
-        $view->setTmpl(file('views/gw2api/dump_all_data_view.php'));
+        $view->setTmpl(file('themes/' . constant('theme') . '/views/gw2api/dump_all_data_view.php'));
         $view->addContent('{##data##}', '<pre>');
         $view->addContent('{##data##}', print_r($api_tokeninfo, true));
         $view->addContent('{##data##}', print_r($api_account, true));

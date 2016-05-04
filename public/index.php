@@ -23,11 +23,13 @@ require_once ('classes/autoload.php');
  */
 require_once ('modules/autoload.php');
 
+define('theme', 'eol');
+
 /*
  * Set up the static::template to use
  */
 $page = Page::getInstance();
-$page->setTmpl(file('views/core/page.php'));
+$page->setTmpl(file('themes/' . constant('theme') . '/views/core/page.php'));
 
 /*
  * now comes a lot of quickly hacked together stuff. I needed some results way
@@ -59,7 +61,7 @@ Toro::addRoute(["/" => "Home"]);
 ToroHook::add('404', function() {
     header('HTTP/1.0 404 Not Found');
     $page = Page::getInstance();
-    $page->setTmpl(file('views/core/404.php'));
+    $page->setTmpl(file('themes/' . constant('theme') . '/views/core/404.php'));
     $page->replaceTags();
     echo $page;
     exit;
