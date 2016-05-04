@@ -14,7 +14,6 @@
         {##activity_content##}
     </section>
 
-
     {##signups_activated##}
     <section>
         {##signups##}
