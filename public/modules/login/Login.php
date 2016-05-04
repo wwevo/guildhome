@@ -154,13 +154,13 @@ class Login {
 
         $view = new View();
         if ($this->isLoggedIn() == true) {
-            $view->setTmpl(file('views/core/login/logout_form.php'), array(
+            $view->setTmpl(file('themes/' . constant('theme') . '/views/core/login/logout_form.php'), array(
                 '{##form_action##}' => '/logout',
                 '{##logout_link##}' => '/logout',
                 '{##logout_link_text##}' => 'Logout ' . $_SESSION['evo']['username'],
             ));
         } else {
-            $view->setTmpl(file('views/core/login/login_form.php'), array(
+            $view->setTmpl(file('themes/' . constant('theme') . '/views/core/login/login_form.php'), array(
                 '{##form_action##}' => '/login',
                 '{##login_username##}' => $env->post('login')['username'],
                 '{##login_username_text##}' => 'Username',

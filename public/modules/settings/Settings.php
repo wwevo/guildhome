@@ -117,7 +117,7 @@ class Settings {
         }
 
         $view = new View();
-        $view->setTmpl(file('views/settings/update_setting_form.php'), array(
+        $view->setTmpl(file('themes/' . constant('theme') . '/views/settings/update_setting_form.php'), array(
             '{##form_action##}' => '/setting/' . $key,
             '{##setting_key##}' => $key,
             '{##setting_value##}' => $setting_value,

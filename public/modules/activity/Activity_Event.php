@@ -159,10 +159,12 @@ class Activity_Event extends Activity {
         $sql = "SELECT ae.activity_id AS activity_id, ae.title AS title, ae.description AS description, ae.date AS date, ae.time AS time, ae.comments_activated AS comments_activated, 
                     ae.signups_activated AS signups_activated, a.userid AS userid, aes.event_id, aes.minimal_signups_activated AS minimal_signups_activated, aes.minimal_signups AS minimal_signups, 
                     aes.maximal_signups_activated AS maximal_signups_activated, aes.maximal_signups AS maximal_signups, aes.signup_open_beyond_maximal AS signup_open_beyond_maximal, 
-                    aes.class_registration_enabled AS class_registration_enabled,aes.roles_registration_enabled, aes.preference_selection_enabled AS preference_selection_enabled
+                    aes.class_registration_enabled AS class_registration_enabled,aes.roles_registration_enabled, aes.preference_selection_enabled AS preference_selection_enabled,
+                    aet.name AS event_type
                     FROM activity_events ae
                     LEFT JOIN activities a ON ae.activity_id = a.id 
                     LEFT JOIN activity_events_signups aes ON ae.activity_id = aes.event_id
+                    LEFT JOIN activity_events_types aet ON ae.event_type = aet.id
                     WHERE ae.activity_id = '$id';";
         
         $query = $db->query($sql);
@@ -186,7 +188,7 @@ class Activity_Event extends Activity {
         $keep_signups_open_checked = (!empty($env->post('activity')['keep_signups_open']) AND $env->post('activity')['keep_signups_open'] !== NULL) ? 'checked="checked"' : '';
 
         $view = new View();
-        $view->setTmpl(file('views/activity/new_activity_event_form.php'), array(
+        $view->setTmpl(file('themes/' . constant('theme') . '/views/activity/new_activity_event_form.php'), array(
             '{##form_action##}' => '/activity/event/new',
             '{##activity_title##}' => $env->post('activity')['title'],
             '{##activity_title_validation##}' => $msg->fetch('activity_event_title_validation'),
@@ -240,7 +242,7 @@ class Activity_Event extends Activity {
         $keep_signups_open_checked = ($keep_signups_open_checked === '1') ? 'checked="' . $keep_signups_open_checked . '"' : '';
 
         $view = new View();
-        $view->setTmpl(file('views/activity/update_activity_event_form.php'), array(
+        $view->setTmpl(file('themes/' . constant('theme') . '/views/activity/update_activity_event_form.php'), array(
             '{##form_action##}' => '/activity/event/update/' . $id,
             '{##activity_title##}' => $title,
             '{##activity_title_validation##}' => $msg->fetch('activity_event_title_validation'),
@@ -266,15 +268,18 @@ class Activity_Event extends Activity {
     }
     
     function getActivityDetailsView($id) {
-        $env = Env::getInstance();
-        $msg = Msg::getInstance();
 
         $act = $this->getActivity($id);
 
+        $identity = new Identity();
+        $event_owner = $identity->getIdentityById($act->userid, 0);
+
         $title = $act->title;
-        $content = $act->description;
         $date = $act->date;
         $time = $act->time;
+        $event_type = $act->event_type;
+
+        $content = $act->description;
 
         $comments_checked = $act->comments_activated;
         $signups_checked = $act->signups_activated;
@@ -283,7 +288,6 @@ class Activity_Event extends Activity {
             $signed_up_users = $this->getSignupsByEventId($id);
             if (is_array($signed_up_users)) {
                 foreach ($signed_up_users as $key => $user_id) {
-                    $identity = new Identity();
                     $signed_up_users[$key] = $identity->getIdentityById($user_id, 0);
                 }
                 $signed_up_users = implode(', ', $signed_up_users);
@@ -295,8 +299,10 @@ class Activity_Event extends Activity {
         }
         
         $view = new View();
-        $view->setTmpl(file('views/activity/activity_event_details_view.php'), array(
+        $view->setTmpl(file('themes/' . constant('theme') . '/views/activity/activity_event_details_view.php'), array(
             '{##activity_title##}' => $title,
+            '{##activity_type##}' => $event_type,
+            '{##activity_owner##}' => $event_owner,
             '{##activity_content##}' => $content,
             '{##activity_date##}' => $date,
             '{##activity_time##}' => $time,
@@ -314,10 +320,10 @@ class Activity_Event extends Activity {
             $memberView->addContent('{##signout_text##}', 'Signout');
             $memberView->replaceTags();
             if ($login->currentUserID() === $act->userid) {
-                $adminView = new View();
-                $adminView->setTmpl($view->getSubTemplate('{##activity_admin##}'));
-                $adminView->addContent('{##admin_content##}', 'Manage subscriptions');
-                $adminView->replaceTags();
+                $adminView = '';
+//                $adminView = new View();
+//                $adminView->setTmpl($view->getSubTemplate('{##activity_admin##}'));
+//                $adminView->replaceTags();
             } else {
                 $adminView = '';
             }
@@ -343,7 +349,7 @@ class Activity_Event extends Activity {
         $content = $act->title . "<br />" . $act->description;
         
         $view = new View();
-        $view->setTmpl(file('views/activity/delete_activity_form.php'), array(
+        $view->setTmpl(file('themes/' . constant('theme') . '/views/activity/delete_activity_form.php'), array(
             '{##form_action##}' => '/activity/event/delete/' . $id,
             '{##activity_content##}' => $content,
             '{##submit_text##}' => "delete",
@@ -431,7 +437,7 @@ class Activity_Event extends Activity {
     function getSignupsByUserIdView($user_id) {
         $signups = $this->getSignupsByUserId($user_id);
         $view = new View();
-        $view->setTmpl(file('views/activity/activity_signups_view.php'));
+        $view->setTmpl(file('themes/' . constant('theme') . '/views/activity/activity_signups_view.php'));
         if (is_array($signups)) {
             $signups_loop = NULL;
             foreach ($signups as $signup) {
