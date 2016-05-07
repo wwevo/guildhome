@@ -18,16 +18,10 @@
     <section>
         {##signups##}
     </section>
-    {/##signups_activated##}
-
     {##activity_logged_in##}
     <form method="post" action="{##signup##}">
         <input type="submit" name="activity[signup]" value="{##signup_text##}" />
     </form>
-
-    <form method="post" action="{##signout##}">
-        <input type="submit" name="activity[signout]" value="{##signout_text##}" />
-    </form>
     {/##activity_logged_in##}
-
+    {/##signups_activated##}
 </article>

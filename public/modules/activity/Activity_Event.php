@@ -306,45 +306,26 @@ class Activity_Event extends Activity {
             '{##activity_content##}' => $content,
             '{##activity_date##}' => $date,
             '{##activity_time##}' => $time,
-            '{##activity_comments_checked##}' => $comments_checked,
-            '{##activity_signups_checked##}' => $signups_checked,
-           // '{##signups##}' => $signed_up_users,
         ));
         
         $login = new Login();
         $signupsView = new View();
         $signupsView->setTmpl($view->getSubTemplate('{##signups_activated##}'));
         $signupsView->addContent('{##signups##}', $signed_up_users);
-        $signupsView->replaceTags();
-        
-        
-        $memberView = new View();
-        $memberView->setTmpl($view->getSubTemplate('{##activity_logged_in##}'));
+
+        $memberView = '';
         if ($login->isLoggedIn() AND $act->signups_activated == 1) {
+            $memberView = new View();
+            $memberView->setTmpl($signupsView->getSubTemplate('{##activity_logged_in##}'));
             $memberView->addContent('{##signup##}', '/activity/event/signup/' . $id);
-            $memberView->addContent('{##signout##}', '/activity/event/signout/' . $id);
-            $memberView->addContent('{##signup_text##}', 'Signup');
-            $memberView->addContent('{##signout_text##}', 'Signout');
+            $memberView->addContent('{##signup_text##}', 'Signup/out');
             $memberView->replaceTags();
-            if ($login->currentUserID() === $act->userid) {
-                $adminView = '';
-//                $adminView = new View();
-//                $adminView->setTmpl($view->getSubTemplate('{##activity_admin##}'));
-//                $adminView->replaceTags();
-            } else {
-                $adminView = '';
-            }
-        } elseif(!$login->isLoggedIn() AND $act->signups_activated == 1) {
-            $memberView = 'Log in to signup';
-            $adminView = '';
-        } else {
-            $memberView = '';
-            $adminView = '';
         }
+
+        $signupsView->addContent('{##activity_logged_in##}',  $memberView);
+        $signupsView->replaceTags();
+
         $view->addContent('{##signups_activated##}',  $signupsView);
-        $view->addContent('{##activity_logged_in##}',  $memberView);
-        $view->addContent('{##activity_admin##}',  $adminView);
-        
         $view->replaceTags();
         return $view;
     }
