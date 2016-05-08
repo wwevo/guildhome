@@ -23,35 +23,34 @@ require_once ('classes/autoload.php');
  */
 require_once ('modules/autoload.php');
 
-define('theme', 'eol');
+define('theme', 'boilerplate');
 
 /*
  * Set up the static::template to use
  */
 $page = Page::getInstance();
-$page->setTmpl(file('themes/' . constant('theme') . '/views/core/page.php'));
+$page->setTmpl(file('themes/' . constant('theme') . '/page.php'));
 
 /*
  * now comes a lot of quickly hacked together stuff. I needed some results way
  * before I could lay a proper foundation. This IS a work in progress and
  * there's lots of stuff to do. Wanna help? Feel free ^^
  */
-$page->addContent('{##header##}', '<h1>Evolution of Loneliness</h1>');
+$page->addContent('{##header##}', '<a href="/">Evolution of Loneliness</a>');
 
-$site_menu  = '<div class="site-menu">';
-$site_menu .= '<a href="/">Home</a>';
-$site_menu .= '<a href="/activities">Activities</a>';
-$site_menu .= '<a href="/profiles">Members</a>';
-$site_menu .= '<a href="/about">About EoL</a>';
-$site_menu .= '</div>';
+$site_menu  = '<ul class="site-menu">';
+$site_menu .= '<li><a href="/activities">Activities</a></li>';
+$site_menu .= '<li><a href="/profiles">Members</a></li>';
+$site_menu .= '<li><a href="/about">About EoL</a></li>';
+$site_menu .= '</ul>';
 
-$user_menu  = '<div class="user-menu">';
+$user_menu  = '<aside>';
 $user_menu .= ($login->isLoggedIn()) ? '<a href="/profile/' . $login->currentUsername() . '">Profile</a> ' : '<a href="/register">Register </a>';
 $user_menu .= ($login->isLoggedIn()) ? '<a href="/logout">Logout</a>' : '<a href="/login">Login</a>';
-$user_menu .= '</div>';
-$page->addContent('{##nav##}', $site_menu . $user_menu);
+$user_menu .= '</aside>';
+$page->addContent('{##nav##}', $site_menu);
 
-// $page->addContent('{##sidebar##}', 'widgets');
+$page->addContent('{##sidebar##}', $user_menu);
 
 /*
  * Do the routing as per modules instructions!!

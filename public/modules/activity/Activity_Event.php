@@ -273,6 +273,8 @@ class Activity_Event extends Activity {
 
         $identity = new Identity();
         $event_owner = $identity->getIdentityById($act->userid, 0);
+        $profile = new Profile();
+        $event_owner_profile = $profile->getProfileUrlById($act->userid);
 
         $title = $act->title;
         $date = $act->date;
@@ -303,6 +305,7 @@ class Activity_Event extends Activity {
             '{##activity_title##}' => $title,
             '{##activity_type##}' => $event_type,
             '{##activity_owner##}' => $event_owner,
+            '{##activity_owner_profile_url##}' => $event_owner_profile,
             '{##activity_content##}' => $content,
             '{##activity_date##}' => $date,
             '{##activity_time##}' => $time,

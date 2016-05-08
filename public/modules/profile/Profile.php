@@ -98,6 +98,12 @@ class Profile {
         }
     }
 
+    function getProfileUrlById($user_id) {
+        $profile = new Profile();
+        $user = $this->getUsers($user_id)[0];
+        return '/profile/' . $user->username;
+    }
+    
     public function getUsersView() {
         $view = new View();
         $view->setTmpl(file('themes/' . constant('theme') . '/views/core/login/all_users_view.php'));
