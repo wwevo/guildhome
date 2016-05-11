@@ -76,7 +76,7 @@ body > div > section.nav {
     padding: 0 12.5px;
 }
 
-body > div > section.nav .user-menu {
+/*body > div > section.nav .user-menu {
     float: right;
 }
 
@@ -84,9 +84,43 @@ body > div > section.nav .user-menu a {
     font-size: 14px;
     color: black;
     text-decoration: none;
+}*/
+
+ul.user-menu,
+ul.site-menu {
+    margin: 0; padding: 0;
 }
 
-body > div > section.nav .site-menu {
+ul.site-menu li {
+    float: left;
+    margin-right: 12px;
+    list-style-type: none;
+}
+
+ul.site-menu li a {
+    font-size: 20px;
+    color: black;
+    text-decoration: none;
+}
+
+ul.user-menu {
+    float: right;
+}
+
+ul.user-menu li {
+    float: left;
+    margin-left: 12px;
+    list-style-type: none;
+}
+
+ul.user-menu li a {
+    font-size: 14px;
+    color: black;
+    text-decoration: none;
+
+}
+
+/*body > div > section.nav .site-menu {
     float: left;
 }
 
@@ -96,7 +130,7 @@ body > div > section.nav .site-menu a {
     text-decoration: none;
     display: inline-block;
     margin-right: 12px;
-}
+}*/
 
 body > div > section.nav a:hover,
 body > div > section.nav a.active {

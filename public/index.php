@@ -23,11 +23,18 @@ require_once ('classes/autoload.php');
  */
 require_once ('modules/autoload.php');
 
-define('theme', 'boilerplate');
-
 /*
  * Set up the static::template to use
+ * use a theme if specified in user profile
  */
+
+$settings = new Settings();
+$theme_name = filter_var($settings->getSettingByKey('theme_name'), FILTER_SANITIZE_STRING);
+if ($theme_name !== false AND !empty($theme_name)) {
+    define('theme', $theme_name);
+} else {
+    define('theme', 'eol');
+}
 $page = Page::getInstance();
 $page->setTmpl(file('themes/' . constant('theme') . '/page.php'));
 
@@ -39,18 +46,19 @@ $page->setTmpl(file('themes/' . constant('theme') . '/page.php'));
 $page->addContent('{##header##}', '<a href="/">Evolution of Loneliness</a>');
 
 $site_menu  = '<ul class="site-menu">';
+$site_menu .= '<li><a href="/">Home</a></li>';
 $site_menu .= '<li><a href="/activities">Activities</a></li>';
 $site_menu .= '<li><a href="/profiles">Members</a></li>';
 $site_menu .= '<li><a href="/about">About EoL</a></li>';
 $site_menu .= '</ul>';
 
-$user_menu  = '<aside>';
-$user_menu .= ($login->isLoggedIn()) ? '<a href="/profile/' . $login->currentUsername() . '">Profile</a> ' : '<a href="/register">Register </a>';
-$user_menu .= ($login->isLoggedIn()) ? '<a href="/logout">Logout</a>' : '<a href="/login">Login</a>';
-$user_menu .= '</aside>';
+$user_menu  = '<ul class="user-menu">';
+$user_menu .= '<li>' .(($login->isLoggedIn()) ? '<a href="/profile/' . $login->currentUsername() . '">Profile</a> ' : '<a href="/register">Register </a>') . '</li>';
+$user_menu .= '<li>' .(($login->isLoggedIn()) ? '<a href="/logout">Logout</a>' : '<a href="/login">Login</a>') . '</li>';
+$user_menu .= '</ul>';
 $page->addContent('{##nav##}', $site_menu);
 
-$page->addContent('{##sidebar##}', $user_menu);
+$page->addContent('{##user_nav##}', $user_menu);
 
 /*
  * Do the routing as per modules instructions!!

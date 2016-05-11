@@ -52,6 +52,12 @@ class Profile {
                     $view->addContent('{##main##}', $settings->getUpdateSettingForm('avatar'));
                     $view->addContent('{##main##}', '<p>just copy and paste from your guild wars account page. Only account and guilds are required, characters would be nice.</p>');
                     $view->addContent('{##main##}', $settings->getUpdateSettingForm('api_key'));
+
+                    $view->addContent('{##main##}', '<hr />');
+                    $view->addContent('{##main##}', 'Development stuff');
+
+                    $view->addContent('{##main##}', '<p>Theme</p>');
+                    $view->addContent('{##main##}', $settings->getUpdateSettingForm('theme_name'));
                     
                     $activity_event = new Activity_Event();
                     $view->addContent('{##main##}', '<p>Event Schedule</p>');

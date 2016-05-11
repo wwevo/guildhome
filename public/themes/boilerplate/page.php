@@ -7,7 +7,6 @@
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="apple-touch-icon" href="apple-touch-icon.png">
-
         <link rel="stylesheet" href="/themes/boilerplate/css/normalize.min.css">
         <link rel="stylesheet" href="/themes/boilerplate/css/main.css">
         <!--[if lt IE 9]>
@@ -34,7 +33,11 @@
                 <article>
                 {##main##}
                 </article>
-                {##sidebar##}
+                <aside>
+                    <nav>
+                    {##user_nav##}
+                    </nav>
+                </aside>
             </div> <!-- #main -->
         </div> <!-- #main-container -->
 

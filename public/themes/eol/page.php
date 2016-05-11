@@ -10,15 +10,11 @@
         <div>
             <header><h1>{##header##}</h1></header>
             <section class="nav">
-                {##nav##}
+                {##nav##}{##user_nav##}
             </section>
             <section class="main">
                 {##main##}
             </section>
-            {##sidebar##}
-            <aside>
-            </aside>
-            {/##sidebar##}
             <section style="clear:both;"></section>
         </div>
     </body>

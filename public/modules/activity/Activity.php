@@ -41,6 +41,7 @@ class Activity {
     function activity_menu() {
         $login = new Login();
         $page = Page::getInstance();
+        $page->addContent('{##main##}', '<nav>');
         $page->addContent('{##main##}', '<a href="/activities">10 days of EoL</a> ');
         $page->addContent('{##main##}', '<a href="/activities/shouts">Shouts</a> ');
         if ($login->isLoggedIn()) {
@@ -50,6 +51,7 @@ class Activity {
         if ($login->isLoggedIn()) {
             $page->addContent('{##main##}', '<a href="/activity/event/new">(+)</a>');
         }
+        $page->addContent('{##main##}', '</nav>');
     }
     
     function get() {
