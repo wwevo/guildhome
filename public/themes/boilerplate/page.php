@@ -47,6 +47,6 @@
             </footer>
         </div>
 
-        <script src="js/main.js"></script>
+        <script src="/themes/boilerplate/js/main.js"></script>
     </body>
 </html>

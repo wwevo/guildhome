@@ -42,15 +42,17 @@ class Activity {
         $login = new Login();
         $page = Page::getInstance();
         $page->addContent('{##main##}', '<nav>');
-        $page->addContent('{##main##}', '<a href="/activities">10 days of EoL</a> ');
-        $page->addContent('{##main##}', '<a href="/activities/shouts">Shouts</a> ');
+        $page->addContent('{##main##}', '<ul>');
+        $page->addContent('{##main##}', '<li><a href="/activities">10 days of EoL</a></li>');
+        $page->addContent('{##main##}', '<li><a href="/activities/shouts">Shouts</a></li>');
         if ($login->isLoggedIn()) {
-            $page->addContent('{##main##}', '<a href="/activity/shout/new">(+)</a> ');
+            $page->addContent('{##main##}', '<li class="add"><a href="/activity/shout/new">(+)</a></li>');
         }
-        $page->addContent('{##main##}', '<a href="/activities/events">Events</a> ');
+        $page->addContent('{##main##}', '<li><a href="/activities/events">Events</a></li>');
         if ($login->isLoggedIn()) {
-            $page->addContent('{##main##}', '<a href="/activity/event/new">(+)</a>');
+            $page->addContent('{##main##}', '<li class="add"><a href="/activity/event/new">(+)</a></li>');
         }
+        $page->addContent('{##main##}', '</ul>');
         $page->addContent('{##main##}', '</nav>');
     }
     
@@ -152,9 +154,8 @@ class Activity {
                 } else {
                     $allow_comments = FALSE;
                 }
-                
-                $event_data =  Parsedown::instance()->text($activity_event->title);
-                // $event_data .= Parsedown::instance()->text($activity_event->description);
+
+                $event_data = Parsedown::instance()->text($activity_event->description);
                 $event_data .= $activity_event->date . " @ ";
                 $event_data .= $activity_event->time;
                     
@@ -186,35 +187,37 @@ class Activity {
         if ($allow_comments === TRUE) {
             $comment = new Comment();
             $comment_count = $comment->getCommentCount($act->id);
-            $subView->addContent('{##comment_link##}', $comment_link);
-            $subView->addContent('{##comment_link_text##}',  'comments (' . $comment_count . ')');
+           
+            $visitorView = new View();
+            $visitorView->setTmpl($view->getSubTemplate('{##activity_not_logged_in##}'));
+            $visitorView->addContent('{##$comment_link##}', $comment_link);
+            $visitorView->addContent('{##comment_link_text##}',  'comments (' . $comment_count . ')');
+            $visitorView->replaceTags();
+            $subView->addContent('{##activity_not_logged_in##}',  $visitorView);
+        } else {
+            $subView->addContent('{##activity_not_logged_in##}',  '');
         }
-        
         $login = new Login();
         if ($login->isLoggedIn()) {
-            $memberView = new View();
-            $memberView->setTmpl($view->getSubTemplate('{##activity_logged_in##}'));
             if ($login->currentUserID() === $act->userid) {
+                $memberView = new View();
+                $memberView->setTmpl($view->getSubTemplate('{##activity_logged_in##}'));
                 $memberView->addContent('{##delete_link##}', $delete_link);
                 $memberView->addContent('{##delete_link_text##}',  'delete');
                 $memberView->addContent('{##update_link##}', $update_link);
                 $memberView->addContent('{##update_link_text##}',  'update');
+                $memberView->replaceTags();
+            } else {
+                $memberView = '';
             }
-            $memberView->replaceTags();
             $subView->addContent('{##activity_logged_in##}',  $memberView);
         }
 
-        if ($details_link == '') {
-            $detailsView = '';
-        } else {
-            $detailsView = new View();
-            $detailsView->setTmpl($view->getSubTemplate('{##activity_details##}'));
-            $detailsView->addContent('{##details_link##}', $details_link);
-            $detailsView->addContent('{##details_link_text##}',  'details');
-            $detailsView->replaceTags();
+        if ($details_link !== '') {
+            $subView->addContent('{##details_link##}', $details_link);
+            $subView->addContent('{##details_link_text##}',  Parsedown::instance()->text($activity_event->title));
         }
 
-        $subView->addContent('{##activity_details##}',  $detailsView);
         $subView->replaceTags();
         return $subView;
     }
