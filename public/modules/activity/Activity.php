@@ -187,16 +187,17 @@ class Activity {
         if ($allow_comments === TRUE) {
             $comment = new Comment();
             $comment_count = $comment->getCommentCount($act->id);
-           
+
             $visitorView = new View();
             $visitorView->setTmpl($view->getSubTemplate('{##activity_not_logged_in##}'));
-            $visitorView->addContent('{##$comment_link##}', $comment_link);
+            $visitorView->addContent('{##comment_link##}', $comment_link);
             $visitorView->addContent('{##comment_link_text##}',  'comments (' . $comment_count . ')');
             $visitorView->replaceTags();
             $subView->addContent('{##activity_not_logged_in##}',  $visitorView);
         } else {
             $subView->addContent('{##activity_not_logged_in##}',  '');
         }
+        
         $login = new Login();
         if ($login->isLoggedIn()) {
             if ($login->currentUserID() === $act->userid) {

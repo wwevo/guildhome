@@ -43,6 +43,7 @@ fieldset {
 
 textarea {
     resize: vertical;
+    width: 100%;
 }
 
 .browserupgrade {
