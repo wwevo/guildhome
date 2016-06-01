@@ -30,10 +30,10 @@ require_once ('modules/autoload.php');
 
 $settings = new Settings();
 $theme_name = filter_var($settings->getSettingByKey('theme_name'), FILTER_SANITIZE_STRING);
-if ($theme_name !== false AND !empty($theme_name)) {
+if ($theme_name !== false AND !empty($theme_name) AND in_array($theme_name, ['eol', 'boilerplate'])) {
     define('theme', $theme_name);
 } else {
-    define('theme', 'eol');
+    define('theme', 'boilerplate');
 }
 $page = Page::getInstance();
 $page->setTmpl(file('themes/' . constant('theme') . '/page.php'));
@@ -60,6 +60,8 @@ $user_menu .= '</ul>';
 $page->addContent('{##nav##}', $site_menu);
 
 $page->addContent('{##user_nav##}', $user_menu);
+$activity_event = new Activity_Event();
+$page->addContent('{##widgets##}', $activity_event->getUpcomingActivitiesView());
 
 /*
  * Do the routing as per modules instructions!!

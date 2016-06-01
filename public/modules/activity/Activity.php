@@ -128,9 +128,23 @@ class Activity {
     function getSubView($act = NULL, $view = NULL) {
         $subView = new View();
         $subView->setTmpl($view->getSubTemplate('{##activity_loop##}'));
-        $subView->addContent('{##activity_published##}', $act->create_time);
-        $subView->addContent('{##activity_type##}',  $act->type_description);
-        switch ($act->type) {
+        if (isset($act->create_time)) {
+            $subView->addContent('{##activity_published##}', $act->create_time);
+        }
+        if (isset($act->type_description)) {
+            $subView->addContent('{##activity_type##}',  $act->type_description);
+        }
+        $type = (isset($act->type)) ? $act->type : NULL;
+
+        switch ($type) {
+            default: 
+                $content = '';
+                $allow_comments = FALSE;
+                $delete_link = '';
+                $update_link = '';
+                $comment_link = '';
+                $details_link = '';
+                break;
             case '1' : 
                 $shout = new Activity_Shout();
                 $activity_shout = $shout->getActivity($act->id);
@@ -179,10 +193,12 @@ class Activity {
                 break;
         }
         $subView->addContent('{##activity_content##}',  $content);
-
-        $identity = new Identity();
-        $subView->addContent('{##activity_identity##}', $identity->getIdentityById($act->userid, 0));
-        $subView->addContent('{##avatar##}', $identity->getAvatarByUserId($act->userid));
+        
+        if (isset($act->userid)) {
+            $identity = new Identity();
+            $subView->addContent('{##activity_identity##}', $identity->getIdentityById($act->userid, 0));
+            $subView->addContent('{##avatar##}', $identity->getAvatarByUserId($act->userid));
+        }
 
         if ($allow_comments === TRUE) {
             $comment = new Comment();
@@ -199,7 +215,7 @@ class Activity {
         }
         
         $login = new Login();
-        if ($login->isLoggedIn()) {
+        if ($login->isLoggedIn() AND isset($act->userid)) {
             if ($login->currentUserID() === $act->userid) {
                 $memberView = new View();
                 $memberView->setTmpl($view->getSubTemplate('{##activity_logged_in##}'));
@@ -260,7 +276,7 @@ class Activity {
         $view->replaceTags();
         return $view;
     }
-
+    
     function createSlug($str) {
 	if ($str !== mb_convert_encoding(mb_convert_encoding($str, 'UTF-32', 'UTF-8'), 'UTF-8', 'UTF-32')) {
             $str = mb_convert_encoding($str, 'UTF-8', mb_detect_encoding($str));

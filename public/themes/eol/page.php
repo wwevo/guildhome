@@ -15,6 +15,7 @@
             <section class="main">
                 {##main##}
             </section>
+            <aside>{##widgets##}</aside>
             <section style="clear:both;"></section>
         </div>
     </body>
