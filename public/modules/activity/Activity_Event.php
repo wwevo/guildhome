@@ -449,6 +449,45 @@ class Activity_Event extends Activity {
         return $view;
     }
     
+    function getUpcomingActivities() {
+        $db = db::getInstance();
+        $sql = "SELECT * FROM activity_events WHERE date >= DATE(NOW());";
+        $query = $db->query($sql);
+
+         if ($query !== false AND $query->num_rows >= 1) {
+            while ($result_row = $query->fetch_object()) {
+                $signups[] = $this->getActivity($result_row->activity_id);
+            }
+
+            return $signups;
+        }
+        return false;
+    }
+    
+    function getUpcomingActivitiesView() {
+        $view = new View();
+        $view->setTmpl(file('themes/' . constant('theme') . '/views/activity/scheduled_activities.php'));
+        $act = $this->getUpcomingActivities();
+        if (false !== $act && is_array($act)) {
+            $activity_loop = NULL;
+            foreach ($act as $activity) {
+                $subView = new View();
+                $subView->setTmpl($view->getSubTemplate('{##activity_loop##}'));
+                $subView->addContent('{##activity_title##}', $activity->title);
+                $subView->addContent('{##activity_details_link##}', '/activity/event/details/' . $activity->activity_id);
+                $subView->addContent('{##activity_details_link_text##}', 'Event details');
+                $subView->addContent('{##activity_event_date##}', $activity->date);
+                $subView->addContent('{##activity_event_time##}', $activity->time);
+                $subView->replaceTags();
+                $activity_loop .= $subView;
+            }
+            $view->addContent('{##activity_loop##}',  $activity_loop);
+        }
+       
+        $view->replaceTags();
+        return $view;
+    }
+    
     function saveActivity() {
         $db = db::getInstance();
         $env = Env::getInstance();

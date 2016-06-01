@@ -140,8 +140,8 @@ body > div > section.nav a.active {
 
 body > div > aside {
     display: block;
-    width: 15%;
-    float: left;
+    width: 22.5%;
+    float: right;
     min-height: 200px;
 }
 
@@ -179,6 +179,11 @@ article.activity section.date {
 article.activity section.description {
     border-top: 1px solid #eda73e;
     border-bottom: 1px solid #eda73e;
+}
+
+section.main {
+ width: 75%;
+float: left; 
 }
 
 section.main a {

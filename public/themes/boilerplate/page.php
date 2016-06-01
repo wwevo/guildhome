@@ -36,6 +36,7 @@
                 <aside>
                     <nav>
                     {##user_nav##}
+                    {##widgets##}
                     </nav>
                 </aside>
             </div> <!-- #main -->
