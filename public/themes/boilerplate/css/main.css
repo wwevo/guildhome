@@ -144,6 +144,14 @@ article.activity {
     clear: both;
 }
 
+article.activity:after {
+    content: ".";
+    clear: both;
+    display: block;
+    visibility: hidden;
+    height: 0px;
+}
+
 article.activity h3, 
 article.activity section.date {
     font-size: 16px; line-height: 20px;

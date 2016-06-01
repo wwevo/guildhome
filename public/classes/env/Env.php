@@ -16,6 +16,8 @@ class Env {
     private static $instance;
     private $_post = [];
     private $_get = [];
+    private $_currentURL = [];
+    private $_oldURL = '';
     
     protected function __construct() {}
     private function __clone() {}
@@ -39,9 +41,8 @@ class Env {
         
         $inst->_get = filter_input_array(INPUT_GET, FILTER_SANITIZE_STRING);
         if (is_array($inst->_get) && !empty($inst->_get)) {
-            $_SESSION['evo']['post_messages'] = $inst->_get;    
+            $_SESSION['evo']['get_messages'] = $inst->_get;    
         }
-        
     }
     
     public static function clear_get($key) {

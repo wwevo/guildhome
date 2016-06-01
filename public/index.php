@@ -43,6 +43,7 @@ $page->setTmpl(file('themes/' . constant('theme') . '/page.php'));
  * before I could lay a proper foundation. This IS a work in progress and
  * there's lots of stuff to do. Wanna help? Feel free ^^
  */
+$env = Env::getInstance();
 $page->addContent('{##header##}', '<a href="/">Evolution of Loneliness</a>');
 
 $site_menu  = '<ul class="site-menu">';
