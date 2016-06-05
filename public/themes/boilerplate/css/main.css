@@ -75,15 +75,26 @@ body {
     border-bottom: 20px solid #EA6C12;
 }
 
-.footer-container,
-.main aside {
+.footer-container {
     border-top: 20px solid #EA6C12;
 }
 
-.header-container,
-.footer-container,
 .main aside {
+    border-top: 20px solid #EDA73E;
+}
+
+.header-container,
+.footer-container {
     background: #EDA73E;
+}
+.main aside {
+    background: #ffffff;
+    color: #EA6C12;
+}
+
+.main aside ul {
+    padding: 0;
+    list-style-type: none;
 }
 
 .title {
@@ -164,6 +175,7 @@ article.activity section.description {
     border-bottom: 1px solid #eda73e;
 }
 
+.main aside a,
 article.activity a {
     color: #EA6C12;
     text-decoration: none;
