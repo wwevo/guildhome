@@ -33,8 +33,9 @@ class Activity_Event extends Activity {
             case 'details' :
                 $page = Page::getInstance();
                 $page->setContent('{##main##}', '<h2>Event details</h2>');
-                $this->activity_menu();
-                $page->addContent('{##main##}', $this->getActivityDetailsView($id)); // 2 = event 
+                
+                $page->addContent('{##main##}', $this->getActivityView($id));
+                $page->addContent('{##main##}', $this->getActivityDetailsView($id));
                 break;
             case 'new' :
                 if (!$login->isLoggedIn()) {
@@ -276,14 +277,8 @@ class Activity_Event extends Activity {
         $profile = new Profile();
         $event_owner_profile = $profile->getProfileUrlById($act->userid);
 
-        $title = $act->title;
-        $date = $act->date;
-        $time = $act->time;
         $event_type = $act->event_type;
 
-        $content = Parsedown::instance()->text($act->description);
-
-        $comments_checked = $act->comments_activated;
         $signups_checked = $act->signups_activated;
 
         if ($signups_checked) {
@@ -302,13 +297,9 @@ class Activity_Event extends Activity {
 
         $view = new View();
         $view->setTmpl(file('themes/' . constant('theme') . '/views/activity/activity_event_details_view.php'), array(
-            '{##activity_title##}' => $title,
             '{##activity_type##}' => $event_type,
             '{##activity_owner##}' => $event_owner,
             '{##activity_owner_profile_url##}' => $event_owner_profile,
-            '{##activity_content##}' => $content,
-            '{##activity_date##}' => $date,
-            '{##activity_time##}' => $time,
         ));
         
         $login = new Login();
@@ -316,18 +307,18 @@ class Activity_Event extends Activity {
         $signupsView->setTmpl($view->getSubTemplate('{##signups_activated##}'));
         $signupsView->addContent('{##signups##}', $signed_up_users);
 
-        $memberView = '';
+
         if ($login->isLoggedIn() AND $act->signups_activated == 1) {
+            $memberView = '';
             $memberView = new View();
             $memberView->setTmpl($signupsView->getSubTemplate('{##activity_logged_in##}'));
             $memberView->addContent('{##signup##}', '/activity/event/signup/' . $id);
             $memberView->addContent('{##signup_text##}', 'Signup/out');
             $memberView->replaceTags();
+            $signupsView->addContent('{##activity_logged_in##}',  $memberView);
+            $signupsView->replaceTags();
         }
-
-        $signupsView->addContent('{##activity_logged_in##}',  $memberView);
-        $signupsView->replaceTags();
-
+      
         $view->addContent('{##signups_activated##}',  $signupsView);
         $view->replaceTags();
         return $view;

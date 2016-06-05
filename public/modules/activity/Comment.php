@@ -186,6 +186,7 @@ class Comment {
         }
         return false;
     }
+    
     function getComments($activity_id) {
         $db = db::getInstance();
         $sql = "SELECT comment_mapping.activity_id AS activity_id, comment_mapping.comment_id AS comment_id, comments.userid AS userid, from_unixtime(comments.create_time) AS create_time, comments.content AS content
