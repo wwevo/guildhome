@@ -11,7 +11,6 @@
             {##register_username_text##}
             <input id="register_username" type="text" size="32" name="register[username]" value="{##register_username##}" placeholder="{##register_username_text##}" />
             {##register_username_validation##}
-            <span class="hint">Up to 32 characters, spaces and Numbers. This username is only used for the login process, it will not be shown or made available to any other visitor or member.</span>
         </label>
         <label for="register_email">
             {##register_email_text##}

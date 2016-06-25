@@ -52,6 +52,10 @@ class Activity {
         if ($login->isLoggedIn()) {
             $page->addContent('{##main##}', '<li class="add"><a href="/activity/event/new">(+)</a></li>');
         }
+        $page->addContent('{##main##}', '<li><a href="/activities/polls">Polls</a></li>');
+        if ($login->isLoggedIn()) {
+            $page->addContent('{##main##}', '<li class="add"><a href="/activity/poll/new">(+)</a></li>');
+        }
         $page->addContent('{##main##}', '</ul>');
         $page->addContent('{##main##}', '</nav>');
     }
@@ -147,9 +151,9 @@ class Activity {
                 break;
             case '1' : 
                 $shout = new Activity_Shout();
-                $activity_shout = $shout->getActivity($act->id);
-                $content = Parsedown::instance()->text($activity_shout->content);
-                if (isset($activity_shout->comments_activated) AND $activity_shout->comments_activated == '1') {
+                $activity_event = $shout->getActivity($act->id);
+                $content = Parsedown::instance()->text($activity_event->content);
+                if (isset($activity_event->comments_activated) AND $activity_event->comments_activated == '1') {
                     $allow_comments = TRUE;
                 } else {
                     $allow_comments = FALSE;
@@ -190,6 +194,30 @@ class Activity {
                 $update_link = '/activity/event/update/' . $act->id;
                 $comment_link = '/comment/activity/view/' . $act->id;
                 $details_link = '/activity/event/details/' . $act->id;
+                break;
+            case '3' : 
+                $poll = new Activity_Poll();
+                $activity_event = $poll->getActivity($act->id);
+                
+                if (isset($activity_event->comments_activated) AND $activity_event->comments_activated == '1') {
+                    $allow_comments = TRUE;
+                } else {
+                    $allow_comments = FALSE;
+                }
+
+                $event_data = Parsedown::instance()->text($activity_event->description);
+                $event_data .= $activity_event->date . " @ ";
+                $event_data .= $activity_event->time;
+                    
+                $content = $event_data;
+                if ($activity_event->minimal_signups_activated) {
+                    $content .= " (" . $activity_event->minimal_signups . " req)";
+                }
+
+                $delete_link = '/activity/poll/delete/' . $act->id;
+                $update_link = '/activity/poll/update/' . $act->id;
+                $comment_link = '/comment/activity/view/' . $act->id;
+                $details_link = '/activity/poll/details/' . $act->id;
                 break;
         }
         $subView->addContent('{##activity_content##}',  $content);
