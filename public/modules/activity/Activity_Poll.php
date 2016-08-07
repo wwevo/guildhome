@@ -114,7 +114,7 @@ class Activity_Poll extends Activity {
     
     function toggleSignup($user_id, $event_id) {
         $db = db::getInstance();
-        $sql = "SELECT * FROM activity_üplls_signups_user WHERE user_id = '$user_id' AND event_id = '$event_id';";
+        $sql = "SELECT * FROM activity_polls_signups_user WHERE user_id = '$user_id' AND event_id = '$event_id';";
         $query = $db->query($sql);
         if ($query !== false AND $query->num_rows >= 1) {
             $sql = "DELETE FROM activity_polls_signups_user 
@@ -289,7 +289,7 @@ class Activity_Poll extends Activity {
             $memberView = '';
             $memberView = new View();
             $memberView->setTmpl($signupsView->getSubTemplate('{##activity_logged_in##}'));
-            $memberView->addContent('{##signup##}', '/activity/event/signup/' . $id);
+            $memberView->addContent('{##signup##}', '/activity/poll/signup/' . $id);
             $memberView->addContent('{##signup_text##}', 'Signup/out');
             $memberView->replaceTags();
             $signupsView->addContent('{##activity_logged_in##}',  $memberView);
@@ -310,7 +310,7 @@ class Activity_Poll extends Activity {
         
         $view = new View();
         $view->setTmpl(file('themes/' . constant('theme') . '/views/activity/delete_activity_form.php'), array(
-            '{##form_action##}' => '/activity/event/delete/' . $id,
+            '{##form_action##}' => '/activity/poll/delete/' . $id,
             '{##activity_content##}' => $content,
             '{##submit_text##}' => "delete",
             '{##cancel_text##}' => "cancel",
