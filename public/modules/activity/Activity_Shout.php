@@ -135,8 +135,17 @@ class Activity_Shout extends Activity {
         $env = Env::getInstance();
         $msg = Msg::getInstance();
 
-        $comments_checked = (!empty($env->post('activity')['comments']) AND $env->post('activity')['comments'] !== NULL) ? 'checked="checked"' : '';
-
+        if ($env->post('activity') === FALSE) {
+            $comments_checked = 'checked="checked"';
+        } else {
+            if (!empty($env->post('activity')['comments']) AND is_string($env->post('activity')['comments']) === TRUE) {
+                $comments_checked = 'checked="checked"';
+                
+            } else {
+                $comments_checked = '';
+            }
+        }
+        
         $view = new View();
         $view->setTmpl(file('themes/' . constant('theme') . '/views/activity/new_activity_shout_form.php'), array(
             '{##form_action##}' => '/activity/shout/new',
