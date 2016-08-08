@@ -52,10 +52,10 @@ class Activity {
         if ($login->isLoggedIn()) {
             $page->addContent('{##main##}', '<li class="add"><a href="/activity/event/new">(+)</a></li>');
         }
-        $page->addContent('{##main##}', '<li><a href="/activities/polls">Polls</a></li>');
-        if ($login->isLoggedIn()) {
-            $page->addContent('{##main##}', '<li class="add"><a href="/activity/poll/new">(+)</a></li>');
-        }
+//        $page->addContent('{##main##}', '<li><a href="/activities/polls">Polls</a></li>');
+//        if ($login->isLoggedIn()) {
+//            $page->addContent('{##main##}', '<li class="add"><a href="/activity/poll/new">(+)</a></li>');
+//        }
         $page->addContent('{##main##}', '</ul>');
         $page->addContent('{##main##}', '</nav>');
     }

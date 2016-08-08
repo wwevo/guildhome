@@ -20,35 +20,6 @@ class Register {
         Toro::addRoute(["/register" => 'Register']);
     }
 
-    function create_tables() {
-        // Dirty Setup
-        $db = db::getInstance();
-        $sql = "CREATE TABLE users (
-            id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-            username VARCHAR(30) NOT NULL,
-            password_hash VARCHAR(64) NOT NULL,
-            email VARCHAR(50),
-            rank INT(1)
-        )";
-        $result = $db->query($sql);
-
-        $sql = "CREATE TABLE user_ranks (
-            id INT(6) UNSIGNED PRIMARY KEY,
-            description VARCHAR(50)
-        )";
-        $result = $db->query($sql);
-        
-        $sql = "INSERT INTO user_ranks (id, description)
-                            VALUES('0', 'admin');";
-        $result = $db->query($sql);
-        $sql = "INSERT INTO user_ranks (id, description)
-                            VALUES('1', 'operator');";
-        $result = $db->query($sql);
-        $sql = "INSERT INTO user_ranks (id, description)
-                            VALUES('2', 'user');";
-        $result = $db->query($sql);
-    }
-    
     public function get() {
         $page = Page::getInstance();
         $page->setContent('{##main##}', '<h2>Register</h2>');

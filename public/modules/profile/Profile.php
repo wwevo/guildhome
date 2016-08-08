@@ -46,17 +46,22 @@ class Profile {
                     $subView->addContent('{##email##}', $user->email);
 
                     $settings = new Settings();
-                    $view->addContent('{##main##}', '<p>Desired Displayname</p>');
+                    $view->addContent('{##main##}', '<h4>Desired Displayname</h4>');
                     $view->addContent('{##main##}', $settings->getUpdateSettingForm('display_name'));
+                    $view->addContent('{##main##}', '<h4>Change Password</h4>');
+                    $view->addContent('{##main##}', $login->getChangePasswordView());
+                    $view->addContent('{##main##}', '<p>you will be redirected after pressing the button!</p>');
+                    $view->addContent('{##main##}', '<h4>Avatar</h4>');
                     $view->addContent('{##main##}', '<p>use any image url, only direct links will work</p>');
                     $view->addContent('{##main##}', $settings->getUpdateSettingForm('avatar'));
+                    $view->addContent('{##main##}', '<h4>Api</h4>');
                     $view->addContent('{##main##}', '<p>just copy and paste from your guild wars account page. Only account and guilds are required, characters would be nice.</p>');
                     $view->addContent('{##main##}', $settings->getUpdateSettingForm('api_key'));
 
                     $view->addContent('{##main##}', '<hr />');
-                    $view->addContent('{##main##}', 'Development stuff');
+                    $view->addContent('{##main##}', '<h3>Development stuff</h3>');
 
-                    $view->addContent('{##main##}', '<p>Theme</p>');
+                    $view->addContent('{##main##}', '<h4>Theme</h4>');
                     $view->addContent('{##main##}', $settings->getUpdateSettingForm('theme_name'));
                     
                     $activity_event = new Activity_Event();

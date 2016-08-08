@@ -11,13 +11,22 @@ class Login {
 
     function initEnv() {
         Toro::addRoute(["/login" => 'Login']);
+        Toro::addRoute(["/login/:alpha" => 'Login']);
         Toro::addRoute(["/logout" => 'Login']);
     }
     
-    public function get() {
+    public function get($alpha = '') {
         $page = Page::getInstance();
-        $page->setContent('{##main##}', '<h2>Login</h2>');
-        $page->addContent('{##main##}', $this->getCombinedLoginView());
+        switch ($alpha) {
+            default:
+                $page->setContent('{##main##}', '<h2>Login</h2>');
+                $page->addContent('{##main##}', $this->getCombinedLoginView());
+                break;
+            case 'change_password' :
+                $page->setContent('{##main##}', '<h2>Change Password</h2>');
+                $page->addContent('{##main##}', $this->getChangePasswordView());
+                break;
+        }
     }
     
     public function post() {
@@ -34,6 +43,76 @@ class Login {
             $this->doLogout();
             header("Location: /");
         }
+
+        if (isset($env->post('change_password')['submit'])) {
+            if ($this->changePassword() === true) {
+                $this->doLogout();
+                header("Location: /login");
+            } else {
+                header("Location: /login/change_password");
+            }
+        }
+    }
+    
+    private function changePassword() {
+        if ($this->isLoggedIn() === false) {
+            return false;
+        }
+        
+        $env = Env::getInstance();
+        $msg = Msg::getInstance();
+        $db = db::getInstance();
+        $username = $db->real_escape_string($this->currentUsername());
+        
+        $error = 0;
+        if (empty($env->post('change_password')['password_current'])) {
+            $msg->add('current_password_validation', 'Please provide a password. Preferably yours :)');
+            $error = 1;
+        } else {
+            // check if password is correct. Needs cleanup, this one ^^
+            $sql = "SELECT password_hash FROM users WHERE username = '$username';";
+            $result = $db->query($sql);
+            if ($result->num_rows >= 1) {
+                $result_row = $result->fetch_object();
+                if (!password_verify($env->post('change_password')['password_current'], $result_row->password_hash)) {
+                    $msg->add('current_password_validation', 'Current password is not correct');
+                    $error = 1;
+                } else {
+                    $msg->add('current_password_validation', 'Password was correct!');
+                }
+            }
+        }
+
+        if (empty($env->post('change_password')['password_new']) AND empty($env->post('change_password')['password_repeat'])) {
+            $msg->add('new_password_validation', "No password. Good plan! NOT!!");
+            $msg->add('new_password_repeat_validation', "Hey, this one matches the empty one! That's something, isn't it?");
+            $error = 1;
+        } elseif ($env->post('change_password')['password_new'] !== $env->post('change_password')['password_repeat']) {
+            $msg->add('new_password_repeat_validation', "Variation is nice. you get a richer life and everything. Not with passwords though, make sure that they match ^^");
+            $error = 1;
+        } elseif (strlen($env->post('change_password')['password_new']) < 6) {
+            $msg->add('new_password_validation', "You were asked to provide a password, not an abbreviation of one! Use at least six characters!");
+            $error = 1;
+        }
+        
+        if ($error == 1) {
+            return false;
+        }
+        
+        $password = $env->post('change_password')['password_new'];
+        $password_hash = password_hash($password, PASSWORD_DEFAULT);
+        $sql = "UPDATE users SET password_hash = '$password_hash' WHERE username = '$username';";
+        $result = $db->query($sql);
+
+        if ($result) {
+            $msg->add('change_password_general_validation', "Password for user " . $username . " has been changed.");
+            $env->clear_post('change_password');
+            return true; // user creation complete
+        } else {
+            $msg->add('change_password_general_validation', "Something unexpected happened during Database operations. No password has been changed.");
+            return false;
+        }
+        return true;
     }
 
     private function dologinWithPostData() {
@@ -171,6 +250,30 @@ class Login {
                 '{##login_submit_text##}' => 'Log in',
                 '{##register_link##}' => '/register/',
                 '{##register_link_text##}' => 'register new user',
+            ));
+        }
+        $view->replaceTags();
+        return $view;
+    }
+    
+    public function getChangePasswordView() {
+        $env = Env::getInstance();
+        $msg = Msg::getInstance();
+
+        $view = new View();
+        if ($this->isLoggedIn() == true) {
+            $view->setTmpl(file('themes/' . constant('theme') . '/views/core/login/change_password_form.php'), array(
+                '{##form_action##}' => '/login/change_password',
+                '{##current_password##}' => '',
+                '{##current_password_text##}' => 'Current password',
+                '{##current_password_validation##}' => $msg->fetch('current_password_validation'),
+                '{##new_password##}' => '',
+                '{##new_password_text##}' => 'New password',
+                '{##new_password_validation##}' => $msg->fetch('new_password_validation'),
+                '{##new_password_repeat##}' => '',
+                '{##new_password_repeat_text##}' => 'Repeat new password',
+                '{##new_password_repeat_validation##}' => $msg->fetch('new_password_repeat_validation'),
+                '{##change_password_submit_text##}' => 'Change password',
             ));
         }
         $view->replaceTags();
