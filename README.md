@@ -1,10 +1,7 @@
 # guildhome
 work in progress
 
-soon this will be THE platform for Guild Wars 2 Guilds.
-
-Manage your activities, events, members, all your guild related stuff!  
-Easy to use, customizable and easy to extend.
+Homepage for our beloved Gw2 Guild Evolution of Loneliness
 
 For now the focus will be on events and event management as well as basic
 community functions.
