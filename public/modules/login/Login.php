@@ -12,10 +12,11 @@ class Login {
     function initEnv() {
         Toro::addRoute(["/login" => 'Login']);
         Toro::addRoute(["/login/:alpha" => 'Login']);
+        Toro::addRoute(["/login/:alpha/:alpha" => 'Login']);
         Toro::addRoute(["/logout" => 'Login']);
     }
     
-    public function get($alpha = '') {
+    public function get($alpha = '', $beta= '') {
         $page = Page::getInstance();
         switch ($alpha) {
             default:
@@ -25,6 +26,25 @@ class Login {
             case 'change_password' :
                 $page->setContent('{##main##}', '<h2>Change Password</h2>');
                 $page->addContent('{##main##}', $this->getChangePasswordView());
+                break;
+            case 'reset_password' :
+                if ($beta != '') {
+                    $db = db::getInstance();
+                    $page->setContent('{##main##}', '<h2>Token recieved</h2>');
+                    $token_clean = $db->real_escape_string(strip_tags($beta, ENT_QUOTES));
+                    $token_user_id = $this->checkToken($beta);
+                    if ($token_user_id !== false) {
+                        $this->doLoginById($token_user_id);
+                        // set new password
+                        // fill out change password form
+                        header("Location: /activities");
+                    }
+                    $page->addContent('{##main##}', $token_clean);
+                    
+                } else {
+                    $page->setContent('{##main##}', '<h2>Reset Password</h2>');
+                    $page->addContent('{##main##}', $this->getResetPasswordView());
+                }
                 break;
         }
     }
@@ -52,6 +72,115 @@ class Login {
                 header("Location: /login/change_password");
             }
         }
+
+        if (isset($env->post('reset_password')['submit'])) {
+            $validate_email = $this->validateEmail();
+            if ($validate_email !== false) {
+                // spaghetti code deluxe!! needs to be refactored like a broken-down factory ^^
+                $token = bin2hex(random_bytes(16));
+                $this->storeResetToken($token, $validate_email->id);
+                $this->eMailToken($token, $validate_email->email);
+            } else {
+                header("Location: /login/reset_password");
+            }
+        }
+    }
+    
+    
+    private function storeResetToken($token, $user_id) {
+        $db = db::getInstance();
+        $this->clearResetToken($user_id);
+        $sql = "INSERT INTO reset_token(user_id,token,timestamp,email_sent)
+                    VALUES('$user_id', '$token', NOW(), 0);";
+        $result = $db->query($sql);
+    }
+    
+    private function clearResetToken($user_id) {
+        $db = db::getInstance();
+        $sql = "DELETE FROM reset_token WHERE user_id = $user_id";
+        $result = $db->query($sql);
+        
+        // clear out every old token while we are at it :)
+        $this->clearOldTokens();
+    }
+
+    private function clearOldTokens() {
+        $db = db::getInstance();
+        $sql = "DELETE FROM reset_token WHERE timestamp < DATE_ADD(NOW(), INTERVAL - 38 MINUTE)";
+        $result = $db->query($sql);
+    }
+    
+    
+    private function checkToken($token) {
+        $db = db::getInstance();
+        $sql = "SELECT * FROM reset_token WHERE token = '$token';";
+        $result = $db->query($sql);
+
+        if ($result->num_rows >= 1) {
+            $result_row = $result->fetch_object();
+            return $result_row->user_id;
+        }        
+        return false;
+    }
+    
+    private function eMailToken($token, $email) {
+        $reset_link = '<a href="http://beta.eol.gw2.localhost/login/reset_password/'. $token .'">reset_link</a>'; 
+        $mail = new PHPMailer;
+        //$mail->SMTPDebug = 3;                               // Enable verbose debug output
+
+        $mail->isSMTP();                                      // Set mailer to use SMTP
+        $mail->Host = 'smtp.gmail.com';  // Specify main and backup SMTP servers
+        $mail->SMTPAuth = true;                               // Enable SMTP authentication
+        $mail->Username = 'christian.evolutioncv@googlemail.com';                 // SMTP username
+        $mail->Password = '3:orFf&XDBn/nSYg\FC+';                           // SMTP password
+        $mail->SMTPSecure = 'tls';                            // Enable TLS encryption, `ssl` also accepted
+        $mail->Port = 587;                                    // TCP port to connect to
+
+        $mail->setFrom('support@notjustfor.me', 'Support');
+        $mail->addAddress($email);     // Add a recipient
+
+
+        $mail->Subject = 'Password reset';
+        $mail->Body    = 'a body' . $reset_link;
+        $mail->AltBody = 'no body';
+
+        if($mail->send()) {
+            return true;
+        }        
+        return false;
+    }
+
+    private function validateEmail() {
+        $env = Env::getInstance();
+        $msg = Msg::getInstance();
+        
+        $error = 0;
+        if (empty($env->post('reset_password')['registered_email'])) {
+            $msg->add('registered_email_validation', 'Please type in your email address');
+            $error = 1;
+        } elseif (!filter_var($env->post('reset_password')['registered_email'], FILTER_VALIDATE_EMAIL)) {
+            $msg->add('registered_email_validation', "please use a valid eMail Adress!");
+            $error = 1;
+        }
+
+        // early getaway, no need to database stuff that ain't valid in the first place
+        if ($error == 1) {
+            return false;
+        }
+
+        $registered_email = $env->post('reset_password')['registered_email'];
+        $db = db::getInstance();
+
+        $sql = "SELECT id, email FROM users WHERE email = '$registered_email';";
+        $result = $db->query($sql);
+        if ($result->num_rows >= 1) {
+            $result_row = $result->fetch_object();
+            return $result_row;
+        } else {
+            $msg->add('registered_email_validation', "email address unknown to me! Whoa!");
+        }
+
+        return false;
     }
     
     private function changePassword() {
@@ -115,6 +244,23 @@ class Login {
         return true;
     }
 
+    private function doLoginById($id) {
+        $db = db::getInstance();
+        $sql = "SELECT users.id, users.username, users.email, user_ranks.id AS rank, users.password_hash, user_ranks.description AS rank_description
+                    FROM users
+                    INNER JOIN user_ranks
+                    ON users.rank = user_ranks.id
+                    WHERE users.id = '$id';";
+        $result = $db->query($sql);
+
+        if ($result->num_rows >= 1) {
+
+            $result_row = $result->fetch_object();
+            $this->setSessionData($result_row);
+            return true;
+        }
+    }
+    
     private function dologinWithPostData() {
         $msg = Msg::getInstance();
         $env = Env::getInstance();
@@ -248,8 +394,11 @@ class Login {
                 '{##login_password_text##}' => 'Password',
                 '{##login_password_validation##}' => $msg->fetch('login_password_validation'),
                 '{##login_submit_text##}' => 'Log in',
+                '{##login_forgot_text##}' => 'Forgot Password',
                 '{##register_link##}' => '/register/',
                 '{##register_link_text##}' => 'register new user',
+                '{##reset_password_link##}' => '/login/reset_password',
+                '{##reset_password_link_text##}' => 'lost your password?',
             ));
         }
         $view->replaceTags();
@@ -276,6 +425,23 @@ class Login {
                 '{##change_password_submit_text##}' => 'Change password',
             ));
         }
+        $view->replaceTags();
+        return $view;
+    }
+
+    public function getResetPasswordView() {
+        $env = Env::getInstance();
+        $msg = Msg::getInstance();
+
+        $view = new View();
+        $view->setTmpl(file('themes/' . constant('theme') . '/views/core/login/reset_password_form.php'), array(
+            '{##form_action##}' => '/login/reset_password',
+            '{##registered_email##}' => $env->post('reset_password')['registered_email'],
+            '{##registered_email_description##}' => 'Please provide the email address that you have registered your account with.',
+            '{##registered_email_text##}' => 'email',
+            '{##registered_email_validation##}' => $msg->fetch('registered_email_validation'),
+            '{##reset_password_submit_text##}' => 'Reset password',
+        ));
         $view->replaceTags();
         return $view;
     }

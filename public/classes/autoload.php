@@ -9,3 +9,7 @@ require_once('view/Page.php'); // Page::getInstance();
 require_once('env/Env.php'); // Env::getInstance();
 require_once('db/db.php'); // db::getInstance();
 require_once('msg/Msg.php'); // feedback for user input & actions
+
+
+require_once('mail/class.phpmailer.php');
+require_once('mail/class.smtp.php'); //

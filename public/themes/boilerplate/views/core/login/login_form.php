@@ -11,5 +11,6 @@
             {##login_password_validation##}
         </label>
         <input type="submit" id="login_submit" name="login[submit]" value="{##login_submit_text##}" />
+        <a href="{##reset_password_link##}">{##reset_password_link_text##}</a>
     </form>
 </section>
