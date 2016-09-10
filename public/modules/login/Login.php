@@ -40,7 +40,6 @@ class Login {
                     $token_user_id = $this->checkToken($token);
                     if ($token_user_id !== false) {
                         $this->doLoginById($token_user_id);
-                        $this->clearResetToken($token_user_id);
                         header("Location: /login/set_password");
                     }
                 } else {
@@ -77,6 +76,7 @@ class Login {
 
         if (isset($env->post('set_password')['submit'])) {
             if ($this->setPassword() === true) {
+                $this->clearResetToken($this->currentUserID());
                 $this->doLogout();
                 header("Location: /login");
             } else {
