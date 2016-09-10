@@ -1,8 +1,9 @@
 <section class="form">
+    <p>{##change_password_general_information##}</p>
     <form method="post" action="{##form_action##}">
         <label for="old_password">
             {##current_password_text##}
-            <input id="current_password" type="password" size="32" name="change_password[password_current]" placeholder="{##current_password_text##}" autocomplete="off" />
+            <input id="current_password" type="password" size="32" name="change_password[password_current]" placeholder="{##current_password_text##}" value="{##current_password##}" autocomplete="off" />
             {##current_password_validation##}
         </label>
         <label for="new_password">

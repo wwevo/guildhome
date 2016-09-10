@@ -28,20 +28,24 @@ class Login {
                 $page->setContent('{##main##}', '<h2>Change Password</h2>');
                 $page->addContent('{##main##}', $this->getChangePasswordView());
                 break;
+            case 'set_password' :
+                $page->setContent('{##main##}', '<h2>Set Password</h2>');
+                $page->addContent('{##main##}', $this->getSetPasswordView());
+                break;
             case 'reset_password' :
-                if ($beta != '' && strlen($token) == 32) {
+                if ($token != '' && strlen($token) == 32) {
                     $db = db::getInstance();
                     $page->setContent('{##main##}', '<h2>Token recieved</h2>');
                     $token_clean = $db->real_escape_string(strip_tags($token, ENT_QUOTES));
                     $token_user_id = $this->checkToken($token);
                     if ($token_user_id !== false) {
                         $this->doLoginById($token_user_id);
+                        $this->clearResetToken($token_user_id);
                         // set new password
+                       // $new_password = $this->setRandomPasswordForUserId($token_user_id);
                         // fill out change password form
-                        header("Location: /activities");
+                        header("Location: /login/set_password");
                     }
-                    $page->addContent('{##main##}', $token_clean);
-                    
                 } else {
                     $page->setContent('{##main##}', '<h2>Reset Password</h2>');
                     $page->addContent('{##main##}', $this->getResetPasswordView());
@@ -74,6 +78,15 @@ class Login {
             }
         }
 
+        if (isset($env->post('set_password')['submit'])) {
+            if ($this->setPassword() === true) {
+                $this->doLogout();
+                header("Location: /login");
+            } else {
+                header("Location: /login/set_password");
+            }
+        }
+
         if (isset($env->post('reset_password')['submit'])) {
             $validate_email = $this->validateEmail();
             if ($validate_email !== false) {
@@ -87,6 +100,26 @@ class Login {
         }
     }
     
+    /**
+ * Generate a random string, using a cryptographically secure 
+ * pseudorandom number generator (random_int)
+ * 
+ * For PHP 7, random_int is a PHP core function
+ * For PHP 5.x, depends on https://github.com/paragonie/random_compat
+ * 
+ * @param int $length      How many characters do we want?
+ * @param string $keyspace A string of all possible characters
+ *                         to select from
+ * @return string
+ */
+    function random_str($length, $keyspace = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ') {
+        $str = '';
+        $max = mb_strlen($keyspace, '8bit') - 1;
+        for ($i = 0; $i < $length; ++$i) {
+            $str .= $keyspace[random_int(0, $max)];
+        }
+        return $str;
+    }
     
     private function storeResetToken($token, $user_id) {
         $db = db::getInstance();
@@ -184,9 +217,58 @@ class Login {
         return false;
     }
     
-    private function setRandomPasswordForUserId() {
-        
+    private function setRandomPasswordForUserId($user_id) {
+        $db = db::getInstance();
+        $password = $this->random_str(8); 
+        $password_hash = password_hash($password, PASSWORD_DEFAULT);
+        $sql = "UPDATE users SET password_hash = '$password_hash' WHERE id = '$user_id';";
+        $result = $db->query($sql);
+        return $password;
     }
+
+    private function setPassword() {
+        if ($this->isLoggedIn() === false) {
+            return false;
+        }
+        
+        $env = Env::getInstance();
+        $msg = Msg::getInstance();
+        $db = db::getInstance();
+        $username = $db->real_escape_string($this->currentUsername());
+        
+        $error = 0;
+        if (empty($env->post('set_password')['password_new']) AND empty($env->post('set_password')['password_repeat'])) {
+            $msg->add('new_password_validation', "No password. Good plan! NOT!!");
+            $msg->add('new_password_repeat_validation', "Hey, this one matches the empty one! That's something, isn't it?");
+            $error = 1;
+        } elseif ($env->post('set_password')['password_new'] !== $env->post('set_password')['password_repeat']) {
+            $msg->add('new_password_repeat_validation', "Variation is nice. you get a richer life and everything. Not with passwords though, make sure that they match ^^");
+            $error = 1;
+        } elseif (strlen($env->post('set_password')['password_new']) < 6) {
+            $msg->add('new_password_validation', "You were asked to provide a password, not an abbreviation of one! Use at least six characters!");
+            $error = 1;
+        }
+        
+        if ($error == 1) {
+            return false;
+        }
+        
+        $password = $env->post('set_password')['password_new'];
+        $password_hash = password_hash($password, PASSWORD_DEFAULT);
+        $sql = "UPDATE users SET password_hash = '$password_hash' WHERE username = '$username';";
+        $result = $db->query($sql);
+
+        if ($result) {
+            $msg->add('set_password_general_validation', "Password for user " . $username . " has been changed.");
+            $env->clear_post('set_password');
+            return true; // user creation complete
+        } else {
+            $msg->add('set_password_general_validation', "Something unexpected happened during Database operations. No password has been changed.");
+            return false;
+        }
+        return true;
+    }
+
     
     private function changePassword() {
         if ($this->isLoggedIn() === false) {
@@ -428,6 +510,28 @@ class Login {
                 '{##new_password_repeat_text##}' => 'Repeat new password',
                 '{##new_password_repeat_validation##}' => $msg->fetch('new_password_repeat_validation'),
                 '{##change_password_submit_text##}' => 'Change password',
+                '{##change_password_general_information##}', $msg->fetch('change_password_general_information'),
+            ));
+        }
+        $view->replaceTags();
+        return $view;
+    }
+
+    public function getSetPasswordView($password = NULL) {
+        $env = Env::getInstance();
+        $msg = Msg::getInstance();
+
+        $view = new View();
+        if ($this->isLoggedIn() == true) {
+            $view->setTmpl(file('themes/' . constant('theme') . '/views/core/login/set_password_form.php'), array(
+                '{##form_action##}' => '/login/set_password',
+                '{##new_password##}' => '',
+                '{##new_password_text##}' => 'New password',
+                '{##new_password_validation##}' => $msg->fetch('new_password_validation'),
+                '{##new_password_repeat##}' => '',
+                '{##new_password_repeat_text##}' => 'Repeat new password',
+                '{##new_password_repeat_validation##}' => $msg->fetch('new_password_repeat_validation'),
+                '{##set_password_submit_text##}' => 'Change password',
             ));
         }
         $view->replaceTags();
