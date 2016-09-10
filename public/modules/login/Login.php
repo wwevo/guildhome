@@ -16,8 +16,9 @@ class Login {
         Toro::addRoute(["/logout" => 'Login']);
     }
     
-    public function get($alpha = '', $beta= '') {
+    public function get($alpha = '', $token= '') {
         $page = Page::getInstance();
+        
         switch ($alpha) {
             default:
                 $page->setContent('{##main##}', '<h2>Login</h2>');
@@ -28,11 +29,11 @@ class Login {
                 $page->addContent('{##main##}', $this->getChangePasswordView());
                 break;
             case 'reset_password' :
-                if ($beta != '') {
+                if ($beta != '' && strlen($token) == 32) {
                     $db = db::getInstance();
                     $page->setContent('{##main##}', '<h2>Token recieved</h2>');
-                    $token_clean = $db->real_escape_string(strip_tags($beta, ENT_QUOTES));
-                    $token_user_id = $this->checkToken($beta);
+                    $token_clean = $db->real_escape_string(strip_tags($token, ENT_QUOTES));
+                    $token_user_id = $this->checkToken($token);
                     if ($token_user_id !== false) {
                         $this->doLoginById($token_user_id);
                         // set new password
@@ -131,8 +132,8 @@ class Login {
         $mail->isSMTP();                                      // Set mailer to use SMTP
         $mail->Host = 'smtp.gmail.com';  // Specify main and backup SMTP servers
         $mail->SMTPAuth = true;                               // Enable SMTP authentication
-        $mail->Username = 'christian.evolutioncv@googlemail.com';                 // SMTP username
-        $mail->Password = '3:orFf&XDBn/nSYg\FC+';                           // SMTP password
+        $mail->Username = MAILUSER;                 // SMTP username
+        $mail->Password = MAILPASS;                           // SMTP password
         $mail->SMTPSecure = 'tls';                            // Enable TLS encryption, `ssl` also accepted
         $mail->Port = 587;                                    // TCP port to connect to
 
@@ -181,6 +182,10 @@ class Login {
         }
 
         return false;
+    }
+    
+    private function setRandomPasswordForUserId() {
+        
     }
     
     private function changePassword() {
