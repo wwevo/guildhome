@@ -23,3 +23,5 @@ if (version_compare(PHP_VERSION, '5.3.7', '<')) {
 } else if (version_compare(PHP_VERSION, '5.5.0', '<')) {
     require_once("libraries/password_compatibility_library.php");
 }
+
+define('GH_BASEDIR', 'beta.eol.gw2.localhost');

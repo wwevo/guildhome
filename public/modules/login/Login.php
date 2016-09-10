@@ -41,9 +41,6 @@ class Login {
                     if ($token_user_id !== false) {
                         $this->doLoginById($token_user_id);
                         $this->clearResetToken($token_user_id);
-                        // set new password
-                       // $new_password = $this->setRandomPasswordForUserId($token_user_id);
-                        // fill out change password form
                         header("Location: /login/set_password");
                     }
                 } else {
@@ -144,6 +141,16 @@ class Login {
         $result = $db->query($sql);
     }
     
+    private function hasActiveToken($user_id) {
+        $db = db::getInstance();
+        $sql = "SELECT * FROM reset_token WHERE user_id = '" . $this->currentUserID() . "';";
+        $result = $db->query($sql);
+
+        if ($result->num_rows >= 1) {
+            return true;
+        }        
+        return false;
+    }
     
     private function checkToken($token) {
         $db = db::getInstance();
@@ -158,25 +165,25 @@ class Login {
     }
     
     private function eMailToken($token, $email) {
-        $reset_link = '<a href="http://beta.eol.gw2.localhost/login/reset_password/'. $token .'">reset_link</a>'; 
+        $reset_link = 'http://' . GH_BASEDIR . '/login/reset_password/'. $token; 
         $mail = new PHPMailer;
         //$mail->SMTPDebug = 3;                               // Enable verbose debug output
 
         $mail->isSMTP();                                      // Set mailer to use SMTP
-        $mail->Host = 'smtp.gmail.com';  // Specify main and backup SMTP servers
+        $mail->Host = MAILHOST;  // Specify main and backup SMTP servers
         $mail->SMTPAuth = true;                               // Enable SMTP authentication
         $mail->Username = MAILUSER;                 // SMTP username
         $mail->Password = MAILPASS;                           // SMTP password
-        $mail->SMTPSecure = 'tls';                            // Enable TLS encryption, `ssl` also accepted
-        $mail->Port = 587;                                    // TCP port to connect to
+        $mail->SMTPSecure = 'ssl';                            // Enable TLS encryption, `ssl` also accepted
+        $mail->Port = 465;                                    // TCP port to connect to
 
-        $mail->setFrom('support@notjustfor.me', 'Support');
+        $mail->setFrom('mail@notjustfor.me', 'Support');
         $mail->addAddress($email);     // Add a recipient
 
 
-        $mail->Subject = 'Password reset';
-        $mail->Body    = 'a body' . $reset_link;
-        $mail->AltBody = 'no body';
+        $mail->Subject = 'Password reset for EoL Account';
+        $mail->Body    = 'password reset link: ' . $reset_link;
+        $mail->AltBody = '';
 
         if($mail->send()) {
             return true;
@@ -517,22 +524,24 @@ class Login {
         return $view;
     }
 
-    public function getSetPasswordView($password = NULL) {
+    public function getSetPasswordView() {
         $env = Env::getInstance();
         $msg = Msg::getInstance();
 
         $view = new View();
-        if ($this->isLoggedIn() == true) {
-            $view->setTmpl(file('themes/' . constant('theme') . '/views/core/login/set_password_form.php'), array(
-                '{##form_action##}' => '/login/set_password',
-                '{##new_password##}' => '',
-                '{##new_password_text##}' => 'New password',
-                '{##new_password_validation##}' => $msg->fetch('new_password_validation'),
-                '{##new_password_repeat##}' => '',
-                '{##new_password_repeat_text##}' => 'Repeat new password',
-                '{##new_password_repeat_validation##}' => $msg->fetch('new_password_repeat_validation'),
-                '{##set_password_submit_text##}' => 'Change password',
-            ));
+        if ($this->isLoggedIn() === true AND $this->hasActiveToken($this->currentUserID()) === true) {
+           if ($this->isLoggedIn() == true) {
+                $view->setTmpl(file('themes/' . constant('theme') . '/views/core/login/set_password_form.php'), array(
+                    '{##form_action##}' => '/login/set_password',
+                    '{##new_password##}' => '',
+                    '{##new_password_text##}' => 'New password',
+                    '{##new_password_validation##}' => $msg->fetch('new_password_validation'),
+                    '{##new_password_repeat##}' => '',
+                    '{##new_password_repeat_text##}' => 'Repeat new password',
+                    '{##new_password_repeat_validation##}' => $msg->fetch('new_password_repeat_validation'),
+                    '{##set_password_submit_text##}' => 'Change password',
+                ));
+            }
         }
         $view->replaceTags();
         return $view;
