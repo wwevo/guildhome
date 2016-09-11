@@ -273,6 +273,7 @@ class Comment {
             foreach ($comments as $act) {
                 $subView = new View();
                 $subView->setTmpl($view->getSubTemplate('{##comment_loop##}'));
+                $subView->addContent('{##activity_type##}', 'a comment');
                 $subView->addContent('{##comment_published##}', $act->create_time);
                 $content = Parsedown::instance()->text($act->content);
                 $subView->addContent('{##comment_content##}',  $content);

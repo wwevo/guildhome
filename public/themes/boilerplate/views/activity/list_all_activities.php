@@ -6,7 +6,7 @@
         on {##activity_published##},<br />
         <strong>{##activity_identity##}</strong> posted <strong>{##activity_type##}</strong>.
     </section>
-    <section class="content">
+    <section class="content clearfix">
         <a href="{##details_link##}">{##details_link_text##}</a>
         {##activity_content##}
     </section>

@@ -147,12 +147,14 @@ body {
 
 */
 
+article.comment,
 article.activity {
     margin: 0.5em 0;
     background-image: linear-gradient(to bottom, #eda73e 40px, #FFFFFF 40px);
     clear: both;
 }
 
+article.comment:after,
 article.activity:after {
     content: ".";
     clear: both;
@@ -161,6 +163,8 @@ article.activity:after {
     height: 0px;
 }
 
+article.comment h3,
+article.comment section.date,
 article.activity h3, 
 article.activity section.date {
     font-size: 16px; line-height: 20px;
@@ -174,41 +178,49 @@ article.activity section.description {
 }
 
 .main aside a,
+article.comment a,
 article.activity a {
     color: #EA6C12;
     text-decoration: none;
 }
 
+article.comment a:hover,
 article.activity a:hover {
     text-decoration: underline;
 }
 
+article.comment img,
 article.activity img {
     float: left;
     margin-right: 6px;
+    clear: both;
 }
 
+article.comment section.comment_details,
 article.activity section.activity_details {
     height: 40px;
     line-height: 20px;
 }
-
 
 article.activity section.content {
     clear: both;
     margin: 0 0.5em;
 }
 
+article.comment section.logged_in,
+article.comment section.not_logged_in,
 article.activity section.logged_in,
 article.activity section.not_logged_in {
     height: 20px;
     padding: 0.25em;
 }
 
+article.comment section.logged_in,
 article.activity section.logged_in {
     text-align: right;
 }
 
+article.comment section.not_logged_in,
 article.activity section.not_logged_in {
     float: left;
     text-align: left;
@@ -285,7 +297,14 @@ article.activity section.not_logged_in {
    Author's custom styles
    ========================================================================== */
 
+/* Start of "Micro clearfix" */
 
+    .clearfix { zoom: 1; }
+    .clearfix:before,
+    .clearfix:after { content: ""; display: table; }
+    .clearfix:after { clear: both; }
+
+/* End of "Micro clearfix" */
 
 
 

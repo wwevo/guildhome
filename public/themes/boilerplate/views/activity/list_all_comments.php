@@ -1,10 +1,12 @@
 {##comment_loop##}
 <article class="comment">
-    <img src="{##avatar##}" width="40" height="40" alt="avatar of user {##comment_identity##}" />
-    on {##comment_published##},<br />
-    <strong>{##comment_identity##}</strong> posted <strong>a comment</strong>
+    <section class="comment_details">
+        <img src="{##avatar##}" width="40" height="40" alt="avatar of user {##comment_identity##}" />
+        on {##comment_published##},<br />
+        <strong>{##comment_identity##}</strong> posted <strong>{##activity_type##}</strong>
+    </section>
     <section class="content">
-    {##comment_content##}
+        {##comment_content##}
     </section>
     {##comment_logged_in##}
     <section class="logged_in">
