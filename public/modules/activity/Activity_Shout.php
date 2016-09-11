@@ -19,24 +19,10 @@ class Activity_Shout extends Activity {
         Toro::addRoute(["/activity/shout/:alpha/:alpha" => "Activity_Shout"]);
     }
 
-    function create_tables() {
-        $db = db::getInstance();
-        $sql = "INSERT INTO activity_types (id, name, description)
-                            VALUES('1', 'shout', 'a shout');";
-        $result = $db->query($sql);
-        echo $sql;
-        $sql = "CREATE TABLE activity_shouts (
-            activity_id INT(6) UNIQUE,
-            content TEXT
-        )";
-        $result = $db->query($sql);
-        echo $sql;
-    }
-    
     function get($alpha = '', $id = NULL) {
         $login = new Login();
         switch ($alpha) {
-            default:
+            default :
                 $page = Page::getInstance();
                 $page->setContent('{##main##}', '<h2>All shouts</h2>');
                 $this->activity_menu();

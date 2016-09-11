@@ -33,6 +33,7 @@
             <input type="number" name="activity[signups_max_val]" value="{##signups_max_val##}" /><br />
             <input {##activity_keep_signups_open_checked##} type="checkbox" name="activity[keep_signups_open]" value="1" /> Keep signups open beyond set limit<br />
         </fieldset>
+        <!--
         <fieldset disabled="disabled">
             <legend>Class registration</legend>
             <input disabled="disabled" type="checkbox" name="activity[signups]" value="signups" /> Class registration<br />
@@ -45,12 +46,13 @@
             </select><br />
             <input disabled="disabled" type="checkbox" name="activity[multiple_roles]" value="multiple_roles" /> Allow participants to register for multiple choices<br />
         </fieldset>
+        //-->
         <fieldset>
             <legend>Post itttt!</legend>
-            <input disabled="disabled" type="submit" name="activity[preview]" value="{##preview_text##}" />
-            <input disabled="disabled" type="submit" name="activity[draft]" value="{##draft_text##}" />
+<!--            <input disabled="disabled" type="submit" name="activity[preview]" value="{##preview_text##}" />
+            <input disabled="disabled" type="submit" name="activity[draft]" value="{##draft_text##}" /> //-->
             <input type="submit" name="activity[submit]" value="{##submit_text##}" />
-            <input disabled="disabled" type="checkbox" name="activity[template_activated]" value="template_activated" /> Save as event template
+<!--            <input disabled="disabled" type="checkbox" name="activity[template_activated]" value="template_activated" /> Save as event template //-->
         </fieldset>
         {##activity_general_validation##}
     </form>

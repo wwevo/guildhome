@@ -8,6 +8,7 @@
     </section>
     {##comment_logged_in##}
     <section class="logged_in">
+        <a href="{##edit_link##}">{##edit_link_text##}</a>
         <a href="{##delete_link##}">{##delete_link_text##}</a>
     </section>
     {/##comment_logged_in##}

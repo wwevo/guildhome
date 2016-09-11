@@ -190,6 +190,8 @@ class Activity {
                     $content .= " (" . $activity_event->minimal_signups . " req)";
                 }
 
+                $content .= $event->getActivityDetailsView($act->id);
+                
                 $delete_link = '/activity/event/delete/' . $act->id;
                 $update_link = '/activity/event/update/' . $act->id;
                 $comment_link = '/comment/activity/view/' . $act->id;
@@ -284,7 +286,9 @@ class Activity {
                 if ($type !== NULL AND $act->type !== $type) {
                     continue;
                 }
+                
                 $subView = $this->getSubView($act, $view);
+                
                 $activity_loop .= $subView;
             }
             $view->addContent('{##activity_loop##}',  $activity_loop);

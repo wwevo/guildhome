@@ -19,8 +19,6 @@ class Activity_Event extends Activity {
         Toro::addRoute(["/activity/event/:alpha/:alpha" => "Activity_Event"]);
     }
 
-    function create_tables() {}
-
     function get($alpha = '', $id = NULL) {
         $login = new Login();
         switch ($alpha) {
@@ -35,7 +33,12 @@ class Activity_Event extends Activity {
                 $page->setContent('{##main##}', '<h2>Event details</h2>');
                 
                 $page->addContent('{##main##}', $this->getActivityView($id));
-                $page->addContent('{##main##}', $this->getActivityDetailsView($id));
+                $comments = new Comment();
+                if ($login->isLoggedIn()) {
+                    $page->addContent('{##main##}', $comments->getNewCommentForm($id));
+                }
+                $page->addContent('{##main##}', $comments->getAllCommentsView($id));
+
                 break;
             case 'new' :
                 if (!$login->isLoggedIn()) {
@@ -226,7 +229,7 @@ class Activity_Event extends Activity {
         $time = (!empty($env->post('activity')['time'])) ? $env->post('activity')['time'] : $act->time;
         $signups_min_val = (!empty($env->post('activity')['signups_min_val'])) ? $env->post('activity')['signups_min_val'] : $act->minimal_signups;
         $signups_max_val = (!empty($env->post('activity')['signups_max_val'])) ? $env->post('activity')['signups_max_val'] : $act->maximal_signups;
-
+        
         $comments_checked = (is_null($env->post('activity')['comments'])) ? $act->comments_activated : $env->post('activity')['comments'];
         $comments_checked = ($comments_checked === '1') ? 'checked="' . $comments_checked . '"' : '';
 

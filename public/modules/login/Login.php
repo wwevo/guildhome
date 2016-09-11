@@ -35,7 +35,7 @@ class Login {
             case 'reset_password' :
                 if ($token != '' && strlen($token) == 32) {
                     $db = db::getInstance();
-                    $page->setContent('{##main##}', '<h2>Token recieved</h2>');
+                    $page->setContent('{##main##}', '<h2>Token received</h2>');
                     $token_clean = $db->real_escape_string(strip_tags($token, ENT_QUOTES));
                     $token_user_id = $this->checkToken($token);
                     if ($token_user_id !== false) {

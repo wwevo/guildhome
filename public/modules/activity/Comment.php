@@ -18,28 +18,6 @@ class Comment {
         Toro::addRoute(["/comment/:alpha/:alpha/:alpha" => "Comment"]);
     }
     
-    function create_tables() {
-        // Dirty Setup
-        $db = db::getInstance();
-        $sql = "CREATE TABLE comments (
-            id INT(6) AUTO_INCREMENT PRIMARY KEY,
-            userid INT(6),
-            content VARCHAR(500),
-            create_time INT(11) NOT NULL,
-            parent_comment INT(6)
-        )";
-        //$result = $db->query($sql);
-        echo $sql;
-
-        $sql = "CREATE TABLE comment_mapping (
-            activity_id INT(6),
-            comment_id INT(6)
-        )";
-        //$result = $db->query($sql);
-        echo $sql;
-        exit;
-    }
-    
     function get($type = 'activity', $action = 'view', $id = '') {       
         $login = new Login();
 
@@ -50,15 +28,24 @@ class Comment {
                 switch ($action) {
                     default:
                         $act = new Activity();
+                        $page->setContent('{##main##}', '<h2>Comments</h2>');
                         $page->addContent('{##main##}', $act->getActivityView($id));
                         if ($login->isLoggedIn()) {
                             $page->addContent('{##main##}', $this->getNewCommentForm($id));
                         }
                         $page->addContent('{##main##}', $this->getAllCommentsView($id));
                         break;
+                    case 'update' :
+                        $page->setContent('{##main##}', '<h2>Update comment</h2>');
+                        if ($login->isLoggedIn()) {
+                            $page->addContent('{##main##}', $this->getEditCommentForm($id));
+                        }
+                        break;
                     case 'delete' :
                         $page->setContent('{##main##}', '<h2>Delete comment</h2>');
-                        $page->addContent('{##main##}', $this->getDeleteCommentForm($id));
+                        if ($login->isLoggedIn()) {
+                            $page->addContent('{##main##}', $this->getDeleteCommentForm($id));
+                        }
                         break;
                 }
                 break;
@@ -75,6 +62,15 @@ class Comment {
             case 'new' :
                 if ($this->validateComment() === true) {
                     if ($this->saveComment($id) === true) {
+                        header("Location: /comment/$alpha/view/$id");
+                    }
+                } else {
+                    $this->get('activity', 'view', $id);
+                }
+                break;
+            case 'update' :
+                if ($this->validateComment() === true) {
+                    if ($this->updateComment($id) === true) {
                         header("Location: /comment/$alpha/view/$id");
                     }
                 } else {
@@ -111,6 +107,28 @@ class Comment {
         $query = $db->query($sql);
     }
     
+    function update($id) {
+        $db = db::getInstance();
+        $env = Env::getInstance();
+        $login = new Login();
+        
+        $userid = $login->currentUserID();
+
+        $content = $env->post('comment')['content'];
+        
+        $sql = "UPDATE comments SET
+                    content = '$content'
+                    WHERE id = '$id' AND userid = '$userid';";
+        
+        $query = $db->query($sql);
+        
+        if ($query !== false) {
+            $env->clear_post('comment');
+            return true;
+        }
+        return false;
+    }
+        
     function validateComment() {
         $msg = Msg::getInstance();
         $env = Env::getInstance();
@@ -126,6 +144,14 @@ class Comment {
         }
         return false;
     }
+
+    function updateComment($activity_id) {
+        // save activity meta data
+        $this->update($activity_id);
+
+        return false;
+    }
+
     
     function saveComment($activity_id) {
         $db = db::getInstance();
@@ -146,6 +172,7 @@ class Comment {
         return false;
     }
 
+    
     function getDeleteCommentForm($id) {
         $env = Env::getInstance();
         $msg = Msg::getInstance();
@@ -174,11 +201,9 @@ class Comment {
         if ($userid != $cmtid) {
             return false;
         }
-        $sql = "DELETE FROM comments 
-                    WHERE id = '$id';";
+        $sql = "DELETE FROM comments WHERE id = '$id';";
         $query = $db->query($sql);
-        $sql = "DELETE FROM comment_mapping 
-                    WHERE comment_id = '$id';";
+        $sql = "DELETE FROM comment_mapping WHERE comment_id = '$id';";
         $query = $db->query($sql);
         if ($query !== false) {
             $env->clear_post('comment');
@@ -262,6 +287,8 @@ class Comment {
                     $memberView = new View();
                     $memberView->setTmpl($view->getSubTemplate('{##comment_logged_in##}'));
                     if ($login->currentUserID() === $act->userid) {
+                        $memberView->addContent('{##edit_link##}', '/comment/activity/update/' . $act->comment_id);
+                        $memberView->addContent('{##edit_link_text##}', 'update');
                         $memberView->addContent('{##delete_link##}', '/comment/activity/delete/' . $act->comment_id);
                         $memberView->addContent('{##delete_link_text##}', 'delete');
                     }
@@ -286,13 +313,30 @@ class Comment {
             '{##form_action##}' => '/comment/activity/new/' . $id,
             '{##comment_content##}' => $env->post('comment')['content'],
             '{##comment_content_validation##}' => $msg->fetch('comment_content_validation'),
-            '{##submit_text##}' => 'say it loud',
+            '{##submit_text##}' => 'Say it loud',
         ));
         $view->replaceTags();
         return $view;
     }
 
- 
+    function getEditCommentForm($id) {
+        $env = Env::getInstance();
+        $msg = Msg::getInstance();
+        
+        $comment =  $this->getComment($id);
+        $content = (!empty($env->post('comment')['content'])) ? $env->post('comment')['content'] : $comment->content;
+
+        $view = new View();
+        $view->setTmpl(file('themes/' . constant('theme') . '/views/activity/edit_comment_form.php'), array(
+            '{##form_action##}' => '/comment/activity/update/' . $id,
+            '{##comment_content##}' => $content,
+            '{##comment_content_validation##}' => $msg->fetch('comment_content_validation'),
+            '{##submit_text##}' => 'Revised and ready!',
+        ));
+        $view->replaceTags();
+        return $view;
+    }
+
 }
 $comment = new Comment();
 $comment->initEnv();
