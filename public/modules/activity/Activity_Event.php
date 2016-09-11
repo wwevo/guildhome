@@ -491,8 +491,8 @@ class Activity_Event extends Activity {
         // save 'event' specific data
         $activity_id = $db->insert_id;
         
-        $event_type = $env->post('activity')['event_type'];
         $title = $env->post('activity')['title'];
+        $event_type = $env->post('activity')['event_type'];
         $description = $env->post('activity')['content'];
         $time = $env->post('activity')['time'];
         $date = $env->post('activity')['date'];
@@ -545,11 +545,6 @@ class Activity_Event extends Activity {
 
         $query = $db->query($sql);
 
-//        echo $sql;
-//        var_dump($query);
-//        var_dump($db->affected_rows);
-//        exit;
-
         if ($db->affected_rows > 0 OR $query !== false) {
             if ($this->saveSignups($id) !== false) {
                 $env->clear_post('activity');
@@ -569,8 +564,7 @@ class Activity_Event extends Activity {
         if ($userid != $actid) {
             return false;
         }
-        //$sql = "DELETE FROM activity_events WHERE activity_id = '$id';";
-        //$query = $db->query($sql);
+
         $sql = "DELETE FROM activities 
                     WHERE id = '$id';";
         $query = $db->query($sql);

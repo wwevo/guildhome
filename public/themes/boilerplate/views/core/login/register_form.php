@@ -3,8 +3,12 @@
     <p>
         Please don't use your gw2 account name as your username if you ever
         plan on having multiple gw2 accounts (like NA/EU),<br />
-        it will be possible to link several gw2 accounts to one EoL account.<br />
-        Consider using a name people should call you by in game, as at least for now, activities and such will be posted with your username.
+        It will be possible to link several gw2 accounts to one EoL account.<br />
+        Consider using a name people should call you by in game, as at least for
+        now, activities and such will be posted with your username.<br />
+        An eMail address is required to reset a lost password automatically.<br />
+        The Voucher can be obtained from Evo or Ani, just drop us a line/send us
+        a mail in-game :)
     </p>
     <form method="post" action="{##form_action##}">
         <label for="register_username">

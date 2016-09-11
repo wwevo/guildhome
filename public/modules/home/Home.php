@@ -26,7 +26,7 @@ class Home {
         $page->addContent('{##main##}', 'We will return to the internet with a full blown super-site in no time :)');
         $page->addContent('{##main##}', '<p>');
         $page->addContent('{##main##}', '<a href="/register">Registrations are open</a> for guildies, please speak to an officer about it. Preferably Evo or Ani.<br />');
-        $page->addContent('{##main##}', "Even though there isn't much to do here except logging in and out... it might help further developing and planning for this website :)<br />");
+        $page->addContent('{##main##}', "It's all rudimentary, but you can post status updates (shouts), plan Events and do a few other things. Every user is helping with the development process as well as only used functions can really be improved upon :)<br />");
         $page->addContent('{##main##}', "Please don't use any sensitive data and only restricted API-Keys as there may still be security related bugs.");
         $page->addContent('{##main##}', '</p>');
         $page->addContent('{##main##}', '<p>');
