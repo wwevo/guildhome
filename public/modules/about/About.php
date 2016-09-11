@@ -12,11 +12,11 @@
  * @author Christian Voigt <chris at notjustfor.me>
  */
 class About {
-    
+
     function initEnv() {
         Toro::addRoute(["/about" => 'About']);
     }
-    
+
     function get() {
         $page = Page::getInstance();
         $page->setContent('{##main##}', '<h2>About</h2>');
@@ -48,13 +48,32 @@ The only thing we ask you is being nice and friendly to other guildies as well a
         $page->addContent('{##main##}', 'Like every guild EoL has ranks too :) Here is a list of the current rank titles with their corresponding meanings and permissions:');
         $page->addContent('{##main##}', '</p>');
 
-        $page->addContent('{##main##}', '<table><tbody><tr><th><p><span>Rank name</span></p></th><th><p><span>Description / Permissions</span></p></th><th><p><span>How to get there?</span></p></th></tr><tr><td><p><span>Leader</span></p></td><td><p><span>It’s the leader - all! ;)</span></p></td><td><p><span>Well, you need to found the guild or be girlfriend of the founder ;)</span></p></td></tr><tr><td><p><span>Officer</span></p></td><td><p><span>Officers help the leaders with ‘leading’ and organizing the guild. They have nearly every permission including member administration and mission control.</span></p></td><td><p><span>You have to be chosen by the leaders themselves.</span></p></td></tr><tr><td><p><span>Chieftain</span></p></td><td><p><span>A chieftain is a member that has officially taken some extra responsibility. Has member rights plus being able to open guild portals and manage guild teams.</span></p></td><td><p><span>You have to be chosen by leaders and/or being noticed by taking extra effort/responsiblity for a certain area.</span></p></td></tr><tr><td><p><span>Member</span></p></td><td><p><span>Regular guild member. Permissions include decorating guild hall, using guild bank and claiming WvW objects.</span></p></td><td><p><span>You have to get involved with EoL, sign up at the website, take part in events, just be there and give the guild a chance to get to know you :)</span></p></td></tr><tr><td><p><span>Recruit</span></p></td><td><p><span>This is where new members start. Can deposit into guild bank but not withdraw.</span></p></td><td><p><span>Join the guild by contacting either Ani (Ani.8473) or any other officer preferably ingame. Will then have a little talk and check out if we could fit together.</span></p></td></tr><tr><td><p><span>Visitor</span></p></td><td><p><span>A visitor is a member with rare attention for EoL. Same permissions as recruits have.</span></p></td><td><p><span>Mostly represent other guilds and infrequently participate in EoL events. &nbsp;</span></p></td></tr><tr><td><p><span>Slacker</span></p></td><td><p><span>This guildie hasn’t seen for a longer time. Same permissions as recruits have.</span></p></td><td><p><span>Do not log in for a month - not recommended ;)</span></p></td></tr><tr><td><p><span>Phantom</span></p></td><td><p><span>This guildie hasn’t even seen for a loooonger time.</span></p></td><td><p><span>Do not log in for three months - really not recommended ;)</span></p></td></tr></tbody></table>');
+        $page->addContent('{##main##}', '<table><tbody>'
+                . '<tr><th><p><span>Rank name</span></p></th><th><p><span>Description / Permissions</span></p></th><th><p><span>How to get there?</span></p></th></tr>'
+                . '<tr><td><p><span>Leader</span></p></td><td><p><span>It’s the leader - all! ;)</span></p></td><td><p><span>Well, you need to found the guild or be girlfriend of the founder ;)</span></p></td></tr>'
+                . '<tr><td><p><span>Officer</span></p></td><td><p><span>Officers help the leaders with ‘leading’ and organizing the guild. They have nearly every permission including member administration and mission control.</span></p></td><td><p><span>You have to be chosen by the leaders themselves.</span></p></td></tr>'
+                . '<tr><td><p><span>Chieftain</span></p></td><td><p><span>A chieftain is a member that has officially taken some extra responsibility. Has member rights plus being able to open guild portals and manage guild teams.</span></p></td><td><p><span>You have to be chosen by leaders and/or being noticed by taking extra effort/responsiblity for a certain area.</span></p></td></tr>'
+                . '<tr><td><p><span>Member</span></p></td><td><p><span>Regular guild member. Permissions include decorating guild hall, using guild bank and claiming WvW objects.</span></p></td><td><p><span>You have to get involved with EoL, sign up at the website, take part in events, just be there and give the guild a chance to get to know you :)</span></p></td></tr>'
+                . '<tr><td><p><span>Recruit</span></p></td><td><p><span>This is where new members start. Can deposit into guild bank but not withdraw.</span></p></td><td><p><span>Join the guild by contacting either Ani (Ani.8473) or any other officer preferably ingame. Will then have a little talk and check out if we could fit together.</span></p></td></tr>'
+                . '<tr><td><p><span>Visitor</span></p></td><td><p><span>A visitor is a member with rare attention for EoL. Same permissions as recruits have.</span></p></td><td><p><span>Mostly represent other guilds and infrequently participate in EoL events. &nbsp;</span></p></td></tr>'
+                . '<tr><td><p><span>Slacker</span></p></td><td><p><span>This guildie hasn’t seen for a longer time. Same permissions as recruits have.</span></p></td><td><p><span>Do not log in for a month - not recommended ;)</span></p></td></tr>'
+                . '<tr><td><p><span>Phantom</span></p></td><td><p><span>This guildie hasn’t even seen for a loooonger time.</span></p></td><td><p><span>Do not log in for three months - really not recommended ;)</span></p></td></tr>'
+                . '<tr><td><p><span>Unkickable</span></p></td><td><p><span>This guildy has probably quit for good. But still...</span></p></td><td><p><span>Quit the game for whatever reason. Do a big deed for the guild, get into the hearts of us all and be remembered forever. This guildie will always have an open spot in out roster and will NEVER be kicked, denied or forgotten!</span></p></td></tr>'
+                . '</tbody></table>');
 
         $page->addContent('{##main##}', '<p>');
         $page->addContent('{##main##}', 'Beside the ranks, it’s good to know we have some officers/chieftains who have taken over an area responsibility, so these persons are ‘THE person’ to ask when you have questions/ideas/critic/whatever to that areas:');
         $page->addContent('{##main##}', '</p>');
 
-        $page->addContent('{##main##}', '<table><tbody><tr><th><p><span>Who?</span></p></th><th><p><span>What?</span></p></th></tr><tr><td><p><span>Leader - Evo (evocv.6892)</span></p></td><td><p><span>General stuff and philosophical questions</span></p></td></tr><tr><td><p><span>Leader - Ani (Ani.8473)</span></p></td><td><p><span>General organisation and RAIDs</span></p></td></tr><tr><td><p><span>Officer - Kara (karachristina.3670)</span></p></td><td><p><span>General PvE</span></p></td></tr><tr><td><p><span>Officer - Kakir (Muhahalol.2169)</span></p></td><td><p><span>GUILD HALL upgrades</span></p></td></tr><tr><td><p><span>Officer - Arilin (Arilin.8716)</span></p></td><td><p><span>PVP (including pvp missions)</span></p></td></tr><tr><td><p><span>Chieftain - Blessy (BlessurisHammer.9602)</span></p></td><td><p><span>HP RUNS in HoT maps</span></p></td></tr></tbody></table>');
+        $page->addContent('{##main##}', '<table><tbody>'
+                . '<tr><th><p><span>Who?</span></p></th><th><p><span>What?</span></p></th></tr>'
+                . '<tr><td><p><span>Leader - Evo (evocv.6892)</span></p></td><td><p><span>General stuff and philosophical questions</span></p></td></tr>'
+                . '<tr><td><p><span>Leader - Ani (Ani.8473)</span></p></td><td><p><span>General organisation and RAIDs</span></p></td></tr>'
+                . '<tr><td><p><span>Officer - Kara (karachristina.3670)</span></p></td><td><p><span>General PvE</span></p></td></tr>'
+                . '<tr><td><p><span>Officer - Kakir (Muhahalol.2169)</span></p></td><td><p><span>GUILD HALL upgrades</span></p></td></tr>'
+                . '<tr><td><p><span>Officer - Arilin (Arilin.8716)</span></p></td><td><p><span>PVP (including pvp missions)</span></p></td></tr>'
+                . '<tr><td><p><span>Chieftain - Blessy (BlessurisHammer.9602)</span></p></td><td><p><span>HP RUNS in HoT maps</span></p></td></tr>'
+                . '</tbody></table>');
 
         $page->addContent('{##main##}', '<p>');
         $page->addContent('{##main##}', 'Of course you can always ask anyone, but this people should be your first choice if you have a specific questions to their areas.');
@@ -70,7 +89,8 @@ Then GuildWars2 became free to play. New players flooded the game, joined guilds
 We still don’t like kicking members, but it’s necessary. Every ‘cleaned’ guildie gets a mail stating that if he returns we will be welcomed back to EoL as well, all it needs is a ping :)');
         $page->addContent('{##main##}', '</p>');
     }
-    
+
 }
+
 $about = new About();
 $about->initEnv();
