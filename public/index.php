@@ -52,14 +52,14 @@ $site_menu .= '<li><a href="/activities">Activities</a></li>';
 $site_menu .= '<li><a href="/profiles">Members</a></li>';
 $site_menu .= '<li><a href="/about">About EoL</a></li>';
 $site_menu .= '</ul>';
+$page->addContent('{##nav##}', $site_menu);
 
 $user_menu  = '<ul class="user-menu">';
 $user_menu .= '<li>' .(($login->isLoggedIn()) ? '<a href="/profile/' . $login->currentUsername() . '">Profile</a> ' : '<a href="/register">Register </a>') . '</li>';
 $user_menu .= '<li>' .(($login->isLoggedIn()) ? '<a href="/logout">Logout</a>' : '<a href="/login">Login</a>') . '</li>';
 $user_menu .= '</ul>';
-$page->addContent('{##nav##}', $site_menu);
-
 $page->addContent('{##user_nav##}', $user_menu);
+
 $activity_event = new Activity_Event();
 $page->addContent('{##widgets##}', $activity_event->getUpcomingActivitiesView());
 

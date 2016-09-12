@@ -9,6 +9,9 @@
 /**
  * Description of gw2api
  *
+ * Doing some quick hacks to see whats out there. This will take the hell of a
+ * lot of time to make this remotely modular :)
+ * 
  * @author ecv
  */
 class gw2api {
@@ -23,42 +26,38 @@ class gw2api {
         $page->setContent('{##main##}', '<h2>Guild Wars 2 API Access</h2>');
         
         $login = new Login();
-        if ($login->isLoggedIn()) {
+        if ($login->isLoggedIn() AND $login->isOperator()) {
             $settings = new Settings();
-            if ($slug == 'dump') {
-                $page->addContent('{##main##}', $this->dumpAllDataView());
-            } else {
-                $page->addContent('{##main##}', $settings->getUpdateSettingForm('api_key'));
-                $page->addContent('{##main##}', $this->getImportForm());
-                $page->addContent('{##main##}', $this->getImportedData());
-                // $page->addContent('{##main##}', '<a href="/gw2api/dump">Data-dump (test)</a> : this may take a few seconds to process!');
-            }
+            $page->addContent('{##main##}', $settings->getUpdateSettingForm('api_key'));
+            $page->addContent('{##main##}', $this->getImportForm());
+            $page->addContent('{##main##}', $this->getImportedDataDumpView());
         } else {
             header("Location: /activities");
         }
     }
     
     function post($slug = '') {
-        $env = Env::getInstance();
-
-        $page = Page::getInstance();
-        $page->setContent('{##main##}', '<h2>Guild Wars 2 API Access</h2>');
-        
-        if (isset($env->post('gw2api_import')['submit'])) {
-            if ($slug == 'import') {
-                $page->addContent('{##main##}', $this->saveImportedData());
-                header("Location: /gw2api");
+        $login = new Login();
+        if ($login->isLoggedIn() AND $login->isOperator()) {
+            $env = Env::getInstance();
+            if (isset($env->post('gw2api_import')['submit'])) {
+                if ($slug == 'import') {
+                    $this->storeApiData($this->fetchApiData());
+                    header("Location: /gw2api");
+                }
             }
+        } else {
+            header("Location: /activities");
         }
     }
     
-    function saveImportedData() {
+    function fetchApiData() {
         $settings = new Settings();
-        $gw2apikey = $settings->getSettingByKey('gw2apikey');
+        $gw2apikey = $settings->getSettingByKey('api_key');
         
         $api_tokeninfo = $this->gw2apiRequest('/v2/tokeninfo', $gw2apikey);
         $api_permissions = $api_tokeninfo['permissions'];
-        
+
         if (is_array($api_permissions) === false) {
             return false;
         }
@@ -66,8 +65,7 @@ class gw2api {
         foreach ($api_permissions as $permission) {
             ${'api_' . $permission} =  $this->gw2apiRequest('/v2/' . $permission, $gw2apikey);
         }
-
-        if (is_array($api_characters)) {
+        if (isset($api_characters) AND is_array($api_characters)) {
             foreach ($api_characters as $key => $value) {
                 $characters[$key] = $this->gw2apiRequest('/v2/characters/' . rawurlencode($value), $gw2apikey);
                 if (!empty($characters[$key]['guild'])) {
@@ -78,9 +76,28 @@ class gw2api {
                 $oDateIntervall = $oDateNow->diff($oDateBirth, true);
                 $characters[$key]['age'] = $oDateIntervall->format('%R%a');
             }
+            $api_data['characters'] = $characters;
         }
 
-        if ($settings->updateSetting('gw2apidata', json_encode($characters)) == true) {
+        if (isset($api_account) AND is_array($api_account)) {
+            if (is_array($api_account['guilds'])) {
+                foreach ($api_account['guilds'] as $key => $guild) {
+                    $api_data['guilds'][$key] = $this->gw2apiRequest('/v2/guild/' . $guild);
+                    $api_data['guilds'][$key]['roster'] = $this->gw2apiRequest('/v2/guild/' . $guild . '/members', $gw2apikey);
+                }
+            }
+        }
+
+        if (is_array($api_data)) {
+            $api_data['created'] = $date = date('m/d/Y h:i:s a');
+            return $api_data;
+        }
+        return false;
+    }
+    
+    function storeApiData($api_data) {
+        $settings = new Settings();
+        if ($settings->updateSetting('gw2apidata', json_encode($api_data)) == true) {
             return true;
         }
         return false;
@@ -95,7 +112,7 @@ class gw2api {
         return $view;
     }
 
-    function getImportedData() {
+    function getImportedDataDumpView() {
         $settings = new Settings();
 
         $view = new View();
@@ -105,18 +122,6 @@ class gw2api {
         return $view;
     }
     
-    function dumpAllDataView() {
-        $view = new View();
-        $view->setTmpl(file('themes/' . constant('theme') . '/views/gw2api/dump_all_data_view.php'));
-        $view->addContent('{##data##}', '<pre>');
-        $view->addContent('{##data##}', print_r($api_tokeninfo, true));
-        $view->addContent('{##data##}', print_r($api_account, true));
-        $view->addContent('{##data##}', print_r($characters, true));
-        $view->addContent('{##data##}', '</pre>');
-        $view->replaceTags();
-        return $view;
-    }
-
     function gw2apiRequest($request, $api_key = ""){
             // Check API Key against pattern
             if($api_key != ""){
