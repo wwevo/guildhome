@@ -60,6 +60,13 @@ $user_menu .= '<li>' .(($login->isLoggedIn()) ? '<a href="/logout">Logout</a>' :
 $user_menu .= '</ul>';
 $page->addContent('{##user_nav##}', $user_menu);
 
+$operator_menu  = '<ul class="operator-menu">';
+$operator_menu .= '<li><a href="/gw2api">gw2api (test)</a></li>';
+$operator_menu .= '</ul>';
+if ($login->isOperator()) {
+    $page->addContent('{##user_nav##}', $operator_menu);
+}
+
 $activity_event = new Activity_Event();
 $page->addContent('{##widgets##}', $activity_event->getUpcomingActivitiesView());
 
