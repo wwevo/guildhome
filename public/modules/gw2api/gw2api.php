@@ -30,7 +30,9 @@ class gw2api {
             $settings = new Settings();
             $page->addContent('{##main##}', $settings->getUpdateSettingForm('api_key'));
             $page->addContent('{##main##}', $this->getImportForm());
-            $page->addContent('{##main##}', $this->getImportedDataDumpView());
+            $page->addContent('{##main##}', $this->getUpdateRosterForm());
+            $page->addContent('{##main##}', "<pre>" . print_r($this->getRankUsageFromRoster(), true) . "</pre>");
+//            $page->addContent('{##main##}', $this->getImportedDataDumpView());
         } else {
             header("Location: /activities");
         }
@@ -43,6 +45,12 @@ class gw2api {
             if (isset($env->post('gw2api_import')['submit'])) {
                 if ($slug == 'import') {
                     $this->storeApiData($this->fetchApiData());
+                    header("Location: /gw2api");
+                }
+            }
+            if (isset($env->post('gw2api_update_roster')['submit'])) {
+                if ($slug == 'update_roster') {
+                    $this->extractRosterFromDump();
                     header("Location: /gw2api");
                 }
             }
@@ -112,6 +120,15 @@ class gw2api {
         return $view;
     }
 
+    function getUpdateRosterForm() {
+        $view = new View();
+        $view->setTmpl(file('themes/' . constant('theme') . '/views/gw2api/update_roster_form.php'));
+        $view->addContent('{##form_action##}', '/gw2api/update_roster');
+        $view->addContent('{##gw2api_update_roster_submit_text##}', 'Update Roster');
+        $view->replaceTags();
+        return $view;
+    }
+
     function getImportedDataDumpView() {
         $settings = new Settings();
 
@@ -120,6 +137,43 @@ class gw2api {
         $view->addContent('{##data##}', "<pre>" . print_r(json_decode($settings->getSettingByKey('gw2apidata'), true), true) . "</pre>");
         $view->replaceTags();
         return $view;
+    }
+    
+    function extractRosterFromDump() {
+        $settings = new Settings();
+        $roster = json_decode($settings->getSettingByKey('gw2apidata'), true)['guilds'][0]['roster'];
+        foreach ($roster as $member) {
+            $account = $member['name'];
+            $rank =  $member['rank'];
+            $values[] = "('$account', '$rank')";
+        }
+        $values = implode(',', $values);
+        
+        $db = db::getInstance();
+
+        $sql = "TRUNCATE TABLE api_roster;";
+        $query = $db->query($sql);
+        $sql = "INSERT INTO api_roster (account_name, guild_rank) VALUES $values;";
+
+        $query = $db->query($sql);
+        if ($query !== false) {
+            return true;
+        }
+        return false;
+    }
+    
+    function getRankUsageFromRoster() {
+        $db = db::getInstance();
+
+        $sql = "SELECT guild_rank, COUNT(*) FROM api_roster GROUP BY guild_rank;";
+        $query = $db->query($sql);
+        if ($query !== false AND $query->num_rows >= 1) {
+            while ($result_row = $query->fetch_object()) {
+                $rank_usage[] = $result_row;
+            }
+            return $rank_usage;
+        }
+        return false;
     }
     
     function gw2apiRequest($request, $api_key = ""){
