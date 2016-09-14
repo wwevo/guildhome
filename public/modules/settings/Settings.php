@@ -55,16 +55,17 @@ class Settings {
         }
         $sql = "SELECT *
                     FROM settings
-                    WHERE userid = '" . $user_id . "' AND setting = '" . $key . "';";
+                    WHERE userid = '$user_id' AND setting = '$key';";
         $result = $db->query($sql);
 
         if ($result !== false AND $result->num_rows >= 1) {
             $result_row = $result->fetch_object();
-            return $result_row->setting_value;
-        } else {
-            return false;
+            
+            if (!empty($result_row->setting_value) AND $result_row->setting_value != '') {
+                return $result_row->setting_value;    
+            }
         }
-        
+        return false;
     }
     
     function updateSetting($key, $value = '') {

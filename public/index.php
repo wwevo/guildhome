@@ -63,7 +63,7 @@ $page->addContent('{##user_nav##}', $user_menu);
 $operator_menu  = '<ul class="operator-menu">';
 $operator_menu .= '<li><a href="/gw2api">gw2api (test)</a></li>';
 $operator_menu .= '</ul>';
-if ($login->isOperator()) {
+if ($login->isLoggedIn()) {
     $page->addContent('{##user_nav##}', $operator_menu);
 }
 

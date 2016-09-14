@@ -24,6 +24,8 @@ class Profile {
         if (empty($slug)) {
             $page->setContent('{##main##}', '<h2>Registered Members</h2>');
             $page->addContent('{##main##}', $this->getUsersView());
+            $gw2api = new gw2api();
+            $page->addContent('{##main##}', $gw2api->getRankUsageFromRosterView());
         } else {
             $login = new Login();
             $db = db::getInstance();
@@ -117,7 +119,7 @@ class Profile {
     
     public function getUsersView() {
         $view = new View();
-        $view->setTmpl(file('themes/' . constant('theme') . '/views/core/login/all_users_view.php'));
+        $view->setTmpl(file('themes/' . constant('theme') . '/views/profile/all_users_view.php'));
 
         $all_users = null;
         $users = $this->getUsers();

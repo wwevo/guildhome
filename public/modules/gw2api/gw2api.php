@@ -23,39 +23,64 @@ class gw2api {
     
     function get($slug = '') {
         $page = Page::getInstance();
-        $page->setContent('{##main##}', '<h2>Guild Wars 2 API Access</h2>');
         
         $login = new Login();
-        if ($login->isLoggedIn() AND $login->isOperator()) {
-            $settings = new Settings();
+        $settings = new Settings();
+
+        $page->setContent('{##main##}', '<h2>Guild Wars 2 API Access</h2>');
+        $api_key = $settings->getSettingByKey('api_key');
+        if ($login->isLoggedIn()) {
             $page->addContent('{##main##}', $settings->getUpdateSettingForm('api_key'));
-            $page->addContent('{##main##}', $this->getImportForm());
-            $page->addContent('{##main##}', $this->getUpdateRosterForm());
-            $page->addContent('{##main##}', "<pre>" . print_r($this->getRankUsageFromRoster(), true) . "</pre>");
-//            $page->addContent('{##main##}', $this->getImportedDataDumpView());
+            if ($api_key !== false) {
+                $page->addContent('{##main##}', $this->getApiKeyScopeView());
+                $page->addContent('{##main##}', $this->getImportForm());
+                $page->addContent('{##main##}', $this->getImportAccountnameForm());
+            } else {
+                $page->addContent('{##main##}', 'No Api key found');
+            }
         } else {
             header("Location: /activities");
+        }
+        if ($login->isOperator()) {
+            if ($api_key !== false) {
+                $permissions = $this->getApiKeyScope();
+                if (is_array($permissions) AND in_array('guilds', $permissions)) {
+                    $page->addContent('{##main##}', $this->getUpdateRosterForm());
+                }
+            } else {
+                $page->addContent('{##main##}', 'No Api key found');
+            }
+
         }
     }
     
     function post($slug = '') {
         $login = new Login();
-        if ($login->isLoggedIn() AND $login->isOperator()) {
-            $env = Env::getInstance();
+        $env = Env::getInstance();
+
+        if ($login->isLoggedIn()) {
+            if (isset($env->post('gw2api_import_accountname')['submit'])) {
+                if ($slug == 'import_accountname') {
+                    $this->importAccountname();
+                    header("Location: /gw2api");
+                }
+            }
             if (isset($env->post('gw2api_import')['submit'])) {
                 if ($slug == 'import') {
                     $this->storeApiData($this->fetchApiData());
                     header("Location: /gw2api");
                 }
             }
+        } else {
+            header("Location: /activities");
+        }
+        if ($login->isOperator()) {
             if (isset($env->post('gw2api_update_roster')['submit'])) {
                 if ($slug == 'update_roster') {
                     $this->extractRosterFromDump();
                     header("Location: /gw2api");
                 }
             }
-        } else {
-            header("Location: /activities");
         }
     }
     
@@ -69,7 +94,7 @@ class gw2api {
         if (is_array($api_permissions) === false) {
             return false;
         }
-        
+        $api_data['permissions'] = $api_permissions;
         foreach ($api_permissions as $permission) {
             ${'api_' . $permission} =  $this->gw2apiRequest('/v2/' . $permission, $gw2apikey);
         }
@@ -88,10 +113,14 @@ class gw2api {
         }
 
         if (isset($api_account) AND is_array($api_account)) {
+            $api_data['account'] = $api_account;
             if (is_array($api_account['guilds'])) {
                 foreach ($api_account['guilds'] as $key => $guild) {
                     $api_data['guilds'][$key] = $this->gw2apiRequest('/v2/guild/' . $guild);
-                    $api_data['guilds'][$key]['roster'] = $this->gw2apiRequest('/v2/guild/' . $guild . '/members', $gw2apikey);
+                    $login = new Login();
+                    if ($login->isLoggedIn() AND $login->isAdmin()) {
+                        $api_data['guilds'][$key]['roster'] = $this->gw2apiRequest('/v2/guild/' . $guild . '/members', $gw2apikey);
+                    }
                 }
             }
         }
@@ -115,7 +144,14 @@ class gw2api {
         $view = new View();
         $view->setTmpl(file('themes/' . constant('theme') . '/views/gw2api/import_form.php'));
         $view->addContent('{##form_action##}', '/gw2api/import');
-        $view->addContent('{##gw2api_import_submit_text##}', 'Import!');
+        $view->addContent('{##gw2api_import_submit_text##}', 'Import from API');
+        $settings = new Settings();
+        if (($current_accountname = $settings->getSettingByKey('gw2apidata')) !== false) {
+            $view->addContent('{##import_status##}', 'You have local Data. An import will update everything!');
+        } else {
+            $view->addContent('{##import_status##}', 'Nothing fetched yet');
+        }
+
         $view->replaceTags();
         return $view;
     }
@@ -124,7 +160,41 @@ class gw2api {
         $view = new View();
         $view->setTmpl(file('themes/' . constant('theme') . '/views/gw2api/update_roster_form.php'));
         $view->addContent('{##form_action##}', '/gw2api/update_roster');
-        $view->addContent('{##gw2api_update_roster_submit_text##}', 'Update Roster');
+        $view->addContent('{##gw2api_update_roster_submit_text##}', 'Fetch roster');
+        $view->replaceTags();
+        return $view;
+    }
+
+    function importAccountname() {
+        $settings = new Settings();
+        if (($api_data = $settings->getSettingByKey('gw2apidata')) === false) {
+            return false;
+        }
+        $api_data = json_decode($api_data, true);
+
+        if (is_array($api_data['permissions']) === false OR !in_array('account', $api_data['permissions'])) {
+            return false;
+        }
+        if ($settings->updateSetting('gw2_account', $api_data['account']['name']) === false) {
+            return false;
+        }
+
+        return true;
+    }
+    
+    function getImportAccountnameForm() {
+        $view = new View();
+        $view->setTmpl(file('themes/' . constant('theme') . '/views/gw2api/import_accountname_form.php'));
+        $view->addContent('{##form_action##}', '/gw2api/import_accountname');
+        $view->addContent('{##gw2api_import_accountname_submit_text##}', 'Fetch accountname');
+
+        $settings = new Settings();
+        if (($current_accountname = $settings->getSettingByKey('gw2_account')) !== false) {
+            $view->addContent('{##current_accountname##}', $current_accountname);
+        } else {
+            $view->addContent('{##current_accountname##}', 'Nothing fetched yet');
+        }
+
         $view->replaceTags();
         return $view;
     }
@@ -138,6 +208,47 @@ class gw2api {
         $view->replaceTags();
         return $view;
     }
+    
+    function getApiKeyScope() {
+        $settings = new Settings();
+        $api_key = $settings->getSettingByKey('api_key');
+        
+        $api_tokeninfo = $this->gw2apiRequest('/v2/tokeninfo', $api_key);
+        $api_permissions = $api_tokeninfo['permissions'];
+
+        if (is_array($api_permissions) === false) {
+            return false;
+        }
+
+        return $api_permissions;
+    }
+    
+    function getApiKeyScopeView() {
+        $scope = $this->getApiKeyScope();
+        if (FALSE !== $scope) {
+            $view = new View();
+            $view->setTmpl(file('themes/' . constant('theme') . '/views/gw2api/api_key_scope_view.php'));
+            $all_permissions = null;
+            if (is_array($scope)) {
+                foreach ($scope as $permission) {
+                    $option = new View();
+                    $option->setTmpl($view->getSubTemplate('{##permissions##}'));
+                    $option->addContent('{##permission##}', $permission);
+                    $option->replaceTags();
+                    $all_permissions .= $option;
+                }
+            }
+            if (is_null($all_permissions)) {
+                $view->addContent('{##permissions##}', 'There seems to be no data available.');
+            } else {
+                $view->addContent('{##permissions##}', $all_permissions);
+            }
+            $view->replaceTags();
+            return $view;
+        }
+        return false;
+    }
+    
     
     function extractRosterFromDump() {
         $settings = new Settings();
@@ -165,13 +276,41 @@ class gw2api {
     function getRankUsageFromRoster() {
         $db = db::getInstance();
 
-        $sql = "SELECT guild_rank, COUNT(*) FROM api_roster GROUP BY guild_rank;";
+        $sql = "SELECT guild_rank, COUNT(*) as rank_count FROM api_roster GROUP BY guild_rank;";
+
         $query = $db->query($sql);
         if ($query !== false AND $query->num_rows >= 1) {
             while ($result_row = $query->fetch_object()) {
                 $rank_usage[] = $result_row;
             }
             return $rank_usage;
+        }
+        return false;
+    }
+
+    function getRankUsageFromRosterView() {
+        $ranks = $this->getRankUsageFromRoster();
+        if (FALSE !== $ranks) {
+            $view = new View();
+            $view->setTmpl(file('themes/' . constant('theme') . '/views/gw2api/rank_usage_view.php'));
+            $all_ranks = null;
+            if (is_array($ranks)) {
+                foreach ($ranks as $rank) {
+                    $option = new View();
+                    $option->setTmpl($view->getSubTemplate('{##ranks##}'));
+                    $option->addContent('{##rank_description##}', $rank->guild_rank);
+                    $option->addContent('{##rank_count##}', $rank->rank_count);
+                    $option->replaceTags();
+                    $all_ranks .= $option;
+                }
+            }
+            if (is_null($all_ranks)) {
+                $view->addContent('{##ranks##}', 'There seems to be no data available.');
+            } else {
+                $view->addContent('{##ranks##}', $all_ranks);
+            }
+            $view->replaceTags();
+            return $view;
         }
         return false;
     }
