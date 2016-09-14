@@ -37,6 +37,7 @@ class gw2api {
                 if ($this->hasApiData()) {
                     $page->addContent('{##main##}', $this->getImportAccountnameForm());
                     $page->addContent('{##main##}', $this->getAccountCharactersView());
+                    $page->addContent('{##main##}', $this->getRosterView());
                 }
             } else {
                 $page->addContent('{##main##}', 'No Api key found');
@@ -49,7 +50,6 @@ class gw2api {
                 $permissions = $this->getApiKeyScope();
                 if (is_array($permissions) AND in_array('guilds', $permissions)) {
                     $page->addContent('{##main##}', $this->getUpdateRosterForm());
-                    $page->addContent('{##main##}', $this->getRosterView());
                 }
             } else {
                 $page->addContent('{##main##}', 'No Api key found');
@@ -336,7 +336,17 @@ class gw2api {
     function getRoster() {
         $db = db::getInstance();
 
-        $sql = "SELECT * FROM api_roster ORDER BY guild_rank;";
+//        $sql = "SELECT * FROM api_roster ORDER BY guild_rank;";
+        $sql = '(SELECT account_name,guild_rank,1 as importance FROM api_roster WHERE guild_rank = "Leader")
+UNION
+(SELECT account_name,guild_rank,2 as importance FROM api_roster WHERE guild_rank = "Officer")
+UNION
+(SELECT account_name,guild_rank,3 as importance FROM api_roster WHERE guild_rank = "Chieftain")
+UNION
+(SELECT account_name,guild_rank,4 as importance FROM api_roster WHERE guild_rank = "Member")
+UNION
+(SELECT account_name,guild_rank,5 as importance FROM api_roster WHERE guild_rank != "Leader" AND guild_rank != "Officer" AND guild_rank != "Chieftain" AND guild_rank != "Member")
+ORDER BY importance, guild_rank, account_name';
 
         $query = $db->query($sql);
         if ($query !== false AND $query->num_rows >= 1) {
