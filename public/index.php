@@ -35,6 +35,11 @@ if ($theme_name !== false AND !empty($theme_name) AND in_array($theme_name, ['eo
 } else {
     define('theme', 'boilerplate');
 }
+$timezone = filter_var($settings->getSettingByKey('timezone'), FILTER_SANITIZE_STRING);
+if ($timezone !== false AND !empty($timezone)) {
+    date_default_timezone_set($timezone);
+}
+
 $page = Page::getInstance();
 $page->setTmpl(file('themes/' . constant('theme') . '/page.php'));
 

@@ -48,6 +48,8 @@ class Profile {
                     $subView->addContent('{##email##}', $user->email);
 
                     $settings = new Settings();
+                    $view->addContent('{##main##}', '<h4>Timezone</h4>');
+                    $view->addContent('{##main##}', $settings->getTimezonePickerForm());
                     $view->addContent('{##main##}', '<h4>Desired Displayname</h4>');
                     $view->addContent('{##main##}', $settings->getUpdateSettingForm('display_name'));
                     $view->addContent('{##main##}', '<h4>Change Password</h4>');

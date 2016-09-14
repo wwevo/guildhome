@@ -307,9 +307,19 @@ article.activity section.not_logged_in {
 /* End of "Micro clearfix" */
 
 
+.module table {
+    width: 100%;
+}
 
+.module table tr th {
+    color: #ffffff;
+    background-color: #EDA73E;
+}
 
-
+.module table tr:nth-child(2n) {
+    color: #EA6C12;
+    background-color: #ffffff;
+}
 
 
 

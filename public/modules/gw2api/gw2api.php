@@ -35,6 +35,7 @@ class gw2api {
                 $page->addContent('{##main##}', $this->getApiKeyScopeView());
                 $page->addContent('{##main##}', $this->getImportForm());
                 $page->addContent('{##main##}', $this->getImportAccountnameForm());
+                $page->addContent('{##main##}', $this->getAccountCharactersView());
             } else {
                 $page->addContent('{##main##}', 'No Api key found');
             }
@@ -308,6 +309,86 @@ class gw2api {
                 $view->addContent('{##ranks##}', 'There seems to be no data available.');
             } else {
                 $view->addContent('{##ranks##}', $all_ranks);
+            }
+            $view->replaceTags();
+            return $view;
+        }
+        return false;
+    }
+    
+    function getAccountCharacters() {
+        $settings = new Settings();
+        $characters = json_decode($settings->getSettingByKey('gw2apidata'), true);
+
+        if (isset($characters['characters']) AND is_array($characters['characters'])) {
+            foreach ($characters['characters'] as $character) {
+                $name = $character['name'];
+                $race =  $character['race'];
+                $gender =  $character['gender'];
+                $profession =  $character['profession'];
+                $level =  $character['level'];
+                $guild =  $character['guild'];
+                $age =  $character['age'];
+                $created =  $character['created'];
+                $deaths =  $character['deaths'];
+
+                $characters_modified[] = array(
+                    'name' => $name,
+                    'race' => $race,
+                    'gender' => $gender,
+                    'profession' => $profession,
+                    'level' => $level,
+                    'guild' => $guild,
+                    'age' => $age,
+                    'created' => $created,
+                    'deaths' => $deaths,
+                );
+
+            }
+            return $characters_modified;
+        } else {
+            return false;
+        }
+
+    }
+
+    function getAccountCharactersView() {
+        $characters = $this->getAccountCharacters();
+        if ($characters !== false) {
+            $view = new View();
+            $view->setTmpl(file('themes/' . constant('theme') . '/views/gw2api/account_characters_view.php'));
+            $all_characters = null;
+            if (is_array($characters)) {
+                foreach ($characters as $character) {
+                    $option = new View();
+                    $option->setTmpl($view->getSubTemplate('{##characters##}'));
+                    $option->addContent('{##level##}', $character['level']);
+                    $option->addContent('{##name##}', $character['name']);
+                    $option->addContent('{##race##}', $character['race']);
+                    $option->addContent('{##gender##}', $character['gender']);
+                    $option->addContent('{##guild##}', $character['guild']);
+                    $option->addContent('{##age##}', $character['age']);
+                    $now = new DateTime();
+                    $birthday = new DateTime(date('Y-m-d', mktime(0, 0, 0, date("m") , date("d") - $character['age'], date("Y"))));
+                    $next_birthday = $birthday;
+                    $next_birthday->setDate(date("Y"), $birthday->format("m"), $birthday->format("d"));
+                    if ($next_birthday < $now) {
+                        $next_birthday->setDate(date("Y") +1, $birthday->format("m"), $birthday->format("d"));
+                    }
+
+                    $days_to_next_birthday = $next_birthday->diff($now);
+                    
+                    $option->addContent('{##birthday_in##}', $days_to_next_birthday->format('%D'));
+                    $option->addContent('{##created##}', $character['created']);
+                    $option->addContent('{##deaths##}', $character['deaths']);
+                    $option->replaceTags();
+                    $all_characters .= $option;
+                }
+            }
+            if (is_null($all_characters)) {
+                $view->addContent('{##characters##}', 'There seems to be no data available.');
+            } else {
+                $view->addContent('{##characters##}', $all_characters);
             }
             $view->replaceTags();
             return $view;
