@@ -108,7 +108,7 @@ class gw2api {
                 $oDateNow = new DateTime();
                 $oDateBirth = new DateTime($characters[$key]['created']);
                 $oDateIntervall = $oDateNow->diff($oDateBirth, true);
-                $characters[$key]['age'] = $oDateIntervall->format('%R%a');
+                $characters[$key]['age'] = $oDateIntervall->format('%a');
             }
             $api_data['characters'] = $characters;
         }
@@ -329,7 +329,7 @@ class gw2api {
                 $level =  $character['level'];
                 $guild =  $character['guild'];
                 $age =  $character['age'];
-                $created =  $character['created'];
+                $created =  new DateTime($character['created']);
                 $deaths =  $character['deaths'];
 
                 $characters_modified[] = array(
@@ -340,7 +340,7 @@ class gw2api {
                     'level' => $level,
                     'guild' => $guild,
                     'age' => $age,
-                    'created' => $created,
+                    'created' => $created->format("Y-m-d"),
                     'deaths' => $deaths,
                 );
 
@@ -378,7 +378,7 @@ class gw2api {
 
                     $days_to_next_birthday = $next_birthday->diff($now);
                     
-                    $option->addContent('{##birthday_in##}', $days_to_next_birthday->format('%D'));
+                    $option->addContent('{##birthday_in##}', $days_to_next_birthday->days);
                     $option->addContent('{##created##}', $character['created']);
                     $option->addContent('{##deaths##}', $character['deaths']);
                     $option->replaceTags();

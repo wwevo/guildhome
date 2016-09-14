@@ -321,7 +321,13 @@ article.activity section.not_logged_in {
     background-color: #ffffff;
 }
 
+.module table td.center {
+    text-align:center;
+}
 
+.module table td.right {
+    text-align: right;
+}
 
 
 

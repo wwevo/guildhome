@@ -36,7 +36,7 @@ if ($theme_name !== false AND !empty($theme_name) AND in_array($theme_name, ['eo
     define('theme', 'boilerplate');
 }
 $timezone = filter_var($settings->getSettingByKey('timezone'), FILTER_SANITIZE_STRING);
-if ($timezone !== false AND !empty($timezone)) {
+if ($timezone !== false AND !empty($timezone) AND in_array($timezone, timezone_identifiers_list())) {
     date_default_timezone_set($timezone);
 }
 

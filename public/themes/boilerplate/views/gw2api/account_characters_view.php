@@ -2,11 +2,11 @@
     <h3>Account characters</h3>
     <table class="gw2api account_characters">
         <tr>
-            <th>Level</th>
+            <th>Lvl</th>
             <th>Name</th>
             <th>Race</th>
             <th>Gender</th>
-            <th>Guild</th>
+<!--            <th>Guild</th> //-->
             <th>Age</th>
             <th>Birthday in</th>
             <th>Created</th>
@@ -18,11 +18,11 @@
             <td>{##name##}</td>
             <td>{##race##}</td>
             <td>{##gender##}</td>
-            <td>{##guild##}</td>
-            <td>{##age##}</td>
-            <td>{##birthday_in##}</td>
+<!--            <td>{##guild##}</td> //-->
+            <td>{##age##} days</td>
+            <td class="right">{##birthday_in##} days</td>
             <td>{##created##}</td>
-            <td>{##deaths##}</td>
+            <td class="center">{##deaths##}</td>
         </tr>
 {/##characters##}
     </table>

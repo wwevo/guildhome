@@ -69,7 +69,7 @@ class Profile {
                     $view->addContent('{##main##}', $settings->getUpdateSettingForm('theme_name'));
                     
                     $activity_event = new Activity_Event();
-                    $view->addContent('{##main##}', '<p>Event Schedule</p>');
+                    $view->addContent('{##main##}', '<p>Event History</p>');
                     $view->addContent('{##main##}', $activity_event->getSignupsByUserIdView($login->currentUserID()));
                 }
                 $subView->replaceTags();
