@@ -1,6 +1,6 @@
-<section class="module">
+<section class="module gw2api scope_view">
     <h3>API-Key Permissions</h3>
-    <ul class="gw2api scope_view">
+    <ul>
 {##permissions##}
         <li>{##permission##}</li>
 {/##permissions##}

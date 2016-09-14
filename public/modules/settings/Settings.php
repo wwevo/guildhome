@@ -41,7 +41,9 @@ class Settings {
 
         if ($login->isLoggedIn()) {
             if (isset($env->post('setting_' . $key)['submit'])) {
-                $this->updateSetting($key);
+                if ($this->updateSetting($key)) {
+                    header("Location: " .  $env->post('target_url'));
+                }
             }
         }        
     }
@@ -107,7 +109,7 @@ class Settings {
         return false;
     }
 
-    function getUpdateSettingForm($key) {
+    function getUpdateSettingForm($key, $target_url = '') {
         $env = Env::getInstance();
         $msg = Msg::getInstance();
  
@@ -120,6 +122,7 @@ class Settings {
         $view = new View();
         $view->setTmpl(file('themes/' . constant('theme') . '/views/settings/update_setting_form.php'), array(
             '{##form_action##}' => '/setting/' . $key,
+            '{##target_url##}' => $target_url,
             '{##setting_key##}' => $key,
             '{##setting_value##}' => $setting_value,
             '{##update_setting_validation##}' => $msg->fetch('update_setting_validation'),
@@ -130,11 +133,12 @@ class Settings {
         return $view;
     }
     
-    function getTimezonePickerForm() {
+    function getTimezonePickerForm($target_url = '') {
         $env = Env::getInstance();
         $view = new View();
         $view->setTmpl(file('themes/' . constant('theme') . '/views/settings/timezone_picker_form.php'), array(
             '{##form_action##}' => '/setting/timezone',
+            '{##target_url##}' => $target_url,
             '{##timezone_submit_text##}' => 'pick',
         ));
         

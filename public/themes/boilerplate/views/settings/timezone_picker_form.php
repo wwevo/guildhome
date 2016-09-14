@@ -6,5 +6,6 @@
         {/##timezone_select_option##}
         </select>
         <input type="submit" name="setting_timezone[submit]" value="{##timezone_submit_text##}" />
+        <input type="hidden" name="target_url" value="{##target_url##}" />
     </form>
 </section>
