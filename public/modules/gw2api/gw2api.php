@@ -294,7 +294,9 @@ class gw2api {
     function getRankUsageFromRoster() {
         $db = db::getInstance();
 
-        $sql = "SELECT guild_rank, COUNT(*) as rank_count FROM api_roster GROUP BY guild_rank;";
+        //$sql = "SELECT guild_rank, COUNT(*) as rank_count FROM api_roster GROUP BY guild_rank;";
+        
+        $sql = "SELECT guild_rank, COUNT(*) as rank_count FROM api_roster GROUP BY guild_rank ORDER BY FIELD(guild_rank, 'Member', 'Chieftain', 'Officer', 'Leader') DESC, rank_count;";     
 
         $query = $db->query($sql);
         if ($query !== false AND $query->num_rows >= 1) {
@@ -336,17 +338,7 @@ class gw2api {
     function getRoster() {
         $db = db::getInstance();
 
-//        $sql = "SELECT * FROM api_roster ORDER BY guild_rank;";
-        $sql = '(SELECT account_name,guild_rank,1 as importance FROM api_roster WHERE guild_rank = "Leader")
-UNION
-(SELECT account_name,guild_rank,2 as importance FROM api_roster WHERE guild_rank = "Officer")
-UNION
-(SELECT account_name,guild_rank,3 as importance FROM api_roster WHERE guild_rank = "Chieftain")
-UNION
-(SELECT account_name,guild_rank,4 as importance FROM api_roster WHERE guild_rank = "Member")
-UNION
-(SELECT account_name,guild_rank,5 as importance FROM api_roster WHERE guild_rank != "Leader" AND guild_rank != "Officer" AND guild_rank != "Chieftain" AND guild_rank != "Member")
-ORDER BY importance, guild_rank, account_name';
+        $sql = "SELECT * FROM api_roster ORDER BY FIELD(guild_rank, 'Member', 'Chieftain', 'Officer', 'Leader') DESC, guild_rank;";     
 
         $query = $db->query($sql);
         if ($query !== false AND $query->num_rows >= 1) {
