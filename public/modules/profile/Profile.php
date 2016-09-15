@@ -62,7 +62,10 @@ class Profile {
                     $view->addContent('{##main##}', '<p>just copy and paste from your guild wars account page. Only account and guilds are required, characters would be nice.</p>');
                     $view->addContent('{##main##}', $settings->getUpdateSettingForm('api_key', '/profile/' . $user->username));
                     $gw2api = new gw2api();
-                    $view->addContent('{##main##}', $gw2api->getApiKeyScopeView());
+                    if ($gw2api->hasApiData()) {
+                        $view->addContent('{##main##}', $gw2api->getApiKeyScopeView());
+                        $view->addContent('{##main##}', $gw2api->getNextBirthdaysView());
+                    }
 
                     $view->addContent('{##main##}', '<hr />');
                     $view->addContent('{##main##}', '<h3>Development stuff</h3>');

@@ -75,6 +75,7 @@ if ($login->isLoggedIn()) {
 $activity_event = new Activity_Event();
 $page->addContent('{##widgets##}', $activity_event->getUpcomingActivitiesView());
 
+
 /*
  * Do the routing as per modules instructions!!
  * Can be overridden here
