@@ -527,8 +527,8 @@ class gw2api {
     function getNextBirthdaysView() {
         $characters_birthdays = $this->getNextBirthdays();
         $msg = Msg::getInstance();
-        $characters_birthdays = array_slice($characters_birthdays, 0, 3);
         if ($characters_birthdays !== false) {
+            $characters_birthdays = array_slice($characters_birthdays, 0, 3);
             $view = new View();
             $view->setTmpl(file('themes/' . constant('theme') . '/views/gw2api/next_character_birthdays_view.php'));
             $view->addContent('{##warning##}', $msg->fetch('api_data_outdated'));
