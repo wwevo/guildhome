@@ -1,5 +1,6 @@
 <section class="module">
     <h3>Account characters</h3>
+    {##warning##}
     <table class="gw2api account_characters">
         <tr>
             <th>Lvl</th>

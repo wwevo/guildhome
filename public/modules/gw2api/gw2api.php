@@ -113,6 +113,8 @@ class gw2api {
                 $oDateBirth = new DateTime($characters[$key]['created']);
                 $oDateIntervall = $oDateNow->diff($oDateBirth, true);
                 $characters[$key]['age'] = $oDateIntervall->format('%a');
+                $birthday = new DateTime(date('Y-m-d', mktime(0, 0, 0, date("m") , date("d") - $characters[$key]["age"], date("Y"))));
+                $characters[$key]['birthday'] = $birthday->format("Y-m-d");
             }
             $api_data['characters'] = $characters;
         }
@@ -380,18 +382,43 @@ class gw2api {
     function getAccountCharacters() {
         $settings = new Settings();
         $characters = json_decode($settings->getSettingByKey('gw2apidata'), true);
-
+        $msg = Msg::getInstance();
+        
         if (isset($characters['characters']) AND is_array($characters['characters'])) {
             foreach ($characters['characters'] as $character) {
                 $name = $character['name'];
-                $race =  $character['race'];
-                $gender =  $character['gender'];
-                $profession =  $character['profession'];
-                $level =  $character['level'];
-                $guild =  $character['guild'];
-                $age =  $character['age'];
-                $created =  new DateTime($character['created']);
-                $deaths =  $character['deaths'];
+                $race = $character['race'];
+                $gender = $character['gender'];
+                $profession = $character['profession'];
+                $level = $character['level'];
+                $guild = $character['guild'];
+                $age = $character['age'];
+                $created = new DateTime($character['created']);
+                $deaths = $character['deaths'];
+                
+                if (!isset($character['birthday'])) {
+                    $birthday = new DateTime();
+                    $msg->add('api_data_outdated', 'Your api-data seems to be outdated. Please re-import your api data!');
+                } elseif (is_array($character['birthday'])) {
+                    $birthday = new DateTime($character['birthday']['date']);
+                    $msg->add('api_data_outdated', 'Your api-data seems to be outdated. Please re-import your api data!');
+                } else {
+                    $birthday = new DateTime($character['birthday']);
+                }
+                
+                if (is_string($birthday)) {
+                    $next_birthday = new DateTime();
+                } else {
+                    $next_birthday = $birthday;
+                    $next_birthday->setDate(date("Y"), $birthday->format("m"), $birthday->format("d"));
+                }
+                
+                $now = new DateTime();
+                if ($next_birthday < $now) {
+                    $next_birthday->setDate(date("Y") +1, $birthday->format("m"), $birthday->format("d"));
+                }
+
+                $days_to_next_birthday = $next_birthday->diff($now);
 
                 $characters_modified[] = array(
                     'name' => $name,
@@ -401,6 +428,8 @@ class gw2api {
                     'level' => $level,
                     'guild' => $guild,
                     'age' => $age,
+                    'birthday' => $birthday->format("Y-m-d"),
+                    'birthday_in' => $days_to_next_birthday->days,
                     'created' => $created->format("Y-m-d"),
                     'deaths' => $deaths,
                 );
@@ -415,9 +444,12 @@ class gw2api {
 
     function getAccountCharactersView() {
         $characters = $this->getAccountCharacters();
+        $msg = Msg::getInstance();
+        
         if ($characters !== false) {
             $view = new View();
             $view->setTmpl(file('themes/' . constant('theme') . '/views/gw2api/account_characters_view.php'));
+            $view->addContent('{##warning##}', $msg->fetch('api_data_outdated'));
             $all_characters = null;
             if (is_array($characters)) {
                 foreach ($characters as $character) {
@@ -429,17 +461,8 @@ class gw2api {
                     $option->addContent('{##gender##}', $character['gender']);
                     $option->addContent('{##guild##}', $character['guild']);
                     $option->addContent('{##age##}', $character['age']);
-                    $now = new DateTime();
-                    $birthday = new DateTime(date('Y-m-d', mktime(0, 0, 0, date("m") , date("d") - $character['age'], date("Y"))));
-                    $next_birthday = $birthday;
-                    $next_birthday->setDate(date("Y"), $birthday->format("m"), $birthday->format("d"));
-                    if ($next_birthday < $now) {
-                        $next_birthday->setDate(date("Y") +1, $birthday->format("m"), $birthday->format("d"));
-                    }
-
-                    $days_to_next_birthday = $next_birthday->diff($now);
-                    
-                    $option->addContent('{##birthday_in##}', $days_to_next_birthday->days);
+                    $option->addContent('{##birthday_in##}', $character['birthday_in']);
+                    $option->addContent('{##birthday##}', $character['birthday']);
                     $option->addContent('{##created##}', $character['created']);
                     $option->addContent('{##deaths##}', $character['deaths']);
                     $option->replaceTags();
