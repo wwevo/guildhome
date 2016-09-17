@@ -10,6 +10,12 @@ require_once('config/Initialize.php');
  * user interaction here. Just don't touch them is all I am saying, mmmkay?
  */
 require_once ('classes/autoload.php');
+
+$logpath = dirname(getcwd()) . DIRECTORY_SEPARATOR . 'log' . DIRECTORY_SEPARATOR;
+
+$log = Logger::getInstance();
+$log::lfile($logpath . 'eol_log.txt');
+ 
 /*
  * Optional modules
  * 
@@ -95,3 +101,7 @@ Toro::serve();
  */
 $page->replaceTags();
 echo $page;
+
+if ($login->isOperator()) {
+    $log::lwrite('rendered site successfully');
+}

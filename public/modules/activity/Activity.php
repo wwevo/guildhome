@@ -85,16 +85,16 @@ class Activity {
     function getActivities($interval = NULL) {
         $db = db::getInstance();
         
-        $interval = (is_numeric($interval) AND $interval <= 10) ? "HAVING create_time >= DATE_SUB(CURDATE(), INTERVAL $interval DAY)" : '';
-
+        $interval = (is_numeric($interval)) ? " LIMIT " . $interval : '';
         
         $sql = "SELECT activities.id, activities.userid, from_unixtime(activities.create_time) AS create_time, activities.type AS type, activity_types.description AS type_description,
-                (SELECT concat(ae.date,' ', ae.time) as timestamp FROM activity_events ae WHERE ae.activity_id = activities.id HAVING timestamp >= NOW() AND timestamp <= DATE_ADD(NOW(),INTERVAL 48 HOUR)) as event_date
+                    (SELECT concat(ae.date,' ', ae.time) as timestamp FROM activity_events ae WHERE ae.activity_id = activities.id HAVING timestamp >= NOW() AND timestamp <= DATE_ADD(NOW(),INTERVAL 48 HOUR)) as event_date
                     FROM activities
                     INNER JOIN activity_types
                     ON activities.type = activity_types.id
-                    $interval
-                    ORDER BY event_date DESC, activities.create_time DESC;";
+                    ORDER BY event_date IS NULL, event_date ASC, activities.create_time DESC
+                    $interval;
+                ";
         $query = $db->query($sql);
 
         if ($query !== false AND $query->num_rows >= 1) {
