@@ -1,6 +1,6 @@
 {##activity_message##}
 {##activity_loop##}
-<article class="activity">
+<article class="activity{##css##}">
     <section class="activity_details">
         <img src="{##avatar##}" width="40" height="40" alt="avatar of user {##activity_identity##}" />
         on {##activity_published##},<br />

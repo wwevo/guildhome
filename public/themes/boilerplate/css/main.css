@@ -154,6 +154,10 @@ article.activity {
     clear: both;
 }
 
+article.pulled_to_top {
+    border: 1px solid #eda73e;
+}
+
 article.comment:after,
 article.activity:after {
     content: ".";

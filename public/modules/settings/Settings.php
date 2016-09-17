@@ -15,20 +15,6 @@ class Settings {
     
     function initEnv() {
         Toro::addRoute(["/setting/:alpha" => 'Settings']);
-        //$this->create_tables();
-    }
-    
-    function create_tables() {
-        // Dirty Setup
-        $db = db::getInstance();
-        $sql = "CREATE TABLE settings (
-            id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-            userid INT(6) NOT NULL,
-            setting VARCHAR(128),
-            setting_value TEXT
-        )";
-        $result = $db->query($sql);
-        echo $sql;
     }
     
     function get() {

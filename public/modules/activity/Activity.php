@@ -85,8 +85,8 @@ class Activity {
     function getActivities($interval = NULL) {
         $db = db::getInstance();
         
-        $interval = (is_numeric($interval) AND $interval <= 10) ? $interval : NULL;
-        $interval = !is_null($interval) ? "HAVING create_time >= DATE_SUB(CURDATE(), INTERVAL $interval DAY)" : '';
+        $interval = (is_numeric($interval) AND $interval <= 10) ? "HAVING create_time >= DATE_SUB(CURDATE(), INTERVAL $interval DAY)" : '';
+
         
         $sql = "SELECT activities.id, activities.userid, from_unixtime(activities.create_time) AS create_time, activities.type AS type, activity_types.description AS type_description,
                 (SELECT concat(ae.date,' ', ae.time) as timestamp FROM activity_events ae WHERE ae.activity_id = activities.id HAVING timestamp >= NOW() AND timestamp <= DATE_ADD(NOW(),INTERVAL 48 HOUR)) as event_date
@@ -117,6 +117,9 @@ class Activity {
         }
         if (isset($act->type_description)) {
             $subView->addContent('{##activity_type##}',  $act->type_description);
+        }
+        if (isset($act->event_date)) {
+            $subView->addContent('{##css##}', ' pulled_to_top');
         }
         $type = (isset($act->type)) ? $act->type : NULL;
 
