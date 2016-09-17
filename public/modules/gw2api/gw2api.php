@@ -148,12 +148,19 @@ class gw2api {
         return false;
     }
 
-    function hasApiData() {
+    function hasApiData($section = NULL) {
         $settings = new Settings();
         $api_data = $settings->getSettingByKey('gw2apidata');
         if ($api_data !== false) {
-            if (isset(json_decode($api_data, true)['created'])) {
-                return true;
+            $api_data = json_decode($api_data, true);
+            if ($section === NULL) {
+                if (isset($api_data['created'])) {
+                    return true;
+                }
+            } else {
+                if (isset($api_data[$section]) AND !empty($api_data[$section])) {
+                    return true;
+                }
             }
         }
         return false;
@@ -435,6 +442,7 @@ class gw2api {
                 );
 
             }
+
             return $characters_modified;
         } else {
             return false;

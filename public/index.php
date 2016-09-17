@@ -53,6 +53,7 @@ $page->setTmpl(file('themes/' . constant('theme') . '/page.php'));
  * now comes a lot of quickly hacked together stuff. I needed some results way
  * before I could lay a proper foundation. This IS a work in progress and
  * there's lots of stuff to do. Wanna help? Feel free ^^
+ * These menus will be created and managed by a central module soon(ish)
  */
 $env = Env::getInstance();
 $page->addContent('{##header##}', '<a href="/">Evolution of Loneliness</a>');
@@ -65,13 +66,27 @@ $site_menu .= '<li><a href="/about">About EoL</a></li>';
 $site_menu .= '</ul>';
 $page->addContent('{##nav##}', $site_menu);
 
+$gw2api = new gw2api();
 $user_menu  = '<ul class="user-menu">';
-$user_menu .= '<li>' .(($login->isLoggedIn()) ? '<a href="/profile/' . $login->currentUsername() . '">Profile</a> ' : '<a href="/register">Register </a>') . '</li>';
-$user_menu .= '<li>' .(($login->isLoggedIn()) ? '<a href="/logout">Logout</a>' : '<a href="/login">Login</a>') . '</li>';
+if ($login->isLoggedIn()) {
+    $user_menu .= '<li><a href="/profile/' . $login->currentUsername() . '">Profile</a>';
+    $user_menu .= '<ul>';
+    if ($gw2api->hasApiData('characters')) {
+        $user_menu .= '<li><a href="/profile/' . $login->currentUsername() . '/characters">Characters</a></li>';
+    }
+    $user_menu .= '</ul>';
+    $user_menu .= '</li>';
+    $user_menu .= '<li><a href="/logout">Logout</a></li>';
+    
+} else {
+    $user_menu .= '<li><a href="/register">Register </a></li>';
+    $user_menu .= '<li><a href="/login">Login</a></li>';
+}
 $user_menu .= '</ul>';
 $page->addContent('{##user_nav##}', $user_menu);
 
-$operator_menu  = '<ul class="operator-menu">';
+$operator_menu  = '<hr />';
+$operator_menu .= '<ul class="operator-menu">';
 $operator_menu .= '<li><a href="/gw2api">gw2api (test)</a></li>';
 $operator_menu .= '</ul>';
 if ($login->isLoggedIn()) {
@@ -79,6 +94,7 @@ if ($login->isLoggedIn()) {
 }
 
 $activity_event = new Activity_Event();
+$page->addContent('{##widgets##}', '<hr />');
 $page->addContent('{##widgets##}', $activity_event->getUpcomingActivitiesView());
 
 
@@ -103,5 +119,5 @@ $page->replaceTags();
 echo $page;
 
 if ($login->isOperator()) {
-    $log::lwrite('rendered site successfully');
+//    $log::lwrite('rendered site successfully');
 }

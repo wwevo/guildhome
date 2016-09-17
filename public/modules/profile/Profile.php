@@ -16,18 +16,24 @@ class Profile {
     function initEnv() {
         Toro::addRoute(["/profiles" => 'Profile']);
         Toro::addRoute(["/profile/:alpha" => 'Profile']);
+        Toro::addRoute(["/profile/:alpha/:alpha" => 'Profile']);
     }
     
-    function get($slug = NULL) {
+    function get($slug = NULL, $slug2 = NULL) {
         $page = Page::getInstance();
-        
+        $login = new Login();
         if (empty($slug)) {
             $page->setContent('{##main##}', '<h2>Registered Members</h2>');
             $page->addContent('{##main##}', $this->getUsersView());
             $gw2api = new gw2api();
             $page->addContent('{##main##}', $gw2api->getRankUsageFromRosterView());
+        } elseif ($slug == $login->currentUsername() AND $slug2 == 'characters') {
+            $page->setContent('{##main##}', '<h2>Profile</h2>');
+            $gw2api = new gw2api();
+            if ($gw2api->hasApiData('characters')) {
+                $page->addContent('{##main##}', $gw2api->getAccountCharactersView());
+            }
         } else {
-            $login = new Login();
             $db = db::getInstance();
 
             $page->setContent('{##main##}', '<h2>Profile</h2>');

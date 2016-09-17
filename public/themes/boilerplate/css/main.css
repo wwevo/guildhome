@@ -333,7 +333,9 @@ article.activity section.not_logged_in {
     text-align: right;
 }
 
-
+ul.user-menu ul {
+    margin-left: 1em;
+}
 
 
 

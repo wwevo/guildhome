@@ -1,4 +1,4 @@
-<section class="module">
+<section class="module profile">
     <h3>All Users</h3>
     <table>
         <tr>
