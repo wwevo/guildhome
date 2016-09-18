@@ -22,6 +22,7 @@ class Profile {
     function get($slug = NULL, $slug2 = NULL) {
         $page = Page::getInstance();
         $login = new Login();
+
         if (empty($slug)) {
             $page->setContent('{##main##}', '<h2>Registered Members</h2>');
             $page->addContent('{##main##}', $this->getUsersView());
@@ -33,28 +34,15 @@ class Profile {
             if ($gw2api->hasApiData('characters')) {
                 $page->addContent('{##main##}', $gw2api->getAccountCharactersView());
             }
-        } else {
+        } elseif ($slug == $login->currentUsername() AND $slug2 == 'settings') {
             $db = db::getInstance();
-
             $page->setContent('{##main##}', '<h2>Profile</h2>');
-            $user = $this->getUsers($db->real_escape_string($slug))[0];
-            
             $view = new View();
-            $view->setTmpl(file('themes/' . constant('theme') . '/views/profile/profile_main.php'));
-
+            $view->setTmpl(file('themes/' . constant('theme') . '/views/profile/profile_settings.php'));
+            $user = $this->getUsers($db->real_escape_string($slug))[0];
             if (is_object($user)) {
-                $subView = new View();
-                $subView->setTmpl($view->getSubTemplate('{##profile_badge##}'));
-                $identity = new Identity();
-                $subView->addContent('{##rank##}', $user->rank_description);
-                $subView->addContent('{##display_name##}', $user->username);
-                $subView->addContent('{##avatar##}', $identity->getAvatarByUserId($user->id));
-
                 if ($user->id == $login->currentUserID()) { // it's-a-me!
-                    $subView->addContent('{##email##}', $user->email);
-
                     $settings = new Settings();
-                    $view->addContent('{##main##}', '<h3>Standard Options</h3>');
                     $view->addContent('{##main##}', '<h4>Desired Displayname</h4>');
                     $view->addContent('{##main##}', $settings->getUpdateSettingForm('display_name', '/profile/' . $user->username));
                     $view->addContent('{##main##}', '<h4>Change Password</h4>');
@@ -65,10 +53,9 @@ class Profile {
                     $view->addContent('{##main##}', $settings->getUpdateSettingForm('avatar', '/profile/' . $user->username));
 
                     $view->addContent('{##main##}', '<hr />');
-                    
                     $view->addContent('{##main##}', '<h3>Development stuff</h3>');
+                    $view->addContent('{##main##}', '<hr />');
                     $view->addContent('{##main##}', '<p>Stuff in this section is likely to have a lot of errors, use with caution.</p>');
-
                     $view->addContent('{##main##}', '<h4>Api</h4>');
                     $view->addContent('{##main##}', '<p>just copy and paste from your guild wars account page. Only account and guilds are required, characters would be nice.</p>');
                     $view->addContent('{##main##}', $settings->getUpdateSettingForm('api_key', '/profile/' . $user->username));
@@ -77,15 +64,46 @@ class Profile {
                         $view->addContent('{##main##}', $gw2api->getApiKeyScopeView());
                         $view->addContent('{##main##}', $gw2api->getNextBirthdaysView());
                     }
-
                     $view->addContent('{##main##}', '<h4>Timezone</h4>');
                     $view->addContent('{##main##}', $settings->getTimezonePickerForm('/profile/' . $user->username));
 
                     $view->addContent('{##main##}', '<h4>Theme</h4>');
                     $view->addContent('{##main##}', $settings->getUpdateSettingForm('theme_name', '/profile/' . $user->username));
+                }
+            }
+            $view->replaceTags();
+            $page->addContent('{##main##}', $view);
+        } else {
+            $db = db::getInstance();
+
+            $page->setContent('{##main##}', '<h2>Profile</h2>');
+           
+            $view = new View();
+            $view->setTmpl(file('themes/' . constant('theme') . '/views/profile/profile_main.php'));
+
+            $user = $this->getUsers($db->real_escape_string($slug))[0];
+            if (is_object($user)) {
+                $subView = new View();
+                $subView->setTmpl($view->getSubTemplate('{##profile_badge##}'));
+                $identity = new Identity();
+                $subView->addContent('{##rank##}', $user->rank_description);
+                $subView->addContent('{##display_name##}', $user->username);
+                $subView->addContent('{##avatar##}', $identity->getAvatarByUserId($user->id));
+
+                if ($user->id == $login->currentUserID()) { // it's-a-me!
+                    $subView->addContent('{##email##}', $user->email);
+                    $settings = new Settings();
+                    $view->addContent('{##main##}', '<hr />');
+                    $view->addContent('{##main##}', '<h3>Development stuff</h3>');
+                    $view->addContent('{##main##}', '<hr />');
+
+                    $gw2api = new gw2api();
+                    if ($gw2api->hasApiData('characters')) {
+                        $view->addContent('{##main##}', $gw2api->getNextBirthdaysView());
+                    }
 
                     $activity_event = new Activity_Event();
-                    $view->addContent('{##main##}', '<p>Event History</p>');
+                    $view->addContent('{##main##}', '<h4>Event History</h4>');
                     $view->addContent('{##main##}', $activity_event->getSignupsByUserIdView($login->currentUserID()));
                 }
                 $subView->replaceTags();

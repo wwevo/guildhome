@@ -337,7 +337,10 @@ ul.user-menu ul {
     margin-left: 1em;
 }
 
-
+.profile_badge img {
+    float: left;
+    margin-right: 1em;
+}
 
 
 /* ==========================================================================

@@ -71,6 +71,7 @@ $user_menu  = '<ul class="user-menu">';
 if ($login->isLoggedIn()) {
     $user_menu .= '<li><a href="/profile/' . $login->currentUsername() . '">Profile</a>';
     $user_menu .= '<ul>';
+    $user_menu .= '<li><a href="/profile/' . $login->currentUsername() . '/settings">Settings</a></li>';
     if ($gw2api->hasApiData('characters')) {
         $user_menu .= '<li><a href="/profile/' . $login->currentUsername() . '/characters">Characters</a></li>';
     }
