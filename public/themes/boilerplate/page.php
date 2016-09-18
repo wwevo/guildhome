@@ -1,5 +1,5 @@
 <!doctype html>
-<html class="no-js" lang="">
+<html lang="en">
     <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
@@ -18,7 +18,6 @@
         <!--[if lt IE 8]>
             <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
         <![endif]-->
-
         <div class="header-container">
             <header class="wrapper clearfix">
                 <h1 class="title">{##header##}</h1>
@@ -27,7 +26,6 @@
                 </nav>
             </header>
         </div>
-
         <div class="main-container">
             <div class="main wrapper clearfix">
                 <article>
@@ -41,13 +39,10 @@
                 </aside>
             </div> <!-- #main -->
         </div> <!-- #main-container -->
-
         <div class="footer-container">
             <footer class="wrapper">
                 <h3>footer</h3>
             </footer>
         </div>
-
-        <script src="/themes/boilerplate/js/main.js"></script>
     </body>
 </html>

@@ -342,6 +342,11 @@ ul.user-menu ul {
     margin-right: 1em;
 }
 
+span[type="validation"] {
+    display: block;
+    clear: both;
+    background-color: #ffcccc;
+}
 
 /* ==========================================================================
    Media Queries
