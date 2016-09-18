@@ -27,11 +27,41 @@ class Settings {
 
         if ($login->isLoggedIn()) {
             if (isset($env->post('setting_' . $key)['submit'])) {
-                if ($this->updateSetting($key)) {
+                if ($this->validateSetting($key) AND $this->updateSetting($key)) {
+                    header("Location: " .  $env->post('target_url'));
+                } else {
                     header("Location: " .  $env->post('target_url'));
                 }
             }
         }        
+    }
+    
+    function registerValidation($key, callable $callback) {
+        $env = Env::getInstance();
+        $env->validation_rules['key'] = $callback;
+    }
+    
+    function validateSetting($key) {
+        $env = Env::getInstance();
+        $msg = Msg::getInstance();
+
+        $error = 0;
+        if (empty($value)) {
+            $value = $env->post('setting_' . $key)['value'];
+        }
+
+        if (isset($env->validation_rules['key'])) {
+            $valid = $env->validation_rules['key']($value);
+            if ($valid === false) {
+                $msg->add('setting_' . $key . '_validation', 'Validation failed');
+                $error = 1;
+            }
+        }
+        
+        if ($error == 1) {
+            return false;
+        }
+        return true;
     }
     
     function getSettingByKey($key, $user_id = NULL) {
@@ -111,7 +141,7 @@ class Settings {
             '{##target_url##}' => $target_url,
             '{##setting_key##}' => $key,
             '{##setting_value##}' => $setting_value,
-            '{##update_setting_validation##}' => $msg->fetch('update_setting_validation'),
+            '{##update_setting_validation##}' => $msg->fetch('setting_' . $key .'_validation'),
             '{##setting_submit_text##}' => 'update',
             '{##setting_cancel_text##}' => 'reset',
         ));

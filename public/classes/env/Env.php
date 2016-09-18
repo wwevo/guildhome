@@ -18,6 +18,8 @@ class Env {
     private $_get = [];
     private $_currentURL = [];
     private $_oldURL = '';
+
+    public $validation_rules = [];
     
     protected function __construct() {}
     private function __clone() {}

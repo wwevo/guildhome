@@ -89,6 +89,33 @@ class gw2api {
         header("Location: /gw2api");
     }
     
+    function validateApiKey($key = '') {
+        $msg = Msg::getInstance();
+        $error = 0;
+        $api_tokeninfo = $this->gw2apiRequest('/v2/tokeninfo', $key);
+        if (!isset($api_tokeninfo['permissions']) OR !is_array($api_tokeninfo['permissions'])) {
+            $msg->add('setting_api_key_validation', 'Not a valid API-Key?');
+            $error = 1;
+        } else {
+            $api_permissions = $api_tokeninfo['permissions'];
+            if (!in_array('account', $api_permissions)) {
+                $msg->add('setting_api_key_validation', 'Enable at least the "account" scope in your Api-Key.');
+                $error = 1;
+            }
+            $test = array_intersect(['inventories', 'wallet', 'builds', 'tradingpost'], $api_permissions);
+            if (count($test) != 0) {
+                $msg->add('setting_api_key_validation', 'Please restrict your Api-Key to "account", "characters" and "guilds", thank you.');
+                $error = 1;
+            }
+        }
+
+        if ($error == 1) {
+            return false;
+        }
+        $msg->add('setting_api_key_validation', 'API-Key valid and ready :)');
+        return true;
+    }
+    
     function fetchApiData() {
         $settings = new Settings();
         $gw2apikey = $settings->getSettingByKey('api_key');

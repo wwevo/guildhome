@@ -46,6 +46,12 @@ if ($timezone !== false AND !empty($timezone) AND in_array($timezone, timezone_i
     date_default_timezone_set($timezone);
 }
 
+/* 
+ * Until I find a better place, put your validation rules here...
+ * I did this so I didn't have to redeclare it, since I use it in several different classes.
+ */
+$settings->registerValidation('api_key', array(new gw2api(), 'validateApiKey'));
+
 $page = Page::getInstance();
 $page->setTmpl(file('themes/' . constant('theme') . '/page.php'));
 

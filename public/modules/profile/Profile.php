@@ -44,13 +44,13 @@ class Profile {
                 if ($user->id == $login->currentUserID()) { // it's-a-me!
                     $settings = new Settings();
                     $view->addContent('{##main##}', '<h4>Desired Displayname</h4>');
-                    $view->addContent('{##main##}', $settings->getUpdateSettingForm('display_name', '/profile/' . $user->username));
+                    $view->addContent('{##main##}', $settings->getUpdateSettingForm('display_name', '/profile/' . $user->username . '/settings'));
                     $view->addContent('{##main##}', '<h4>Change Password</h4>');
                     $view->addContent('{##main##}', $login->getChangePasswordView());
                     $view->addContent('{##main##}', '<p>you will be redirected after pressing the button!</p>');
                     $view->addContent('{##main##}', '<h4>Avatar</h4>');
                     $view->addContent('{##main##}', '<p>use any image url, only direct links will work</p>');
-                    $view->addContent('{##main##}', $settings->getUpdateSettingForm('avatar', '/profile/' . $user->username));
+                    $view->addContent('{##main##}', $settings->getUpdateSettingForm('avatar', '/profile/' . $user->username . '/settings'));
 
                     $view->addContent('{##main##}', '<hr />');
                     $view->addContent('{##main##}', '<h3>Development stuff</h3>');
@@ -58,17 +58,17 @@ class Profile {
                     $view->addContent('{##main##}', '<p>Stuff in this section is likely to have a lot of errors, use with caution.</p>');
                     $view->addContent('{##main##}', '<h4>Api</h4>');
                     $view->addContent('{##main##}', '<p>just copy and paste from your guild wars account page. Only account and guilds are required, characters would be nice.</p>');
-                    $view->addContent('{##main##}', $settings->getUpdateSettingForm('api_key', '/profile/' . $user->username));
+                    $view->addContent('{##main##}', $settings->getUpdateSettingForm('api_key', '/profile/' . $user->username . '/settings'));
                     $gw2api = new gw2api();
                     if ($gw2api->hasApiData()) {
                         $view->addContent('{##main##}', $gw2api->getApiKeyScopeView());
                         $view->addContent('{##main##}', $gw2api->getNextBirthdaysView());
                     }
                     $view->addContent('{##main##}', '<h4>Timezone</h4>');
-                    $view->addContent('{##main##}', $settings->getTimezonePickerForm('/profile/' . $user->username));
+                    $view->addContent('{##main##}', $settings->getTimezonePickerForm('/profile/' . $user->username . '/settings'));
 
                     $view->addContent('{##main##}', '<h4>Theme</h4>');
-                    $view->addContent('{##main##}', $settings->getUpdateSettingForm('theme_name', '/profile/' . $user->username));
+                    $view->addContent('{##main##}', $settings->getUpdateSettingForm('theme_name', '/profile/' . $user->username . '/settings'));
                 }
             }
             $view->replaceTags();
