@@ -41,7 +41,6 @@ class db {
 
 include_once 'config/db.php';
 
-//config.php:
 //config/db.php:
 //<?php
 //db::$host = "";
