@@ -3953,3 +3953,11 @@ class phpmailerException extends Exception
         return $errorMsg;
     }
 }
+
+include_once 'config/mail.php';
+
+//config/mail.php:
+//<?php
+//define('MAILPASS', '');
+//define('MAILUSER', '');
+//define('MAILHOST', '');
