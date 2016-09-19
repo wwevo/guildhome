@@ -92,6 +92,7 @@ class gw2api {
     function validateApiKey($key = '') {
         $msg = Msg::getInstance();
         $error = 0;
+        
         $api_tokeninfo = $this->gw2apiRequest('/v2/tokeninfo', $key);
         if (!isset($api_tokeninfo['permissions']) OR !is_array($api_tokeninfo['permissions'])) {
             $msg->add('setting_api_key_validation', 'Not a valid API-Key?');

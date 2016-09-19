@@ -36,22 +36,19 @@ class Settings {
         }        
     }
     
-    function registerValidation($key, callable $callback) {
-        $env = Env::getInstance();
-        $env->validation_rules['key'] = $callback;
-    }
-    
     function validateSetting($key) {
+        $validation = Validation::getInstance();
         $env = Env::getInstance();
         $msg = Msg::getInstance();
-
         $error = 0;
-        if (empty($value)) {
+        
+        if (!empty($key)) {
             $value = $env->post('setting_' . $key)['value'];
         }
 
-        if (isset($env->validation_rules['key'])) {
-            $valid = $env->validation_rules['key']($value);
+        if (isset($validation::$validation_rules[$key])) {
+
+            $valid = $validation::$validation_rules[$key]($value);
             if ($valid === false) {
                 $msg->add('setting_' . $key . '_validation', 'Validation failed');
                 $error = 1;
@@ -60,7 +57,7 @@ class Settings {
         
         if ($error == 1) {
             return false;
-        }
+        } // either theres no validation at all or it has passed.
         return true;
     }
     

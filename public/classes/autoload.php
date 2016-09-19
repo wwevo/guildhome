@@ -8,6 +8,7 @@ require_once('view/View.php'); // template based output-containers
 require_once('view/Page.php'); // Page::getInstance();
 // your get and post data, sanitized!
 require_once('env/Env.php'); // Env::getInstance();
+require_once('env/Validation.php'); // Env::getInstance();
 require_once('db/db.php'); // db::getInstance();
 require_once('msg/Msg.php'); // feedback for user input & actions
 

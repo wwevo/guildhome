@@ -40,3 +40,11 @@ class db {
 }
 
 include_once 'config/db.php';
+
+//config.php:
+//<?php
+//db::$host = "";
+//db::$dbname = "";
+//db::$user = "";
+//db::$pass = "";
+

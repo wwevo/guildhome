@@ -3953,3 +3953,5 @@ class phpmailerException extends Exception
         return $errorMsg;
     }
 }
+
+include_once 'config/mail.php';
