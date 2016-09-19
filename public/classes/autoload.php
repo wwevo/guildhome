@@ -6,6 +6,7 @@ require_once('parsedown/Parsedown.php'); //
 require_once('view/View.php'); // template based output-containers
 // static container for the page-template
 require_once('view/Page.php'); // Page::getInstance();
+require_once('view/Menu.php'); // Env::getInstance();
 // your get and post data, sanitized!
 require_once('env/Env.php'); // Env::getInstance();
 require_once('env/Validation.php'); // Env::getInstance();

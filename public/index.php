@@ -30,8 +30,7 @@ $log::lfile($logpath . 'eol_log.txt');
 require_once ('modules/autoload.php');
 
 /*
- * Set up the static::template to use
- * use a theme if specified in user profile
+ * Get some settings from the db
  */
 
 $settings = new Settings();
@@ -44,6 +43,8 @@ if ($theme_name !== false AND !empty($theme_name) AND in_array($theme_name, ['eo
 $timezone = filter_var($settings->getSettingByKey('timezone'), FILTER_SANITIZE_STRING);
 if ($timezone !== false AND !empty($timezone) AND in_array($timezone, timezone_identifiers_list())) {
     date_default_timezone_set($timezone);
+} else {
+    date_default_timezone_set('UTC');
 }
 
 /* 
@@ -53,6 +54,9 @@ if ($timezone !== false AND !empty($timezone) AND in_array($timezone, timezone_i
 $validation = Validation::getInstance();
 $validation->registerValidation('api_key', array(new gw2api(), 'validateApiKey'));
 
+/*
+ * Here starts the actual page building and content gathering
+ */
 $page = Page::getInstance();
 $page->setTmpl(file('themes/' . constant('theme') . '/page.php'));
 
@@ -65,46 +69,14 @@ $page->setTmpl(file('themes/' . constant('theme') . '/page.php'));
 $env = Env::getInstance();
 $page->addContent('{##header##}', '<a href="/">Evolution of Loneliness</a>');
 
-$site_menu  = '<ul class="site-menu">';
-$site_menu .= '<li><a href="/">Home</a></li>';
-$site_menu .= '<li><a href="/activities">Activities</a></li>';
-$site_menu .= '<li><a href="/profiles">Members</a></li>';
-$site_menu .= '<li><a href="/about">About EoL</a></li>';
-$site_menu .= '</ul>';
-$page->addContent('{##nav##}', $site_menu);
-
-$gw2api = new gw2api();
-$user_menu  = '<ul class="user-menu">';
-if ($login->isLoggedIn()) {
-    $user_menu .= '<li><a href="/profile/' . $login->currentUsername() . '">Profile</a>';
-    $user_menu .= '<ul>';
-    $user_menu .= '<li><a href="/profile/' . $login->currentUsername() . '/settings">Settings</a></li>';
-    if ($gw2api->hasApiData('characters')) {
-        $user_menu .= '<li><a href="/profile/' . $login->currentUsername() . '/characters">Characters</a></li>';
-    }
-    $user_menu .= '</ul>';
-    $user_menu .= '</li>';
-    $user_menu .= '<li><a href="/logout">Logout</a></li>';
-    
-} else {
-    $user_menu .= '<li><a href="/register">Register </a></li>';
-    $user_menu .= '<li><a href="/login">Login</a></li>';
-}
-$user_menu .= '</ul>';
-$page->addContent('{##user_nav##}', $user_menu);
-
-$operator_menu  = '<hr />';
-$operator_menu .= '<ul class="operator-menu">';
-$operator_menu .= '<li><a href="/gw2api">gw2api (test)</a></li>';
-$operator_menu .= '</ul>';
-if ($login->isLoggedIn()) {
-    $page->addContent('{##user_nav##}', $operator_menu);
-}
+$menu = new Menu();
+$page->addContent('{##nav##}', $menu->getMenu('site'));
+$page->addContent('{##user_nav##}', $menu->getMenu('user'));
+$page->addContent('{##user_nav##}', $menu->getMenu('operator'));
 
 $activity_event = new Activity_Event();
 $page->addContent('{##widgets##}', '<hr />');
 $page->addContent('{##widgets##}', $activity_event->getUpcomingActivitiesView());
-
 
 /*
  * Do the routing as per modules instructions!!
