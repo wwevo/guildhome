@@ -18,9 +18,13 @@ if (!session_id()) {
 
 // checking for minimum PHP version
 if (version_compare(PHP_VERSION, '5.3.7', '<')) {
-    exit("Sorry, Simple PHP Login does not run on a PHP version smaller than 5.3.7 !");
+    exit("The PHP Version used is way to old.");
 } else if (version_compare(PHP_VERSION, '5.5.0', '<')) {
     require_once("libraries/password_compatibility_library.php");
 }
 
-define('GH_BASEDIR', 'beta.eol.gw2.localhost');
+include_once 'config/env.php';
+
+//config/env.php:
+//<?php
+//define('GH_BASEDIR', '');

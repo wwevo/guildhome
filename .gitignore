@@ -1,3 +1,4 @@
 /public/config/db.php
 /.project
 /public/config/mail.php
+/public/config/env.php
