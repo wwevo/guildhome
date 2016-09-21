@@ -54,8 +54,29 @@ class gw2api {
             } else {
                 $page->addContent('{##main##}', 'No Api key found');
             }
-
         }
+    }
+    
+    function post_xhr ($slug) {
+        $login = new Login();
+        $env = Env::getInstance();
+
+        if ($login->isLoggedIn()) {
+            if (isset($env->post('gw2api_import')['submit'])) {
+                if ($slug == 'import') {
+                    $this->storeApiData($this->fetchApiData());
+                }
+            }
+        }
+        
+        $settings = new Settings();
+        if (($api_data = $settings->getSettingByKey('gw2apidata')) !== false) {
+            $created = new DateTime(json_decode($api_data, true)['created']);
+            echo '(You have local data, imported on ' . $created->format("Y-m-d H:i:s").')';
+        } else {
+            echo 'Nothing fetched yet';
+        }
+        exit;
     }
     
     function post($slug = '') {
@@ -162,7 +183,7 @@ class gw2api {
 
         if (is_array($api_data)) {
             $created = new DateTime();
-            $api_data['created'] = $created->format('Y-m-d h:i:s');
+            $api_data['created'] = $created->format('Y-m-d H:i:s');
             return $api_data;
         }
         return false;
@@ -202,7 +223,7 @@ class gw2api {
         $settings = new Settings();
         if (($api_data = $settings->getSettingByKey('gw2apidata')) !== false) {
             $created = new DateTime(json_decode($api_data, true)['created']);
-            $view->addContent('{##import_status##}', 'You have local data, imported on ' . $created->format("Y-m-d h:i:s"));
+            $view->addContent('{##import_status##}', 'You have local data, imported on ' . $created->format("Y-m-d H:i:s"));
         } else {
             $view->addContent('{##import_status##}', 'Nothing fetched yet');
         }

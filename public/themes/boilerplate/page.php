@@ -29,12 +29,12 @@
         <div class="main-container">
             <div class="main wrapper clearfix">
                 <article>
-                {##main##}
+                    {##main##}
                 </article>
                 <aside>
                     <nav>
-                    {##user_nav##}
-                    {##widgets##}
+                        {##user_nav##}
+                        {##widgets##}
                     </nav>
                 </aside>
             </div> <!-- #main -->
