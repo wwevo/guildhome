@@ -192,7 +192,7 @@ class Activity_Event extends Activity {
         $keep_signups_open_checked = (!empty($env->post('activity')['keep_signups_open']) AND $env->post('activity')['keep_signups_open'] !== NULL) ? 'checked="checked"' : '';
 
         $view = new View();
-        $view->setTmpl(file('themes/' . constant('theme') . '/views/activity/new_activity_event_form.php'), array(
+        $view->setTmpl($view->loadFile('/views/activity/new_activity_event_form.php'), array(
             '{##form_action##}' => '/activity/event/new',
             '{##activity_title##}' => $env->post('activity')['title'],
             '{##activity_title_validation##}' => $msg->fetch('activity_event_title_validation'),
@@ -246,7 +246,7 @@ class Activity_Event extends Activity {
         $keep_signups_open_checked = ($keep_signups_open_checked === '1') ? 'checked="' . $keep_signups_open_checked . '"' : '';
 
         $view = new View();
-        $view->setTmpl(file('themes/' . constant('theme') . '/views/activity/update_activity_event_form.php'), array(
+        $view->setTmpl($view->loadFile('/views/activity/update_activity_event_form.php'), array(
             '{##form_action##}' => '/activity/event/update/' . $id,
             '{##activity_title##}' => $title,
             '{##activity_title_validation##}' => $msg->fetch('activity_event_title_validation'),
@@ -299,7 +299,7 @@ class Activity_Event extends Activity {
         }
 
         $view = new View();
-        $view->setTmpl(file('themes/' . constant('theme') . '/views/activity/activity_event_details_view.php'), array(
+        $view->setTmpl($view->loadFile('/views/activity/activity_event_details_view.php'), array(
             '{##activity_type##}' => $event_type,
             '{##activity_owner##}' => $event_owner,
             '{##activity_owner_profile_url##}' => $event_owner_profile,
@@ -335,7 +335,7 @@ class Activity_Event extends Activity {
         $content = $act->title . "<br />" . $act->description;
         
         $view = new View();
-        $view->setTmpl(file('themes/' . constant('theme') . '/views/activity/delete_activity_form.php'), array(
+        $view->setTmpl($view->loadFile('/views/activity/delete_activity_form.php'), array(
             '{##form_action##}' => '/activity/event/delete/' . $id,
             '{##activity_content##}' => $content,
             '{##submit_text##}' => "delete",
@@ -423,7 +423,7 @@ class Activity_Event extends Activity {
     function getSignupsByUserIdView($user_id) {
         $signups = $this->getSignupsByUserId($user_id);
         $view = new View();
-        $view->setTmpl(file('themes/' . constant('theme') . '/views/activity/activity_signups_view.php'));
+        $view->setTmpl($view->loadFile('/views/activity/activity_signups_view.php'));
         if (is_array($signups)) {
             $signups_loop = NULL;
             foreach ($signups as $signup) {
@@ -460,7 +460,7 @@ class Activity_Event extends Activity {
     
     function getUpcomingActivitiesView() {
         $view = new View();
-        $view->setTmpl(file('themes/' . constant('theme') . '/views/activity/scheduled_activities.php'));
+        $view->setTmpl($view->loadFile('/views/activity/scheduled_activities.php'));
         $act = $this->getUpcomingActivities();
         if (false !== $act && is_array($act)) {
             $activity_loop = NULL;

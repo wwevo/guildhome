@@ -181,7 +181,7 @@ class Comment {
         $content = $cmt->content;
         
         $view = new View();
-        $view->setTmpl(file('themes/' . constant('theme') . '/views/activity/delete_comment_form.php'), array(
+        $view->setTmpl($view->loadFile('/views/activity/delete_comment_form.php'), array(
             '{##form_action##}' => '/comment/activity/delete/' . $id,
             '{##comment_content##}' => $content,
             '{##submit_text##}' => "delete",
@@ -266,7 +266,7 @@ class Comment {
      */
     function getAllCommentsView($activity_id) {
         $view = new View();
-        $view->setTmpl(file('themes/' . constant('theme') . '/views/activity/list_all_comments.php'));
+        $view->setTmpl($view->loadFile('/views/activity/list_all_comments.php'));
         $comments = $this->getComments($activity_id);
         if (false !== $comments) {
             $comment_loop = NULL;
@@ -310,7 +310,7 @@ class Comment {
         $msg = Msg::getInstance();
 
         $view = new View();
-        $view->setTmpl(file('themes/' . constant('theme') . '/views/activity/new_comment_form.php'), array(
+        $view->setTmpl($view->loadFile('/views/activity/new_comment_form.php'), array(
             '{##form_action##}' => '/comment/activity/new/' . $id,
             '{##comment_content##}' => $env->post('comment')['content'],
             '{##comment_content_validation##}' => $msg->fetch('comment_content_validation'),
@@ -328,7 +328,7 @@ class Comment {
         $content = (!empty($env->post('comment')['content'])) ? $env->post('comment')['content'] : $comment->content;
 
         $view = new View();
-        $view->setTmpl(file('themes/' . constant('theme') . '/views/activity/edit_comment_form.php'), array(
+        $view->setTmpl($view->loadFile('/views/activity/edit_comment_form.php'), array(
             '{##form_action##}' => '/comment/activity/update/' . $id,
             '{##comment_content##}' => $content,
             '{##comment_content_validation##}' => $msg->fetch('comment_content_validation'),

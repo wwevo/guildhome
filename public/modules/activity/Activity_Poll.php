@@ -187,7 +187,7 @@ class Activity_Poll extends Activity {
         $comments_checked = (!empty($env->post('activity')['comments']) AND $env->post('activity')['comments'] !== NULL) ? 'checked="checked"' : '';
         $signups_min_checked = (!empty($env->post('activity')['signups_min']) AND $env->post('activity')['signups_min'] !== NULL) ? 'checked="checked"' : '';
         $view = new View();
-        $view->setTmpl(file('themes/' . constant('theme') . '/views/activity/new_activity_poll_form.php'), array(
+        $view->setTmpl($view->loadFile('/views/activity/new_activity_poll_form.php'), array(
             '{##form_action##}' => '/activity/poll/new',
             '{##activity_title##}' => $env->post('activity')['title'],
             '{##activity_title_validation##}' => $msg->fetch('activity_event_title_validation'),
@@ -227,7 +227,7 @@ class Activity_Poll extends Activity {
         $signups_min_checked = ($signups_min_checked === '1') ? 'checked="' . $signups_min_checked . '"' : '';
 
         $view = new View();
-        $view->setTmpl(file('themes/' . constant('theme') . '/views/activity/update_activity_poll_form.php'), array(
+        $view->setTmpl($view->loadFile('/views/activity/update_activity_poll_form.php'), array(
             '{##form_action##}' => '/activity/poll/update/' . $id,
             '{##activity_title##}' => $title,
             '{##activity_title_validation##}' => $msg->fetch('activity_event_title_validation'),
@@ -274,7 +274,7 @@ class Activity_Poll extends Activity {
         }
 
         $view = new View();
-        $view->setTmpl(file('themes/' . constant('theme') . '/views/activity/activity_poll_details_view.php'), array(
+        $view->setTmpl($view->loadFile('/views/activity/activity_poll_details_view.php'), array(
             '{##activity_owner##}' => $event_owner,
             '{##activity_owner_profile_url##}' => $event_owner_profile,
         ));
@@ -309,7 +309,7 @@ class Activity_Poll extends Activity {
         $content = $act->title . "<br />" . $act->description;
         
         $view = new View();
-        $view->setTmpl(file('themes/' . constant('theme') . '/views/activity/delete_activity_form.php'), array(
+        $view->setTmpl($view->loadFile('/views/activity/delete_activity_form.php'), array(
             '{##form_action##}' => '/activity/poll/delete/' . $id,
             '{##activity_content##}' => $content,
             '{##submit_text##}' => "delete",
@@ -388,7 +388,7 @@ class Activity_Poll extends Activity {
     function getSignupsByUserIdView($user_id) {
         $signups = $this->getSignupsByUserId($user_id);
         $view = new View();
-        $view->setTmpl(file('themes/' . constant('theme') . '/views/activity/activity_signups_view.php'));
+        $view->setTmpl($view->loadFile('/views/activity/activity_signups_view.php'));
         if (is_array($signups)) {
             $signups_loop = NULL;
             foreach ($signups as $signup) {
@@ -425,7 +425,7 @@ class Activity_Poll extends Activity {
     
     function getUpcomingActivitiesView() {
         $view = new View();
-        $view->setTmpl(file('themes/' . constant('theme') . '/views/activity/scheduled_activities.php'));
+        $view->setTmpl($view->loadFile('/views/activity/scheduled_activities.php'));
         $act = $this->getUpcomingActivities();
         if (false !== $act && is_array($act)) {
             $activity_loop = NULL;

@@ -38,7 +38,7 @@ class Profile {
             $db = db::getInstance();
             $page->setContent('{##main##}', '<h2>Profile</h2>');
             $view = new View();
-            $view->setTmpl(file('themes/' . constant('theme') . '/views/profile/profile_settings.php'));
+            $view->setTmpl($view->loadFile('/views/profile/profile_settings.php'));
             $user = $this->getUsers($db->real_escape_string($slug))[0];
             if (is_object($user)) {
                 if ($user->id == $login->currentUserID()) { // it's-a-me!
@@ -79,7 +79,7 @@ class Profile {
             $page->setContent('{##main##}', '<h2>Profile</h2>');
            
             $view = new View();
-            $view->setTmpl(file('themes/' . constant('theme') . '/views/profile/profile_main.php'));
+            $view->setTmpl($view->loadFile('/views/profile/profile_main.php'));
 
             $user = $this->getUsers($db->real_escape_string($slug))[0];
             if (is_object($user)) {
@@ -155,7 +155,7 @@ class Profile {
     
     public function getUsersView() {
         $view = new View();
-        $view->setTmpl(file('themes/' . constant('theme') . '/views/profile/all_users_view.php'));
+        $view->setTmpl($view->loadFile('/views/profile/all_users_view.php'));
 
         $all_users = null;
         $users = $this->getUsers();

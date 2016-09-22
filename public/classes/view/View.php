@@ -21,6 +21,18 @@ class View {
     
     var $content = [];
 
+    function loadFile($tmpl_path) {
+        $filename = 'themes/' . constant('theme') . $tmpl_path;
+        if (file_exists($filename)) {
+           return file($filename);
+        }
+        $filename = 'themes/' . constant('default_theme') . $tmpl_path;
+        if (file_exists($filename)) {
+           return file($filename);
+        }
+        return false;
+    }
+    
     function setTmpl() {
         if (is_array(func_get_arg(0))) {
             $this->src = implode('', func_get_arg(0));

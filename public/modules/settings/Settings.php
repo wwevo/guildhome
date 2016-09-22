@@ -133,7 +133,7 @@ class Settings {
         }
 
         $view = new View();
-        $view->setTmpl(file('themes/' . constant('theme') . '/views/settings/update_setting_form.php'), array(
+        $view->setTmpl($view->loadFile('/views/settings/update_setting_form.php'), array(
             '{##form_action##}' => '/setting/' . $key,
             '{##target_url##}' => $target_url,
             '{##setting_key##}' => $key,
@@ -149,7 +149,7 @@ class Settings {
     function getTimezonePickerForm($target_url = '') {
         $env = Env::getInstance();
         $view = new View();
-        $view->setTmpl(file('themes/' . constant('theme') . '/views/settings/timezone_picker_form.php'), array(
+        $view->setTmpl($view->loadFile('/views/settings/timezone_picker_form.php'), array(
             '{##form_action##}' => '/setting/timezone',
             '{##target_url##}' => $target_url,
             '{##timezone_submit_text##}' => 'pick',

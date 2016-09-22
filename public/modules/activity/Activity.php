@@ -260,7 +260,7 @@ class Activity {
      */
     function getAllActivitiesView($type = NULL) {
         $view = new View();
-        $view->setTmpl(file('themes/' . constant('theme') . '/views/activity/list_all_activities.php'));
+        $view->setTmpl($view->loadFile('/views/activity/list_all_activities.php'));
         $activities = ($type === NULL) ? $this->getActivities(10) : $this->getActivities();
 
         if (false !== $activities) {
@@ -282,7 +282,7 @@ class Activity {
 
     function getActivityView($id = NULL) {
         $view = new View();
-        $view->setTmpl(file('themes/' . constant('theme') . '/views/activity/list_all_activities.php'));
+        $view->setTmpl($view->loadFile('/views/activity/list_all_activities.php'));
         $act = $this->getActivityById($id);
         if (false !== $act) {
             $subView = $this->getSubView($act, $view);

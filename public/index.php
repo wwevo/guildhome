@@ -33,12 +33,13 @@ require_once ('modules/autoload.php');
  * Get some settings from the db
  */
 
+define('default_theme', 'boilerplate');
 $settings = new Settings();
 $theme_name = filter_var($settings->getSettingByKey('theme_name'), FILTER_SANITIZE_STRING);
-if ($theme_name !== false AND !empty($theme_name) AND in_array($theme_name, ['eol', 'boilerplate'])) {
+if ($theme_name !== false AND !empty($theme_name) AND in_array($theme_name, ['eol', 'boilerplate', 'evolution'])) {
     define('theme', $theme_name);
 } else {
-    define('theme', 'boilerplate');
+    define('theme', 'evolution');
 }
 $timezone = filter_var($settings->getSettingByKey('timezone'), FILTER_SANITIZE_STRING);
 if ($timezone !== false AND !empty($timezone) AND in_array($timezone, timezone_identifiers_list())) {
@@ -58,7 +59,7 @@ $validation->registerValidation('api_key', array(new gw2api(), 'validateApiKey')
  * Here starts the actual page building and content gathering
  */
 $page = Page::getInstance();
-$page->setTmpl(file('themes/' . constant('theme') . '/page.php'));
+$page->setTmpl($page->loadFile('/page.php'));
 
 /*
  * now comes a lot of quickly hacked together stuff. I needed some results way
@@ -86,7 +87,7 @@ Toro::addRoute(["/" => "Home"]);
 ToroHook::add('404', function() {
     header('HTTP/1.0 404 Not Found');
     $page = Page::getInstance();
-    $page->setTmpl(file('themes/' . constant('theme') . '/views/core/404.php'));
+    $page->setTmpl($page->loadFile('/views/core/404.php'));
     $page->replaceTags();
     echo $page;
     exit;

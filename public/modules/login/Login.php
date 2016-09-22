@@ -473,13 +473,13 @@ class Login {
 
         $view = new View();
         if ($this->isLoggedIn() == true) {
-            $view->setTmpl(file('themes/' . constant('theme') . '/views/core/login/logout_form.php'), array(
+            $view->setTmpl($view->loadFile('/views/core/login/logout_form.php'), array(
                 '{##form_action##}' => '/logout',
                 '{##logout_link##}' => '/logout',
                 '{##logout_link_text##}' => 'Logout ' . $_SESSION['evo']['username'],
             ));
         } else {
-            $view->setTmpl(file('themes/' . constant('theme') . '/views/core/login/login_form.php'), array(
+            $view->setTmpl($view->loadFile('/views/core/login/login_form.php'), array(
                 '{##form_action##}' => '/login',
                 '{##login_username##}' => $env->post('login')['username'],
                 '{##login_username_text##}' => 'Username',
@@ -505,7 +505,7 @@ class Login {
 
         $view = new View();
         if ($this->isLoggedIn() == true) {
-            $view->setTmpl(file('themes/' . constant('theme') . '/views/core/login/change_password_form.php'), array(
+            $view->setTmpl($view->loadFile('/views/core/login/change_password_form.php'), array(
                 '{##form_action##}' => '/login/change_password',
                 '{##current_password##}' => '',
                 '{##current_password_text##}' => 'Current password',
@@ -531,7 +531,7 @@ class Login {
         $view = new View();
         if ($this->isLoggedIn() === true AND $this->hasActiveToken($this->currentUserID()) === true) {
            if ($this->isLoggedIn() == true) {
-                $view->setTmpl(file('themes/' . constant('theme') . '/views/core/login/set_password_form.php'), array(
+                $view->setTmpl($view->loadFile('/views/core/login/set_password_form.php'), array(
                     '{##form_action##}' => '/login/set_password',
                     '{##new_password##}' => '',
                     '{##new_password_text##}' => 'New password',
@@ -552,7 +552,7 @@ class Login {
         $msg = Msg::getInstance();
 
         $view = new View();
-        $view->setTmpl(file('themes/' . constant('theme') . '/views/core/login/reset_password_form.php'), array(
+        $view->setTmpl($view->loadFile('/views/core/login/reset_password_form.php'), array(
             '{##form_action##}' => '/login/reset_password',
             '{##registered_email##}' => $env->post('reset_password')['registered_email'],
             '{##registered_email_description##}' => 'Please provide the email address that you have registered your account with.',

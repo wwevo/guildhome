@@ -132,7 +132,7 @@ class Register {
         $msg = Msg::getInstance();
 
         $view = new View;
-        $view->setTmpl(file('themes/' . constant('theme') . '/views/core/login/register_form.php'), array(
+        $view->setTmpl($view->loadFile('/views/core/login/register_form.php'), array(
             '{##form_action##}' => '/register',
             '{##register_username##}' => $env->post('register')['username'],
             '{##register_username_text##}' => 'Username',

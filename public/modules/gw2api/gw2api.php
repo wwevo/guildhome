@@ -217,7 +217,7 @@ class gw2api {
     
     function getImportForm() {
         $view = new View();
-        $view->setTmpl(file('themes/' . constant('theme') . '/views/gw2api/import_form.php'));
+        $view->setTmpl($view->loadFile('/views/gw2api/import_form.php'));
         $view->addContent('{##form_action##}', '/gw2api/import');
         $view->addContent('{##gw2api_import_submit_text##}', 'Import from API');
         $settings = new Settings();
@@ -234,7 +234,7 @@ class gw2api {
 
     function getUpdateRosterForm() {
         $view = new View();
-        $view->setTmpl(file('themes/' . constant('theme') . '/views/gw2api/update_roster_form.php'));
+        $view->setTmpl($view->loadFile('/views/gw2api/update_roster_form.php'));
         $view->addContent('{##form_action##}', '/gw2api/update_roster');
         $view->addContent('{##gw2api_update_roster_submit_text##}', 'Fetch roster');
         $view->replaceTags();
@@ -260,7 +260,7 @@ class gw2api {
     
     function getImportAccountnameForm() {
         $view = new View();
-        $view->setTmpl(file('themes/' . constant('theme') . '/views/gw2api/import_accountname_form.php'));
+        $view->setTmpl($view->loadFile('/views/gw2api/import_accountname_form.php'));
         $view->addContent('{##form_action##}', '/gw2api/import_accountname');
         $view->addContent('{##gw2api_import_accountname_submit_text##}', 'Fetch accountname');
 
@@ -279,7 +279,7 @@ class gw2api {
         $settings = new Settings();
 
         $view = new View();
-        $view->setTmpl(file('themes/' . constant('theme') . '/views/gw2api/show_imported_data.php'));
+        $view->setTmpl($view->loadFile('/views/gw2api/show_imported_data.php'));
         $view->addContent('{##data##}', "<pre>" . print_r(json_decode($settings->getSettingByKey('gw2apidata'), true), true) . "</pre>");
         $view->replaceTags();
         return $view;
@@ -303,7 +303,7 @@ class gw2api {
         $scope = $this->getApiKeyScope();
         if (FALSE !== $scope) {
             $view = new View();
-            $view->setTmpl(file('themes/' . constant('theme') . '/views/gw2api/api_key_scope_view.php'));
+            $view->setTmpl($view->loadFile('/views/gw2api/api_key_scope_view.php'));
             $all_permissions = null;
             if (is_array($scope)) {
                 foreach ($scope as $permission) {
@@ -370,7 +370,7 @@ class gw2api {
         $ranks = $this->getRankUsageFromRoster();
         if (FALSE !== $ranks) {
             $view = new View();
-            $view->setTmpl(file('themes/' . constant('theme') . '/views/gw2api/rank_usage_view.php'));
+            $view->setTmpl($view->loadFile('/views/gw2api/rank_usage_view.php'));
             $all_ranks = null;
             if (is_array($ranks)) {
                 foreach ($ranks as $rank) {
@@ -412,7 +412,7 @@ class gw2api {
         $roster = $this->getRoster();
         if (FALSE !== $roster) {
             $view = new View();
-            $view->setTmpl(file('themes/' . constant('theme') . '/views/gw2api/roster_view.php'));
+            $view->setTmpl($view->loadFile('/views/gw2api/roster_view.php'));
             $full_roster = null;
             if (is_array($roster)) {
                 foreach ($roster as $member) {
@@ -505,7 +505,7 @@ class gw2api {
         
         if ($characters !== false) {
             $view = new View();
-            $view->setTmpl(file('themes/' . constant('theme') . '/views/gw2api/account_characters_view.php'));
+            $view->setTmpl($view->loadFile('/views/gw2api/account_characters_view.php'));
             $view->addContent('{##warning##}', $msg->fetch('api_data_outdated'));
             $all_characters = null;
             if (is_array($characters)) {
@@ -587,7 +587,7 @@ class gw2api {
         if ($characters_birthdays !== false) {
             $characters_birthdays = array_slice($characters_birthdays, 0, 3);
             $view = new View();
-            $view->setTmpl(file('themes/' . constant('theme') . '/views/gw2api/next_character_birthdays_view.php'));
+            $view->setTmpl($view->loadFile('/views/gw2api/next_character_birthdays_view.php'));
             $view->addContent('{##warning##}', $msg->fetch('api_data_outdated'));
             $all_characters = null;
             if (is_array($characters_birthdays)) {
