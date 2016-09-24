@@ -39,7 +39,7 @@ $theme_name = filter_var($settings->getSettingByKey('theme_name'), FILTER_SANITI
 if ($theme_name !== false AND !empty($theme_name) AND in_array($theme_name, ['eol', 'boilerplate', 'evolution'])) {
     define('theme', $theme_name);
 } else {
-    define('theme', 'evolution');
+    define('theme', 'boilerplate');
 }
 $timezone = filter_var($settings->getSettingByKey('timezone'), FILTER_SANITIZE_STRING);
 if ($timezone !== false AND !empty($timezone) AND in_array($timezone, timezone_identifiers_list())) {
