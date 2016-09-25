@@ -283,7 +283,6 @@ class Activity_Event extends Activity {
         $event_type = $act->event_type;
 
         $signups_checked = $act->signups_activated;
-
         if ($signups_checked) {
             $signed_up_users = $this->getSignupsByEventId($id);
             if (is_array($signed_up_users)) {
@@ -311,8 +310,7 @@ class Activity_Event extends Activity {
         $signupsView->addContent('{##signups##}', $signed_up_users);
 
 
-        if ($login->isLoggedIn() AND $act->signups_activated == 1) {
-            $memberView = '';
+        if ($login->isLoggedIn() AND $act->signups_activated == 1 AND $this->eventIsCurrent($act)) {
             $memberView = new View();
             $memberView->setTmpl($signupsView->getSubTemplate('{##activity_logged_in##}'));
             $memberView->addContent('{##signup##}', '/activity/event/signup/' . $id);
@@ -325,6 +323,15 @@ class Activity_Event extends Activity {
         $view->addContent('{##signups_activated##}',  $signupsView);
         $view->replaceTags();
         return $view;
+    }
+    
+    function eventIsCurrent($act) {
+        $event_date = new DateTime($act->date . " " . $act->time);
+        $current_date = new DateTime();
+        if ($current_date > $event_date) {
+            return false;
+        }
+        return true;
     }
     
     function getDeleteActivityForm($id) {
