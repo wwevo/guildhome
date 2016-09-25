@@ -7,7 +7,9 @@
         <strong>{##activity_identity##}</strong> posted <strong>{##activity_type##}</strong>.
     </section>
     <section class="content clearfix">
+        {##details_link_area##}
         <a href="{##details_link##}">{##details_link_text##}</a>
+        {/##details_link_area##}
         {##activity_content##}
     </section>
     {##activity_not_logged_in##}

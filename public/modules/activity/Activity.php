@@ -244,9 +244,16 @@ class Activity {
         }
 
         if ($details_link !== '') {
-            $subView->addContent('{##details_link##}', $details_link);
-            $subView->addContent('{##details_link_text##}',  Parsedown::instance()->text($activity_event->title));
+            $linkView = new View();
+            $linkView->setTmpl($view->getSubTemplate('{##details_link_area##}'));
+
+            $linkView->addContent('{##details_link##}', $details_link);
+            $linkView->addContent('{##details_link_text##}',  Parsedown::instance()->text($activity_event->title));
+            $linkView->replaceTags();
+        } else {
+            $linkView = '';
         }
+        $subView->addContent('{##details_link_area##}',  $linkView);
 
         $subView->replaceTags();
         return $subView;
