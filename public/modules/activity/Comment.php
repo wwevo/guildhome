@@ -37,12 +37,14 @@ class Comment {
                         break;
                     case 'update' :
                         $page->setContent('{##main##}', '<h2>Update comment</h2>');
+                        $this->getParent($id);
                         if ($login->isLoggedIn()) {
                             $page->addContent('{##main##}', $this->getEditCommentForm($id));
                         }
                         break;
                     case 'delete' :
                         $page->setContent('{##main##}', '<h2>Delete comment</h2>');
+                        $this->getParent($id);
                         if ($login->isLoggedIn()) {
                             $page->addContent('{##main##}', $this->getDeleteCommentForm($id));
                         }
@@ -58,11 +60,13 @@ class Comment {
         if (!$login->isLoggedIn()) {
             return false;
         }
+        
         switch ($action) {
             case 'new' :
                 if ($this->validateComment() === true) {
                     if ($this->saveComment($id) === true) {
-                        header("Location: /comment/$alpha/view/$id");
+                        $am = $this->getParent($id);
+                        header("Location: /comment/$alpha/view/" . $am['id']);
                     }
                 } else {
                     $this->get('activity', 'view', $id);
@@ -71,7 +75,8 @@ class Comment {
             case 'update' :
                 if ($this->validateComment() === true) {
                     if ($this->updateComment($id) === true) {
-                        header("Location: /comment/$alpha/view/$id");
+                        $am = $this->getParent($id);
+                        header("Location: /comment/$alpha/view/" . $am['id']);
                     }
                 } else {
                     $this->get('activity', 'view', $id);
@@ -81,7 +86,8 @@ class Comment {
                 if (isset($env->post('comment')['submit'])) {
                     if ($env->post('comment')['submit'] === 'delete') {
                         if ($this->deleteComment($id) === true) {
-                            header("Location: /comment/$alpha/view/$id");
+                            $am = $this->getParent($id);
+                            header("Location: /comment/$alpha/view/" . $am['id']);
                         }
                     }
                     if ($env->post('activity')['submit'] === 'cancel') {
@@ -91,6 +97,34 @@ class Comment {
                 break;
         }
         
+    }
+    
+    function getParent($comment_id) {
+        $db = db::getInstance();
+        
+        $sql = "SELECT activity_id FROM comment_mapping WHERE comment_id = $comment_id;";
+        $query = $db->query($sql);
+        if ($query !== false AND $query->num_rows == 1) {
+            $activity_id = $query->fetch_object()->activity_id;
+        }
+        $sql = "SELECT type FROM activities WHERE id = $activity_id;";
+        $query = $db->query($sql);
+        if ($query !== false AND $query->num_rows == 1) {
+            $activity_type = $query->fetch_object()->type;
+        }
+        $sql = "SELECT name FROM activity_types WHERE id = $activity_type;";
+        $query = $db->query($sql);
+        if ($query !== false AND $query->num_rows == 1) {
+            $activity_type_name = $query->fetch_object()->name;
+        }
+        
+        $activity_meta = [
+            'id' => $activity_id,
+            'type' => $activity_type,
+            'type_name' => $activity_type_name,
+            ];
+        
+        return $activity_meta;
     }
     
     function save() {
@@ -147,8 +181,9 @@ class Comment {
 
     function updateComment($activity_id) {
         // save activity meta data
-        $this->update($activity_id);
-
+        if ($this->update($activity_id) === true) {
+            return true;
+        }
         return false;
     }
 
