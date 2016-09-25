@@ -79,6 +79,9 @@ $activity_event = new Activity_Event();
 $page->addContent('{##widgets##}', '<hr />');
 $page->addContent('{##widgets##}', $activity_event->getUpcomingActivitiesView());
 
+
+$page->addContent('{##footer##}', '<p>created by the community: for the community</p>');
+
 /*
  * Do the routing as per modules instructions!!
  * Can be overridden here
