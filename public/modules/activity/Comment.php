@@ -44,7 +44,6 @@ class Comment {
                         break;
                     case 'delete' :
                         $page->setContent('{##main##}', '<h2>Delete comment</h2>');
-                        $this->getParent($id);
                         if ($login->isLoggedIn()) {
                             $page->addContent('{##main##}', $this->getDeleteCommentForm($id));
                         }
@@ -65,8 +64,7 @@ class Comment {
             case 'new' :
                 if ($this->validateComment() === true) {
                     if ($this->saveComment($id) === true) {
-                        $am = $this->getParent($id);
-                        header("Location: /comment/$alpha/view/" . $am['id']);
+                        header("Location: /comment/$alpha/view/" . $id);
                     }
                 } else {
                     $this->get('activity', 'view', $id);
@@ -85,8 +83,8 @@ class Comment {
             case 'delete' :
                 if (isset($env->post('comment')['submit'])) {
                     if ($env->post('comment')['submit'] === 'delete') {
+                        $am = $this->getParent($id);
                         if ($this->deleteComment($id) === true) {
-                            $am = $this->getParent($id);
                             header("Location: /comment/$alpha/view/" . $am['id']);
                         }
                     }
@@ -101,7 +99,6 @@ class Comment {
     
     function getParent($comment_id) {
         $db = db::getInstance();
-        
         $sql = "SELECT activity_id FROM comment_mapping WHERE comment_id = $comment_id;";
         $query = $db->query($sql);
         if ($query !== false AND $query->num_rows == 1) {
