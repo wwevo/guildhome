@@ -462,40 +462,54 @@ class Login {
         return false;
     }
     
+    public function getLoginView() {
+        $env = Env::getInstance();
+        $msg = Msg::getInstance();
+
+        $view = new View();
+        $view->setTmpl($view->loadFile('/views/core/login/login_form.php'), array(
+            '{##form_action##}' => '/login',
+            '{##login_username##}' => $env->post('login')['username'],
+            '{##login_username_text##}' => 'Username',
+            '{##login_username_validation##}' => $msg->fetch('login_username_validation'),
+            '{##login_password##}' => '',
+            '{##login_password_text##}' => 'Password',
+            '{##login_password_validation##}' => $msg->fetch('login_password_validation'),
+            '{##login_submit_text##}' => 'Log in',
+            '{##login_forgot_text##}' => 'Forgot Password',
+            '{##register_link##}' => '/register/',
+            '{##register_link_text##}' => 'register new user',
+            '{##reset_password_link##}' => '/login/reset_password',
+            '{##reset_password_link_text##}' => 'lost your password?',
+        ));
+        $view->replaceTags();
+        return $view;
+    }
+    
+    public function getLogoutView() {
+        $logout_link_text = ($this->isLoggedIn()) ? $_SESSION['evo']['username'] : 'Guest';
+        $view = new View();
+        $view->setTmpl($view->loadFile('/views/core/login/logout_form.php'), array(
+            '{##form_action##}' => '/logout',
+            '{##logout_link##}' => '/logout',
+            '{##logout_link_text##}' => 'Logout ' . $logout_link_text,
+        ));
+        $view->replaceTags();
+        return $view;
+        
+    }
+    
     /*
      * Views -> These have to be public and may not echo or print ANY data.
      * Use the Msg class to display debug stuff if you have to.
      * Functions may only return 'text' data or 'false'
      */
     public function getCombinedLoginView() {
-        $env = Env::getInstance();
-        $msg = Msg::getInstance();
-
-        $view = new View();
         if ($this->isLoggedIn() == true) {
-            $view->setTmpl($view->loadFile('/views/core/login/logout_form.php'), array(
-                '{##form_action##}' => '/logout',
-                '{##logout_link##}' => '/logout',
-                '{##logout_link_text##}' => 'Logout ' . $_SESSION['evo']['username'],
-            ));
+            $view = $this->getLogoutView();
         } else {
-            $view->setTmpl($view->loadFile('/views/core/login/login_form.php'), array(
-                '{##form_action##}' => '/login',
-                '{##login_username##}' => $env->post('login')['username'],
-                '{##login_username_text##}' => 'Username',
-                '{##login_username_validation##}' => $msg->fetch('login_username_validation'),
-                '{##login_password##}' => '',
-                '{##login_password_text##}' => 'Password',
-                '{##login_password_validation##}' => $msg->fetch('login_password_validation'),
-                '{##login_submit_text##}' => 'Log in',
-                '{##login_forgot_text##}' => 'Forgot Password',
-                '{##register_link##}' => '/register/',
-                '{##register_link_text##}' => 'register new user',
-                '{##reset_password_link##}' => '/login/reset_password',
-                '{##reset_password_link_text##}' => 'lost your password?',
-            ));
+            $view = $this->getLoginView();
         }
-        $view->replaceTags();
         return $view;
     }
     

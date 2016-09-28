@@ -16,3 +16,7 @@ require_once('home/Home.php'); // (*)
 require_once('about/About.php'); // (*)
 require_once('gw2api/gw2api.php'); // (*)
 require_once('sdtd/sdtd.php'); // (*)
+/*
+ * for development purposes
+ */
+require_once('dev/Dev.php'); // (*)
