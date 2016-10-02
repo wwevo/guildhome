@@ -23,6 +23,8 @@ if (version_compare(PHP_VERSION, '5.3.7', '<')) {
     require_once("libraries/password_compatibility_library.php");
 }
 
+require_once("libraries/bulletproof_image_upload.php");
+
 include_once 'config/env.php';
 
 //config/env.php:

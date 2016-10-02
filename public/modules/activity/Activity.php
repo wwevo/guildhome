@@ -157,7 +157,7 @@ class Activity {
                 }
 
                 $event_data = Parsedown::instance()->text($activity_event->description);
-                $event_data .= $activity_event->date . " @ ";
+                $event_data = $activity_event->date . " @ ";
                 $event_data .= $activity_event->time;
                     
                 $content = $event_data;

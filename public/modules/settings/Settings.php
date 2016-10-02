@@ -27,7 +27,15 @@ class Settings {
 
         if ($login->isLoggedIn()) {
             if (isset($env->post('setting_' . $key)['submit'])) {
-                if ($this->validateSetting($key) AND $this->updateSetting($key)) {
+                // is it a file?
+                if (isset($_FILES['setting_' . $key]) AND is_array($_FILES['setting_' . $key])) {
+                    if ($this->validateSetting($key) AND ($file = $this->uploadAvatar($key, $_FILES['setting_' . $key])) !== false) {
+                        $this->updateSetting($key, $file);
+                        header("Location: " .  $env->post('target_url'));
+                    } else {
+                        header("Location: " .  $env->post('target_url'));
+                    }
+                } elseif ($this->validateSetting($key) AND $this->updateSetting($key)) {
                     header("Location: " .  $env->post('target_url'));
                 } else {
                     header("Location: " .  $env->post('target_url'));
@@ -36,6 +44,32 @@ class Settings {
         }        
     }
     
+    function uploadAvatar($key, $files) {
+        $login = new Login();
+        $current_identity = $login->currentUsername();
+        
+        $image = new Bulletproof\Image($files);
+        $image->setName($this->createSlug($current_identity))->setLocation("avatar");
+        
+        if (is_object($image)){
+            $upload = $image->upload();
+            if ($upload->getError() === false) {
+                Bulletproof\resize(
+                    $upload->getFullPath(), 
+                    $upload->getMime(),
+                    $upload->getWidth(),
+                    $upload->getHeight(),
+                    200,
+                    200,
+                    TRUE
+                );
+                return $image->getFullPath();
+            } else {
+                return false;
+            }
+        }        
+    }
+
     function validateSetting($key) {
         $validation = Validation::getInstance();
         $env = Env::getInstance();
@@ -43,7 +77,11 @@ class Settings {
         $error = 0;
         
         if (!empty($key)) {
-            $value = $env->post('setting_' . $key)['value'];
+            if (isset($env->post('setting_' . $key)['value'])) {
+                $value = $env->post('setting_' . $key)['value'];
+            } elseif (isset($_FILES['setting_' . $key]) AND is_array($_FILES['setting_' . $key])) {
+                $value = $_FILES['setting_' . $key];
+            }
         }
 
         if (isset($validation::$validation_rules[$key])) {
@@ -102,7 +140,7 @@ class Settings {
 
         $key = $db->real_escape_string(strip_tags($key));
         $value = $db->real_escape_string(strip_tags($value));
-
+        
         $sql = "SELECT * FROM settings WHERE userid = '" . $user_id . "' AND setting = '" . $key . "';";
         $result = $db->query($sql);
 
@@ -117,6 +155,8 @@ class Settings {
 
         if ($db->query($sql) === true) {
             $env->clear_post('setting_' . $key);
+
+            echo "yay: " . $sql;
             return true;
         }
         return false;
@@ -140,6 +180,30 @@ class Settings {
             '{##setting_value##}' => $setting_value,
             '{##update_setting_validation##}' => $msg->fetch('setting_' . $key .'_validation'),
             '{##setting_submit_text##}' => 'update',
+            '{##setting_cancel_text##}' => 'reset',
+        ));
+        $view->replaceTags();
+        return $view;
+    }
+    
+    function getUploadImageForm($key, $target_url = '') {
+        $env = Env::getInstance();
+        $msg = Msg::getInstance();
+ 
+        if (isset($env->post('setting_' . $key)['value'])) {
+            $setting_value = $env->post('setting_' . $key)['value'];
+        } else {
+            $setting_value = $this->getSettingByKey($key);
+        }
+
+        $view = new View();
+        $view->setTmpl($view->loadFile('/views/settings/upload_image_form.php'), array(
+            '{##form_action##}' => '/setting/' . $key,
+            '{##target_url##}' => $target_url,
+            '{##setting_key##}' => $key,
+            '{##setting_value##}' => $setting_value,
+            '{##update_setting_validation##}' => $msg->fetch('setting_' . $key .'_validation'),
+            '{##setting_submit_text##}' => 'upload',
             '{##setting_cancel_text##}' => 'reset',
         ));
         $view->replaceTags();
@@ -176,6 +240,18 @@ class Settings {
         $view->replaceTags();
         return $view;
         
+    }
+    
+    function createSlug($str) {
+	if ($str !== mb_convert_encoding(mb_convert_encoding($str, 'UTF-32', 'UTF-8'), 'UTF-8', 'UTF-32')) {
+            $str = mb_convert_encoding($str, 'UTF-8', mb_detect_encoding($str));
+        }
+        $str = htmlentities($str, ENT_NOQUOTES, 'UTF-8');
+        $str = preg_replace('`&([a-z]{1,2})(acute|uml|circ|grave|ring|cedil|slash|tilde|caron|lig);`i', '\\1', $str);
+        $str = html_entity_decode($str, ENT_NOQUOTES, 'UTF-8');
+        $str = preg_replace(array('`[^a-z0-9]`i','`[-]+`'), '-', $str);
+        $str = strtolower(trim($str, '-'));
+        return $str;
     }
     
 }

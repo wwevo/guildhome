@@ -54,6 +54,7 @@ if ($timezone !== false AND !empty($timezone) AND in_array($timezone, timezone_i
  */
 $validation = Validation::getInstance();
 $validation->registerValidation('api_key', array(new gw2api(), 'validateApiKey'));
+$validation->registerValidation('avatar', array(new Profile(), 'validateAvatar'));
 
 /*
  * Here starts the actual page building and content gathering

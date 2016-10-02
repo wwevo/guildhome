@@ -49,9 +49,10 @@ class Profile {
                     $view->addContent('{##main##}', $login->getChangePasswordView());
                     $view->addContent('{##main##}', '<p>you will be redirected after pressing the button!</p>');
                     $view->addContent('{##main##}', '<h4>Avatar</h4>');
-                    $view->addContent('{##main##}', '<p>use any image url, only direct links will work</p>');
+                    $view->addContent('{##main##}', '<p>use any image url, only direct links will work...</p>');
                     $view->addContent('{##main##}', $settings->getUpdateSettingForm('avatar', '/profile/' . $user->username . '/settings'));
-
+                    $view->addContent('{##main##}', '<p>...or upload a new one!</p>');
+                    $view->addContent('{##main##}', $settings->getUploadImageForm('avatar', '/profile/' . $user->username . '/settings'));
                     $view->addContent('{##main##}', '<hr />');
                     $view->addContent('{##main##}', '<h3>Development stuff</h3>');
                     $view->addContent('{##main##}', '<hr />');
@@ -179,6 +180,16 @@ class Profile {
 
         $view->replaceTags();
         return $view;
+    }
+    
+    function validateAvatar($key = '') {
+        $msg = Msg::getInstance();
+        $error = 0;
+        // stub
+        if ($error == 1) {
+            return false;
+        }
+        return true;
     }
 
 }
