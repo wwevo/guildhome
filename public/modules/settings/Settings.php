@@ -30,7 +30,7 @@ class Settings {
                 // is it a file?
                 if (isset($_FILES['setting_' . $key]) AND is_array($_FILES['setting_' . $key])) {
                     if ($this->validateSetting($key) AND ($file = $this->uploadAvatar($key, $_FILES['setting_' . $key])) !== false) {
-                        $this->updateSetting($key, $file);
+                        $this->updateSetting($key, '/' . $file);
                         header("Location: " .  $env->post('target_url'));
                     } else {
                         header("Location: " .  $env->post('target_url'));
@@ -155,8 +155,7 @@ class Settings {
 
         if ($db->query($sql) === true) {
             $env->clear_post('setting_' . $key);
-
-            echo "yay: " . $sql;
+//            echo "yay: " . $sql;
             return true;
         }
         return false;
