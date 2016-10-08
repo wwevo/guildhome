@@ -95,6 +95,10 @@ body {
     list-style-type: none;
 }
 
+.main aside time {
+    float: right;
+}
+
 .title {
     color: white;
 }

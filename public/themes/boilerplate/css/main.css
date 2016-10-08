@@ -85,14 +85,18 @@ body {
 .footer-container {
     background: #EDA73E;
 }
-.main aside {
+aside {
     background: #ffffff;
     color: #EA6C12;
 }
 
-.main aside ul {
+aside ul {
     padding: 0;
     list-style-type: none;
+}
+
+aside time {
+    float: right;
 }
 
 .title {

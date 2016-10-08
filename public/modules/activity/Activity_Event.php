@@ -47,16 +47,16 @@ class Activity_Event extends Activity {
                 $page = Page::getInstance();
                 $page->setContent('{##main##}', '<h2>New event</h2>');
                 $this->activity_menu();
-                $page->addContent('{##main##}', $this->getNewActivityForm());
+                $page->addContent('{##main##}', $this->getActivityForm());
                 break;
             case 'update' :
                 if (!$login->isLoggedIn()) {
                     return false;
                 }
                 $page = Page::getInstance();
-                $page->setContent('{##main##}', '<h2>Update shout</h2>');
+                $page->setContent('{##main##}', '<h2>Update event</h2>');
                 $this->activity_menu();
-                $page->addContent('{##main##}', $this->getUpdateActivityForm($id));
+                $page->addContent('{##main##}', $this->getActivityForm($id));
                 break;
             case 'delete' :
                 if (!$login->isLoggedIn()) {
@@ -92,8 +92,23 @@ class Activity_Event extends Activity {
                 }
                 break;
             case 'update' :
+                if (isset($env->post('activity')['submit']) AND isset($env->post('activity')['submit']['submit_add_role'])) {
+                    if ($this->validateRole() === TRUE) {
+                        $this->saveRole($env->post('activity')['add_role_title']);    
+                    }
+                    $this->get('update', $id);
+                    break;
+                }
+                
+                if (isset($env->post('activity')['submit']) AND isset($env->post('activity')['submit']['delete_selected_roles'])) {
+                    $selected_roles = $env->post('activity')['roles'];
+                    $this->deleteRole($selected_roles);
+                    $this->get('update', $id);
+                    break;    
+                }
+
                 if ($this->validateActivity() === true) {
-                    if ($this->updateActivity($id) === true) {
+                    if ($this->saveActivity($id) === true) {
                         header("Location: /activity/event/details/$id");
                     }
                 } else {
@@ -115,6 +130,38 @@ class Activity_Event extends Activity {
         }
     }
     
+    function saveRole($title, $user_id = NULL) {
+        $db = db::getInstance();
+        if (is_null($user_id)) {
+            $login = new Login();
+            $user_id = $login->currentUserID();
+        }
+        
+        $sql = "INSERT INTO activity_events_roles (name, user_id) VALUES ('$title', '$user_id');";
+        $query = $db->query($sql);        
+
+        if ($query !== false) {
+            return true;
+        }
+        return false;
+    }
+
+    function deleteRole($roles) {
+        $db = db::getInstance();
+        $login = new Login();
+        $user_id = $login->currentUserID();
+        
+        $role_ids = implode(',', $roles);
+        $sql = "DELETE FROM activity_events_roles 
+                    WHERE id IN ($role_ids) AND user_id = '$user_id';";
+        $query = $db->query($sql);        
+
+        if ($query !== false) {
+            return true;
+        }
+        return false;
+    }
+    
     function toggleSignup($user_id, $event_id) {
         $db = db::getInstance();
         $sql = "SELECT * FROM activity_events_signups_user WHERE user_id = '$user_id' AND event_id = '$event_id';";
@@ -132,6 +179,19 @@ class Activity_Event extends Activity {
             return true;
         }
         return false;
+    }
+
+    function isSignedUp($event_id) {
+        $db = db::getInstance();
+        $login = new Login();
+        $user_id = $login->currentUserID();
+        $sql = "SELECT * FROM activity_events_signups_user WHERE user_id = '$user_id' AND event_id = '$event_id';";
+        $query = $db->query($sql);
+        if ($query !== false AND $query->num_rows >= 1) {
+            return true;
+        } else {
+            return false;
+        }
     }
     
     function getSignupCountByEventId($event_id) {
@@ -153,6 +213,38 @@ class Activity_Event extends Activity {
                 $signups[] = $result_row->user_id;
             }
             return $signups;
+        }
+        return false;
+    }
+
+    function getRoles() {
+        $login = new Login();
+        $user_id = $login->currentUserID();
+
+        $db = db::getInstance();
+        $sql = "SELECT * FROM activity_events_roles WHERE user_id = '$user_id';";
+        $query = $db->query($sql);
+        if ($query !== false AND $query->num_rows >= 1) {
+            while ($result_row = $query->fetch_object()) {
+                $roles[] = $result_row;
+            }
+            return $roles;
+        }
+        return false;
+    }
+
+    function getSignupsRoles($event_id) {
+        $login = new Login();
+        $user_id = $login->currentUserID();
+
+        $db = db::getInstance();
+        $sql = "SELECT * FROM activity_events_signups_roles WHERE event_id = '$event_id';";
+        $query = $db->query($sql);
+        if ($query !== false AND $query->num_rows >= 1) {
+            while ($result_row = $query->fetch_object()) {
+                $roles[$result_row->role_id] = $result_row->event_id;
+            }
+            return $roles;
         }
         return false;
     }
@@ -181,98 +273,109 @@ class Activity_Event extends Activity {
         return false;
     }
 
-    function getNewActivityForm() {
+    function getActivityForm($id = NULL) {
         $env = Env::getInstance();
         $msg = Msg::getInstance();
-
-        $comments_checked = (!empty($env->post('activity')['comments']) AND $env->post('activity')['comments'] !== NULL) ? 'checked="checked"' : '';
-        $signups_checked = (!empty($env->post('activity')['signups']) AND $env->post('activity')['signups'] !== NULL) ? 'checked="checked"' : '';
-        $signups_min_checked = (!empty($env->post('activity')['signups_min']) AND $env->post('activity')['signups_min'] !== NULL) ? 'checked="checked"' : '';
-        $signups_max_checked = (!empty($env->post('activity')['signups_max']) AND $env->post('activity')['signups_max'] !== NULL) ? 'checked="checked"' : '';
-        $keep_signups_open_checked = (!empty($env->post('activity')['keep_signups_open']) AND $env->post('activity')['keep_signups_open'] !== NULL) ? 'checked="checked"' : '';
 
         $view = new View();
-        $view->setTmpl($view->loadFile('/views/activity/event/new_activity_event_form.php'), array(
-            '{##form_action##}' => '/activity/event/new',
-            '{##activity_title##}' => $env->post('activity')['title'],
+        $view->setTmpl($view->loadFile('/views/activity/event/activity_event_form.php'), array(
             '{##activity_title_validation##}' => $msg->fetch('activity_event_title_validation'),
-            '{##activity_content##}' => $env->post('activity')['content'],
             '{##activity_content_validation##}' => $msg->fetch('activity_event_content_validation'),
-            '{##activity_date##}' => $env->post('activity')['date'],
             '{##activity_date_validation##}' => $msg->fetch('activity_event_date_validation'),
-            '{##activity_time##}' => $env->post('activity')['time'],
             '{##activity_time_validation##}' => $msg->fetch('activity_event_time_validation'),
-            '{##activity_comments_checked##}' => $comments_checked,
-            '{##activity_signups_checked##}' => $signups_checked,
-            '{##activity_signups_min_checked##}' => $signups_min_checked,
-            '{##signups_min_val##}' => $env->post('activity')['signups_min_val'],
-            '{##activity_signups_max_checked##}' => $signups_max_checked,
-            '{##signups_max_val##}' => $env->post('activity')['signups_max_val'],
-            '{##activity_keep_signups_open_checked##}' => $keep_signups_open_checked,
-            '{##preview_text##}' => 'Preview',
-            '{##draft_text##}' => 'Save as draft',
-            '{##submit_text##}' => 'Submit',
         ));
-        $view->replaceTags();
-        return $view;
-    }
 
-    function getUpdateActivityForm($id) {
-        $env = Env::getInstance();
-        $msg = Msg::getInstance();
+        if ($roles = $this->getRoles()) {
+            $options_list = '';
+            $signups_roles = $this->getSignupsRoles($id);
 
-        $act = $this->getActivity($id);
+            foreach ($roles as $role) {
+                $subView = new View();
+                $subView->setTmpl($view->getSubTemplate('{##roles_select_option##}'));
+                $subView->addContent('{##option_value##}', $role->id);
+                $subView->addContent('{##option_text##}', $role->name);
+                if (isset($signups_roles[$role->id])) {
+                    $subView->addContent('{##option_selected##}', ' checked="checked"');
+                }
+                $subView->replaceTags();
+                $options_list .= $subView;
+            }
+            $view->addContent('{##roles_select_option##}', $options_list);
+        }
+        $view->addContent('{##add_role_title_text##}', 'new role title');
+        $view->addContent('{##add_new_role_title##}', '');
+        $view->addContent('{##submit_add_role_text##}', 'add role');
+        $view->addContent('{##delete_selected_roles_text##}', 'delete selected roles');
+        $view->addContent('{##add_role_title_validation##}', $msg->fetch('activity_add_role_title_validation'));
 
-        $title = (!empty($env->post('activity')['title'])) ? $env->post('activity')['title'] : $act->title;
-        $content = (!empty($env->post('activity')['content'])) ? $env->post('activity')['content'] : $act->description;
-        $date = (!empty($env->post('activity')['date'])) ? $env->post('activity')['date'] : $act->date;
-        $time = (!empty($env->post('activity')['time'])) ? $env->post('activity')['time'] : $act->time;
-        $signups_min_val = (!empty($env->post('activity')['signups_min_val'])) ? $env->post('activity')['signups_min_val'] : $act->minimal_signups;
-        $signups_max_val = (!empty($env->post('activity')['signups_max_val'])) ? $env->post('activity')['signups_max_val'] : $act->maximal_signups;
+        if ($id === NULL) {
+            
+            $title = $env->post('activity')['title'];
+            $content = $env->post('activity')['content'];
+            $date = $env->post('activity')['date'];
+            $time = $env->post('activity')['time'];
+            $signups_min_val = $env->post('activity')['signups_min_val'];
+            $signups_max_val = $env->post('activity')['signups_max_val'];
+
+            $comments_checked = (!empty($env->post('activity')['comments']) AND $env->post('activity')['comments'] !== NULL) ? '1' : '';
+            $signups_checked = (!empty($env->post('activity')['signups']) AND $env->post('activity')['signups'] !== NULL) ? '1' : '';
+            $signups_min_checked = (!empty($env->post('activity')['signups_min']) AND $env->post('activity')['signups_min'] !== NULL) ? '1' : '';
+            $signups_max_checked = (!empty($env->post('activity')['signups_max']) AND $env->post('activity')['signups_max'] !== NULL) ? '1' : '';
+            $keep_signups_open_checked = (!empty($env->post('activity')['keep_signups_open']) AND $env->post('activity')['keep_signups_open'] !== NULL) ? '1' : '';
+
+            $class_registration_checked = (!empty($env->post('activity')['class_registration']) AND $env->post('activity')['class_registration'] !== NULL) ? '1' : '';
+            $selectable_roles_checked = (!empty($env->post('activity')['selectable_roles']) AND $env->post('activity')['selectable_roles'] !== NULL) ? '1' : '';
+
+            $view->addContent('{##form_action##}', '/activity/event/new');
+
+            $view->addContent('{##preview_text##}', 'Preview');
+            $view->addContent('{##draft_text##}', 'Save as draft');
+            $view->addContent('{##submit_text##}', 'Create');
+            
+        } else {
+            $act = $this->getActivity($id);
+
+            $title = (!empty($env->post('activity')['title'])) ? $env->post('activity')['title'] : $act->title;
+            $content = (!empty($env->post('activity')['content'])) ? $env->post('activity')['content'] : $act->description;
+            $date = (!empty($env->post('activity')['date'])) ? $env->post('activity')['date'] : $act->date;
+            $time = (!empty($env->post('activity')['time'])) ? $env->post('activity')['time'] : $act->time;
+            $signups_min_val = (!empty($env->post('activity')['signups_min_val'])) ? $env->post('activity')['signups_min_val'] : $act->minimal_signups;
+            $signups_max_val = (!empty($env->post('activity')['signups_max_val'])) ? $env->post('activity')['signups_max_val'] : $act->maximal_signups;
+
+            $comments_checked = (is_null($env->post('activity')['comments'])) ? $act->comments_activated : $env->post('activity')['comments'];
+            $signups_checked = (is_null($env->post('activity')['signups'])) ? $act->signups_activated : $env->post('activity')['signups'];
+            $signups_min_checked = (is_null($env->post('activity')['signups_min'])) ? $act->minimal_signups_activated : $env->post('activity')['signups_min'];
+            $signups_max_checked = (is_null($env->post('activity')['signups_max'])) ? $act->maximal_signups_activated : $env->post('activity')['signups_max'];
+            $keep_signups_open_checked = (is_null($env->post('activity')['keep_signups_open'])) ? $act->signup_open_beyond_maximal : $env->post('activity')['keep_signups_open'];
+
+            $class_registration_checked = (!isset($env->post('activity')['class_registration'])) ? $act->class_registration_enabled : $env->post('activity')['class_registration'];
+            $selectable_roles_checked = (!isset($env->post('activity')['selectable_roles'])) ? $act->roles_registration_enabled : $env->post('activity')['selectable_roles'];
+
+            $view->addContent('{##form_action##}', '/activity/event/update/' . $id);
+
+            $view->addContent('{##preview_text##}' , 'Preview');
+            $view->addContent('{##draft_text##}' , 'Save as draft');
+            $view->addContent('{##submit_text##}' , 'Update');
+        }
         
-        $comments_checked = (is_null($env->post('activity')['comments'])) ? $act->comments_activated : $env->post('activity')['comments'];
-        $comments_checked = ($comments_checked === '1') ? 'checked="' . $comments_checked . '"' : '';
-
-        $signups_checked = (is_null($env->post('activity')['signups'])) ? $act->signups_activated : $env->post('activity')['signups'];
-        $signups_checked = ($signups_checked === '1') ? 'checked="' . $signups_checked . '"' : '';
-
-        $signups_min_checked = (is_null($env->post('activity')['signups_min'])) ? $act->minimal_signups_activated : $env->post('activity')['signups_min'];
-        $signups_min_checked = ($signups_min_checked === '1') ? 'checked="' . $signups_min_checked . '"' : '';
-
-        $signups_max_checked = (is_null($env->post('activity')['signups_max'])) ? $act->maximal_signups_activated : $env->post('activity')['signups_max'];
-        $signups_max_checked = ($signups_max_checked === '1') ? 'checked="' . $signups_max_checked . '"' : '';
-
-        $keep_signups_open_checked = (is_null($env->post('activity')['keep_signups_open'])) ? $act->signup_open_beyond_maximal : $env->post('activity')['keep_signups_open'];
-        $keep_signups_open_checked = ($keep_signups_open_checked === '1') ? 'checked="' . $keep_signups_open_checked . '"' : '';
-
-        $view = new View();
-        $view->setTmpl($view->loadFile('/views/activity/event/update_activity_event_form.php'), array(
-            '{##form_action##}' => '/activity/event/update/' . $id,
-            '{##activity_title##}' => $title,
-            '{##activity_title_validation##}' => $msg->fetch('activity_event_title_validation'),
-            '{##activity_content##}' => $content,
-            '{##activity_content_validation##}' => $msg->fetch('activity_event_content_validation'),
-            '{##activity_date##}' => $date,
-            '{##activity_date_validation##}' => $msg->fetch('activity_event_date_validation'),
-            '{##activity_time##}' => $time,
-            '{##activity_time_validation##}' => $msg->fetch('activity_event_time_validation'),
-            '{##activity_comments_checked##}' => $comments_checked,
-            '{##activity_signups_checked##}' => $signups_checked,
-            '{##activity_signups_min_checked##}' => $signups_min_checked,
-            '{##signups_min_val##}' => $signups_min_val,
-            '{##activity_signups_max_checked##}' => $signups_max_checked,
-            '{##signups_max_val##}' => $signups_max_val,
-            '{##activity_keep_signups_open_checked##}' => $keep_signups_open_checked,
-            '{##preview_text##}' => 'Preview',
-            '{##draft_text##}' => 'Save as draft',
-            '{##submit_text##}' => 'Submit',
-        ));
+        $view->addContent('{##activity_title##}' , $title);
+        $view->addContent('{##activity_content##}' , $content);
+        $view->addContent('{##activity_date##}' , $date);
+        $view->addContent('{##activity_time##}' , $time);
+        $view->addContent('{##activity_comments_checked##}' , ($comments_checked === '1') ? 'checked="checked"' : '');
+        $view->addContent('{##activity_signups_checked##}' , ($signups_checked === '1') ? 'checked="checked"' : '');
+        $view->addContent('{##activity_signups_min_checked##}' , ($signups_min_checked === '1') ? 'checked="checked"' : '');
+        $view->addContent('{##signups_min_val##}' , $signups_min_val);
+        $view->addContent('{##activity_signups_max_checked##}' , ($signups_max_checked === '1') ? 'checked="checked"' : '');
+        $view->addContent('{##signups_max_val##}' , $signups_max_val);
+        $view->addContent('{##activity_keep_signups_open_checked##}' , ($keep_signups_open_checked === '1') ? 'checked="checked"' : '');
+        $view->addContent('{##activity_class_registration_checked##}' , ($class_registration_checked === '1') ? 'checked="checked"' : '');
+        $view->addContent('{##activity_selectable_roles_checked##}' , ($selectable_roles_checked === '1') ? 'checked="checked"' : '');
         $view->replaceTags();
         return $view;
     }
     
     function getActivityDetailsView($id) {
-
         $act = $this->getActivity($id);
 
         $identity = new Identity();
@@ -380,6 +483,22 @@ class Activity_Event extends Activity {
         return false;
     }
     
+    function validateRole() {
+        $msg = Msg::getInstance();
+        $env = Env::getInstance();
+
+        $errors = false;
+        if (empty($env->post('activity')['add_role_title'])) {
+            $msg->add('activity_add_role_title_validation', 'Gotta have a name for this baby!');
+            $errors = true;
+        }
+
+        if ($errors === false) {
+            return true;
+        }
+        return false;
+    }
+    
     function saveSignups($activity_id) {
         $db = db::getInstance();
         $env = Env::getInstance();
@@ -389,11 +508,13 @@ class Activity_Event extends Activity {
         $signups_min_val = !empty($env->post('activity')['signups_min_val']) ? $env->post('activity')['signups_min_val'] : '0';
         $signups_max_val = !empty($env->post('activity')['signups_max_val']) ? $env->post('activity')['signups_max_val'] : '0';
         $keep_signups_open = isset($env->post('activity')['keep_signups_open']) ? '1' : '0';
+        $class_registration = isset($env->post('activity')['class_registration']) ? '1' : '0';
+        $selectable_roles = isset($env->post('activity')['selectable_roles']) ? '1' : '0';
 
         $sql = "SELECT * FROM activity_events_signups WHERE event_id = '$activity_id';";
         $query = $db->query($sql);
         if ($db->affected_rows == 0) {
-            $sql = "INSERT INTO activity_events_signups (event_id, minimal_signups_activated, minimal_signups, maximal_signups_activated, maximal_signups, signup_open_beyond_maximal, class_registration_enabled, roles_registration_enabled, preference_selection_enabled) VALUES ('$activity_id', '$signups_min', '$signups_min_val', '$signups_max', '$signups_max_val', '$keep_signups_open', '0', '0', '0');";
+            $sql = "INSERT INTO activity_events_signups (event_id, minimal_signups_activated, minimal_signups, maximal_signups_activated, maximal_signups, signup_open_beyond_maximal, class_registration_enabled, roles_registration_enabled, preference_selection_enabled) VALUES ('$activity_id', '$signups_min', '$signups_min_val', '$signups_max', '$signups_max_val', '$keep_signups_open', '$class_registration', '$selectable_roles', '0');";
         } else {
             $sql = "UPDATE activity_events_signups
                         SET 
@@ -402,13 +523,46 @@ class Activity_Event extends Activity {
                             maximal_signups_activated = '$signups_max',
                             maximal_signups = '$signups_max_val',
                             signup_open_beyond_maximal = '$keep_signups_open',
-                            class_registration_enabled = '0',
-                            roles_registration_enabled = '0',
+                            class_registration_enabled = '$class_registration',
+                            roles_registration_enabled = '$selectable_roles',
                             preference_selection_enabled = '0'
                         WHERE event_id = '$activity_id';";
         }
+        if ($db->query($sql)) {
+            return true;
+        }
+        return false;
+    }
+    
+    function deleteSignupsRolesByEventId($event_id) {
+        $db = db::getInstance();
+        $sql = "DELETE FROM activity_events_signups_roles WHERE event_id = '$event_id';";
         $query = $db->query($sql);
-        if ($query) {
+        if ($query !== false) {
+            return true;
+        }
+        return false;
+    }
+
+    function saveSignupsRoles($activity_id) {
+        $db = db::getInstance();
+        $env = Env::getInstance();
+
+        $class_registration = isset($env->post('activity')['class_registration']) ? '1' : '0';
+        $signups_roles = isset($env->post('activity')['roles']) ? $env->post('activity')['roles'] : false;
+        
+        $this->deleteSignupsRolesByEventId($activity_id);
+
+        $error = false;
+        foreach ($signups_roles as $role) {
+            $sql = "INSERT INTO activity_events_signups_roles (role_id, event_id, name) VALUES ('$role', '$activity_id', '');";
+            echo $sql;
+            if ($db->query($sql) !== true) {
+                $error = true;
+            }
+        }
+
+        if ($error === false) {
             return true;
         }
         return false;
@@ -452,7 +606,7 @@ class Activity_Event extends Activity {
     
     function getUpcomingActivities() {
         $db = db::getInstance();
-        $sql = "SELECT * FROM activity_events WHERE date >= DATE(NOW());";
+        $sql = "SELECT * FROM activity_events WHERE date >= DATE(NOW()) ORDER BY date;";
         $query = $db->query($sql);
 
          if ($query !== false AND $query->num_rows >= 1) {
@@ -472,13 +626,14 @@ class Activity_Event extends Activity {
         if (false !== $act && is_array($act)) {
             $activity_loop = NULL;
             foreach ($act as $activity) {
+                $date = new DateTime($activity->date . ' ' . $activity->time);
                 $subView = new View();
                 $subView->setTmpl($view->getSubTemplate('{##activity_loop##}'));
                 $subView->addContent('{##activity_title##}', $activity->title);
                 $subView->addContent('{##activity_details_link##}', '/activity/event/details/' . $activity->activity_id);
                 $subView->addContent('{##activity_details_link_text##}', 'Event details');
-                $subView->addContent('{##activity_event_date##}', $activity->date);
-                $subView->addContent('{##activity_event_time##}', $activity->time);
+                $subView->addContent('{##activity_event_date##}', $date->format('Y-m-d'));
+                $subView->addContent('{##activity_event_time##}', $date->format('H:i'));
                 $subView->replaceTags();
                 $activity_loop .= $subView;
             }
@@ -489,15 +644,10 @@ class Activity_Event extends Activity {
         return $view;
     }
     
-    function saveActivity() {
+    function saveActivity($id = NULL) {
         $db = db::getInstance();
         $env = Env::getInstance();
 
-        // save activity meta data
-        $this->save($type = 2); // 2=event
-        // save 'event' specific data
-        $activity_id = $db->insert_id;
-        
         $title = $env->post('activity')['title'];
         $event_type = $env->post('activity')['event_type'];
         $description = $env->post('activity')['content'];
@@ -506,60 +656,50 @@ class Activity_Event extends Activity {
 
         $allow_comments = isset($env->post('activity')['comments']) ? '1' : '0';
         $allow_signups = isset($env->post('activity')['signups']) ? '1' : '0';
-        
-        $sql = "INSERT INTO activity_events (activity_id, event_type, title, description, date, time, calendar_activated, schedule_activated, comments_activated, signups_activated, template_activated) VALUES ($activity_id, '$event_type', '$title', '$description', '$date', '$time', '0', '0', '$allow_comments', '$allow_signups', '0');";
-        $query = $db->query($sql);
-        if ($query !== false) {
-            if ($this->saveSignups($activity_id) !== false) {
-                $env->clear_post('activity');
-                return true;
+
+        if ($id === NULL) {
+            $this->save($type = 2);
+            $activity_id = $db->insert_id;
+            $sql = "INSERT INTO activity_events (activity_id, event_type, title, description, date, time, calendar_activated, schedule_activated, comments_activated, signups_activated, template_activated) VALUES ($activity_id, '$event_type', '$title', '$description', '$date', '$time', '0', '0', '$allow_comments', '$allow_signups', '0');";
+            $query = $db->query($sql);
+            if ($query !== false) {
+                if ($this->saveSignups($activity_id) !== false AND $this->saveSignupsRoles($activity_id) !== false) {
+                    $env->clear_post('activity');
+                    return true;
+                }
+            }
+        } else {
+            $login = new Login();
+
+            $userid = $login->currentUserID();
+            $actid = $this->getActivity($id)->userid;
+
+            if ($userid != $actid) {
+                return false;
+            }
+
+            $sql = "UPDATE activity_events SET
+                            title = '$title',
+                            event_type = '$event_type',
+                            description = '$description',
+                            time = '$time',
+                            date = '$date',
+                            comments_activated = '$allow_comments',
+                            signups_activated = '$allow_signups'
+                        WHERE activity_id = '$id';";
+
+            $query = $db->query($sql);
+
+            if ($db->affected_rows > 0 OR $query !== false) {
+                if ($this->saveSignups($id) !== false AND $this->saveSignupsRoles($id) !== false) {
+                    $env->clear_post('activity');
+                    return true;
+                }
             }
         }
         return false;
     }
 
-    function updateActivity($id) {
-        $db = db::getInstance();
-        $env = Env::getInstance();
-        $login = new Login();
-
-        $userid = $login->currentUserID();
-        $actid = $this->getActivity($id)->userid;
-
-        if ($userid != $actid) {
-            return false;
-        }
-      
-        $title = $env->post('activity')['title'];
-        $event_type = $env->post('activity')['event_type'];
-        $description = $env->post('activity')['content'];
-        $time = $env->post('activity')['time'];
-        $date = $env->post('activity')['date'];
-        
-        $allow_comments = isset($env->post('activity')['comments']) ? '1' : '0';
-        $allow_signups = isset($env->post('activity')['signups']) ? '1' : '0';
-
-        $sql = "UPDATE activity_events
-                    SET
-                        title = '$title',
-                        event_type = '$event_type',
-                        description = '$description',
-                        time = '$time',
-                        date = '$date',
-                        comments_activated = '$allow_comments',
-                        signups_activated = '$allow_signups'
-                    WHERE activity_id = '$id';";
-
-        $query = $db->query($sql);
-
-        if ($db->affected_rows > 0 OR $query !== false) {
-            if ($this->saveSignups($id) !== false) {
-                $env->clear_post('activity');
-                return true;
-            }
-        }
-        return false;
-    }
     
     function deleteActivity($id) {
         $db = db::getInstance();
