@@ -95,6 +95,10 @@ body {
     list-style-type: none;
 }
 
+aside ul li {
+    clear: both;
+}
+
 .main aside time {
     float: right;
 }
