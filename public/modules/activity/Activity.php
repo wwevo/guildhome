@@ -109,7 +109,7 @@ class Activity {
     /*
      * Spaghetti-Code at it's best :)
      */
-    function getSubView($act = NULL, $view = NULL) {
+    function getSubView($act = NULL, $view = NULL, $compact = NULL) {
         $subView = new View();
         $subView->setTmpl($view->getSubTemplate('{##activity_loop##}'));
         if (isset($act->create_time)) {
@@ -147,6 +147,11 @@ class Activity {
                 $details_link = '';
                 break;
             case '2' : 
+                $delete_link = '/activity/event/delete/' . $act->id;
+                $update_link = '/activity/event/update/' . $act->id;
+                $comment_link = '/comment/activity/view/' . $act->id;
+                $details_link = '/activity/event/details/' . $act->id;
+
                 $event = new Activity_Event();
                 $activity_event = $event->getActivity($act->id);
                 
@@ -155,30 +160,40 @@ class Activity {
                 } else {
                     $allow_comments = FALSE;
                 }
-
+                
                 $event_data = Parsedown::instance()->text($activity_event->description);
-                $event_data = $activity_event->date . " @ ";
-                $event_data .= $activity_event->time;
+                if (!is_null($compact)) {
+                    $link_view = new View();
+                    $link_view->setTmpl($view->getSubTemplate('{##link_more##}'));
+                    $link_view->addContent('{##link_more_link##}', $details_link);
+                    $link_view->addContent('{##link_more_link_text##}', '...more');
+                    $link_view->replaceTags();
+                    $link_more = $link_view;
+                    
+                    $subView->addContent('{##link_more##}',  $link_more);
+
+                    $event_data = substr($event_data, 0, 100);
+                }
+                $event_date = $activity_event->date . " @ ";
+                $event_date .= $activity_event->time;
+                $subView->addContent('{##activity_event_date##}', $event_date);
                     
                 $content = $event_data;
                 if ($activity_event->signups_activated) {
-                    $content .= "<br />Signed up:" . $event->getSignupCountByEventId($act->id);
+                    $signups = "Signed up:" . $event->getSignupCountByEventId($act->id);
                 }
                 
                 if ($activity_event->maximal_signups_activated) {
-                    $content .= "/" . $activity_event->maximal_signups;
+                    $signups .= "/" . $activity_event->maximal_signups;
                 }
 
                 if ($activity_event->minimal_signups_activated) {
-                    $content .= " (" . $activity_event->minimal_signups . " req)";
+                    $signups .= " (" . $activity_event->minimal_signups . " req)";
                 }
 
-                $content .= $event->getActivityDetailsView($act->id);
+                $signups .= $event->getActivityDetailsView($act->id);
+                $subView->addContent('{##activity_signups##}',  $signups);
                 
-                $delete_link = '/activity/event/delete/' . $act->id;
-                $update_link = '/activity/event/update/' . $act->id;
-                $comment_link = '/comment/activity/view/' . $act->id;
-                $details_link = '/activity/event/details/' . $act->id;
                 break;
             case '3' : 
                 $poll = new Activity_Poll();
@@ -277,7 +292,7 @@ class Activity {
                     continue;
                 }
                 
-                $subView = $this->getSubView($act, $view);
+                $subView = $this->getSubView($act, $view, $compact = TRUE);
                 
                 $activity_loop .= $subView;
             }

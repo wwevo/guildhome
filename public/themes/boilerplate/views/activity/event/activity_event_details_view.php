@@ -1,7 +1,5 @@
 {##signups_activated##}
-    <section>
-        {##signups##}
-    </section>
+    {##signups##}
     {##activity_logged_in##}
     <form method="post" action="{##signup##}">
         <input type="submit" name="activity[signup]" value="{##signup_text##}" />

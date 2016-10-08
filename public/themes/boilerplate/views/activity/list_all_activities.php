@@ -7,10 +7,16 @@
         <strong>{##activity_identity##}</strong> posted <strong>{##activity_type##}</strong>.
     </section>
     <section class="content clearfix">
-        {##details_link_area##}
-        <a href="{##details_link##}">{##details_link_text##}</a>
-        {/##details_link_area##}
-        {##activity_content##}
+        <section class="details">
+            {##details_link_area##}
+            <a href="{##details_link##}">{##details_link_text##}</a>
+            {/##details_link_area##}
+            {##activity_content##}{##link_more##}<a href="{##link_more_link##}">{##link_more_link_text##}</a>{/##link_more##}
+        </section>
+        <section class="signups">
+            {##activity_event_date##}<br />
+            {##activity_signups##}
+        </section>
     </section>
     {##activity_not_logged_in##}
     <section class="not_logged_in">
