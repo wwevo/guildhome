@@ -11,9 +11,9 @@
             {##details_link_area##}
             <a href="{##details_link##}">{##details_link_text##}</a>
             {/##details_link_area##}
-            {##activity_content##}{##link_more##}<a href="{##link_more_link##}">{##link_more_link_text##}</a>{/##link_more##}
+            {##activity_content##}{##link_more##}<a href="{##link_more_link##}" class="more">{##link_more_link_text##}</a>{/##link_more##}
         </section>
-        <section class="signups">
+        <section class="signups clearfix">
             {##activity_event_date##}<br />
             {##activity_signups##}
         </section>

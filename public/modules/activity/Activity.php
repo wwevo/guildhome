@@ -179,6 +179,7 @@ class Activity {
                 $subView->addContent('{##activity_event_date##}', $event_date);
                     
                 $content = $event_data;
+                $signups = '';
                 if ($activity_event->signups_activated) {
                     $signups = "Signed up:" . $event->getSignupCountByEventId($act->id);
                 }

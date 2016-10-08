@@ -309,6 +309,10 @@ article.activity section.not_logged_in {
 /* ==========================================================================
    Author's custom styles
    ========================================================================== */
+.more {
+    float: right;
+    clear: both;
+}
 
 /* Start of "Micro clearfix" */
 

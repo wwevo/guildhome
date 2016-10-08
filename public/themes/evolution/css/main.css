@@ -294,18 +294,57 @@ article.activity section.not_logged_in {
    ========================================================================== */
 
 
+.more {
+    float: right;
+    clear: both;
+}
+
+/* Start of "Micro clearfix" */
+
+    .clearfix { zoom: 1; }
+    .clearfix:before,
+    .clearfix:after { content: ""; display: table; }
+    .clearfix:after { clear: both; }
+
+/* End of "Micro clearfix" */
 
 
+.module table {
+    width: 100%;
+}
 
+.module table tr th {
+    color: #ffffff;
+    background-color: #EDA73E;
+}
 
+.module table tr:nth-child(2n) {
+    color: #EA6C12;
+    background-color: #ffffff;
+}
 
+.module table td.center {
+    text-align:center;
+}
 
+.module table td.right {
+    text-align: right;
+}
 
+ul.user-menu ul {
+    margin-left: 1em;
+}
 
+.profile_badge img {
+    float: left;
+    margin-right: 1em;
+}
 
-
-
-
+span[type="validation"] {
+    display: block;
+    clear: both;
+    background-color: #ffcccc;
+}
 
 /* ==========================================================================
    Media Queries
