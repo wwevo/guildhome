@@ -219,7 +219,7 @@ class Activity_Shout extends Activity {
         $sql = "INSERT INTO activity_shouts (activity_id, content, comments_activated) VALUES ('$activity_id', '$content', '$allow_comments');";
         $query = $db->query($sql);
         if ($query !== false) {
-            $env->clear_post('activity');
+            $env->clearPost('activity');
             return true;
         }
         return false;
@@ -246,7 +246,7 @@ class Activity_Shout extends Activity {
         
         $query = $db->query($sql);
         if ($query !== false) {
-            $env->clear_post('activity');
+            $env->clearPost('activity');
             return true;
         }
         return false;
@@ -269,7 +269,7 @@ class Activity_Shout extends Activity {
                     WHERE id = '$id';";
         $query = $db->query($sql);
         if ($query !== false) {
-            $env->clear_post('activity');
+            $env->clearPost('activity');
             return true;
         }
         return false;

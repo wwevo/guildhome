@@ -154,7 +154,7 @@ class Settings {
         }            
 
         if ($db->query($sql) === true) {
-            $env->clear_post('setting_' . $key);
+            $env->clearPost('setting_' . $key);
 //            echo "yay: " . $sql;
             return true;
         }

@@ -401,6 +401,7 @@ class Activity_Event extends Activity {
         $event_type = $act->event_type;
 
         $signups_checked = $act->signups_activated;
+        $signed_up_users = '';
         if ($signups_checked) {
             $signed_up_users = $this->getSignupsByEventId($id);
             if (is_array($signed_up_users)) {
@@ -411,10 +412,8 @@ class Activity_Event extends Activity {
             } else {
                 $signed_up_users = 'No signups so far! Be the first!';
             }
-        } else {
-            $signed_up_users = '';
         }
-
+        
         $view = new View();
         $view->setTmpl($view->loadFile('/views/activity/event/activity_event_details_view.php'), array(
             '{##activity_type##}' => $event_type,
@@ -435,9 +434,10 @@ class Activity_Event extends Activity {
             $memberView->addContent('{##signup_text##}', 'Signup/out');
             $memberView->replaceTags();
             $signupsView->addContent('{##activity_logged_in##}',  $memberView);
-            $signupsView->replaceTags();
         }
-      
+
+        $signupsView->replaceTags();
+     
         $view->addContent('{##signups_activated##}',  $signupsView);
         $view->replaceTags();
         return $view;
@@ -679,7 +679,7 @@ class Activity_Event extends Activity {
             $query = $db->query($sql);
             if ($query !== false) {
                 if ($this->saveSignups($activity_id) !== false AND $this->saveSignupsRoles($activity_id) !== false) {
-                    $env->clear_post('activity');
+                    $env->clearPost('activity');
                     return true;
                 }
             }
@@ -707,7 +707,7 @@ class Activity_Event extends Activity {
 
             if ($db->affected_rows > 0 OR $query !== false) {
                 if ($this->saveSignups($id) !== false AND $this->saveSignupsRoles($id) !== false) {
-                    $env->clear_post('activity');
+                    $env->clearPost('activity');
                     return true;
                 }
             }
@@ -731,7 +731,7 @@ class Activity_Event extends Activity {
                     WHERE id = '$id';";
         $query = $db->query($sql);
         if ($query !== false) {
-            $env->clear_post('activity');
+            $env->clearPost('activity');
             return true;
         }
         return false;

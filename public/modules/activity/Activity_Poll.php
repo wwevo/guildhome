@@ -469,7 +469,7 @@ class Activity_Poll extends Activity {
         $query = $db->query($sql);
         if ($query !== false) {
             if ($this->saveSignups($activity_id) !== false) {
-                $env->clear_post('activity');
+                $env->clearPost('activity');
                 return true;
             }
         }
@@ -515,7 +515,7 @@ class Activity_Poll extends Activity {
 
         if ($db->affected_rows > 0 OR $query !== false) {
             if ($this->saveSignups($id) !== false) {
-                $env->clear_post('activity');
+                $env->clearPost('activity');
                 return true;
             }
         }
@@ -538,7 +538,7 @@ class Activity_Poll extends Activity {
                     WHERE id = '$id';";
         $query = $db->query($sql);
         if ($query !== false) {
-            $env->clear_post('activity');
+            $env->clearPost('activity');
             return true;
         }
         return false;

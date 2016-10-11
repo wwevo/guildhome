@@ -267,7 +267,7 @@ class Login {
 
         if ($result) {
             $msg->add('set_password_general_validation', "Password for user " . $username . " has been changed.");
-            $env->clear_post('set_password');
+            $env->clearPost('set_password');
             return true; // user creation complete
         } else {
             $msg->add('set_password_general_validation', "Something unexpected happened during Database operations. No password has been changed.");
@@ -329,7 +329,7 @@ class Login {
 
         if ($result) {
             $msg->add('change_password_general_validation', "Password for user " . $username . " has been changed.");
-            $env->clear_post('change_password');
+            $env->clearPost('change_password');
             return true; // user creation complete
         } else {
             $msg->add('change_password_general_validation', "Something unexpected happened during Database operations. No password has been changed.");

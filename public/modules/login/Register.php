@@ -109,7 +109,7 @@ class Register {
 
                 if ($result) {
                     $msg->add('register_general_validation', "User " . $username . " has been created.");
-                    $env->clear_post('register');
+                    $env->clearPost('register');
                     return true; // user creation complete
                 } else {
                     $msg->add('register_general_validation', "Something unexpected happened during Database operations. No user has been created.");

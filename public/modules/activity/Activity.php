@@ -41,7 +41,7 @@ class Activity {
     
     function get() {
         $env = Env::getInstance();
-        $env->clear_post('activity');
+        $env->clearPost('activity');
 
         $page = Page::getInstance();
         $page->setContent('{##main##}', '<h2>Activities</h2>');

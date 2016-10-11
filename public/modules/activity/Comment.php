@@ -154,7 +154,7 @@ class Comment {
         $query = $db->query($sql);
         
         if ($query !== false) {
-            $env->clear_post('comment');
+            $env->clearPost('comment');
             return true;
         }
         return false;
@@ -198,7 +198,7 @@ class Comment {
         $sql = "INSERT INTO comment_mapping (activity_id, comment_id) VALUES ('$activity_id', '$comment_id');";
         $query = $db->query($sql);
         if ($query !== false) {
-            $env->clear_post('comment');
+            $env->clearPost('comment');
             return true;
         }
         return false;
@@ -238,7 +238,7 @@ class Comment {
         $sql = "DELETE FROM comment_mapping WHERE comment_id = '$id';";
         $query = $db->query($sql);
         if ($query !== false) {
-            $env->clear_post('comment');
+            $env->clearPost('comment');
             return true;
         }
         return false;
