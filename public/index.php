@@ -12,7 +12,6 @@ require_once('config/Initialize.php');
 require_once ('classes/autoload.php');
 
 $logpath = dirname(getcwd()) . DIRECTORY_SEPARATOR . 'log' . DIRECTORY_SEPARATOR;
-
 $log = Logger::getInstance();
 $log::lfile($logpath . 'eol_log.txt');
  
@@ -26,6 +25,7 @@ $log::lfile($logpath . 'eol_log.txt');
  *  with (*) in this file.
  * I chose the initEnv approach to have on-Load functionality in classes in
  *  addition to the on-Instantiate ones. Feel free to optimize :)
+ * Modules may register hooks through the Env class.
  */
 require_once ('modules/autoload.php');
 
@@ -48,14 +48,6 @@ if ($timezone !== false AND !empty($timezone) AND in_array($timezone, timezone_i
     date_default_timezone_set('UTC');
 }
 
-/* 
- * Until I find a better place, put your validation rules here...
- * I did this so I didn't have to redeclare it, since I use it in several different classes.
- */
-$validation = Validation::getInstance();
-$validation->registerValidation('api_key', array(new gw2api(), 'validateApiKey'));
-$validation->registerValidation('avatar', array(new Profile(), 'validateAvatar'));
-
 /*
  * Here starts the actual page building and content gathering
  */
@@ -68,7 +60,6 @@ $page->setTmpl($page->loadFile('/page.php'));
  * there's lots of stuff to do. Wanna help? Feel free ^^
  * These menus will be created and managed by a central module soon(ish)
  */
-$env = Env::getInstance();
 $page->addContent('{##header##}', '<a href="/">Evolution of Loneliness</a>');
 
 $menu = new Menu();
@@ -79,7 +70,6 @@ $page->addContent('{##user_nav##}', $menu->getMenu('operator'));
 $activity_event = new Activity_Event();
 $page->addContent('{##widgets##}', '<hr />');
 $page->addContent('{##widgets##}', $activity_event->getUpcomingActivitiesView());
-
 
 $page->addContent('{##footer##}', '<p>created by the community: for the community</p>');
 
@@ -102,7 +92,3 @@ Toro::serve();
  */
 $page->replaceTags();
 echo $page;
-
-if ($login->isOperator()) {
-//    $log::lwrite('rendered site successfully');
-}

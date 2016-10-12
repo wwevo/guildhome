@@ -17,6 +17,8 @@ class Profile {
         Toro::addRoute(["/profiles" => 'Profile']);
         Toro::addRoute(["/profile/:alpha" => 'Profile']);
         Toro::addRoute(["/profile/:alpha/:alpha" => 'Profile']);
+        
+        Validation::registerValidation('avatar', array(new Profile(), 'validateAvatar'));
     }
     
     function get($slug = NULL, $slug2 = NULL) {

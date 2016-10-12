@@ -67,7 +67,7 @@ class Activity {
             return false;
         }
         $db = db::getInstance();
-        $sql = "SELECT activities.id, activities.userid, from_unixtime(activities.create_time) AS create_time, activities.type AS type, activity_types.description AS type_description
+        $sql = "SELECT activities.id, activities.userid, from_unixtime(activities.create_time) AS create_time, activities.type AS type, activity_types.name AS type_name, activity_types.description AS type_description
                     FROM activities
                     INNER JOIN activity_types
                     ON activities.type = activity_types.id
@@ -87,7 +87,7 @@ class Activity {
         
         $interval = (is_numeric($interval)) ? " LIMIT " . $interval : '';
         
-        $sql = "SELECT activities.id, activities.userid, from_unixtime(activities.create_time) AS create_time, activities.type AS type, activity_types.description AS type_description,
+        $sql = "SELECT activities.id, activities.userid, from_unixtime(activities.create_time) AS create_time, activities.type AS type, activity_types.name AS type_name, activity_types.description AS type_description,
                     (SELECT concat(ae.date,' ', ae.time) as timestamp FROM activity_events ae WHERE ae.activity_id = activities.id HAVING DATE_ADD(timestamp,INTERVAL 2 HOUR) >= NOW() AND timestamp <= DATE_ADD(NOW(),INTERVAL 48 HOUR)) as event_date
                     FROM activities
                     INNER JOIN activity_types
@@ -109,170 +109,17 @@ class Activity {
     /*
      * Spaghetti-Code at it's best :)
      */
-    function getSubView($act = NULL, $view = NULL, $compact = NULL) {
-        $subView = new View();
-        $subView->setTmpl($view->getSubTemplate('{##activity_loop##}'));
-        if (isset($act->create_time)) {
-            $subView->addContent('{##activity_published##}', $act->create_time);
-        }
-        if (isset($act->type_description)) {
-            $subView->addContent('{##activity_type##}',  $act->type_description);
-        }
-        if (isset($act->event_date)) {
-            $subView->addContent('{##css##}', ' pulled_to_top');
-        }
-        $type = (isset($act->type)) ? $act->type : NULL;
-
-        switch ($type) {
-            default: 
-                $content = '';
-                $allow_comments = FALSE;
-                $delete_link = '';
-                $update_link = '';
-                $comment_link = '';
-                $details_link = '';
-                break;
-            case '1' : 
-                $shout = new Activity_Shout();
-                $activity_event = $shout->getActivity($act->id);
-                $content = Parsedown::instance()->text($activity_event->content);
-                if (isset($activity_event->comments_activated) AND $activity_event->comments_activated == '1') {
-                    $allow_comments = TRUE;
-                } else {
-                    $allow_comments = FALSE;
-                }
-                $delete_link = '/activity/shout/delete/' . $act->id;
-                $update_link = '/activity/shout/update/' . $act->id;
-                $comment_link = '/comment/activity/view/' . $act->id;
-                $details_link = '';
-                break;
-            case '2' : 
-                $delete_link = '/activity/event/delete/' . $act->id;
-                $update_link = '/activity/event/update/' . $act->id;
-                $comment_link = '/comment/activity/view/' . $act->id;
-                $details_link = '/activity/event/details/' . $act->id;
-
-                $event = new Activity_Event();
-                $activity_event = $event->getActivity($act->id);
-                
-                if (isset($activity_event->comments_activated) AND $activity_event->comments_activated == '1') {
-                    $allow_comments = TRUE;
-                } else {
-                    $allow_comments = FALSE;
-                }
-                
-                $event_data = Parsedown::instance()->text($activity_event->description);
-                if (!is_null($compact)) {
-                    $link_view = new View();
-                    $link_view->setTmpl($view->getSubTemplate('{##link_more##}'));
-                    $link_view->addContent('{##link_more_link##}', $details_link);
-                    $link_view->addContent('{##link_more_link_text##}', '...more');
-                    $link_view->replaceTags();
-                    $link_more = $link_view;
-                    
-                    $subView->addContent('{##link_more##}',  $link_more);
-
-                    $event_data = substr(strip_tags($event_data), 0, 200) . " ...";
-                }
-                $event_date = $activity_event->date . " @ ";
-                $event_date .= $activity_event->time;
-                $subView->addContent('{##activity_event_date##}', $event_date);
-                    
-                $content = $event_data;
-                $signups = '';
-                if ($activity_event->signups_activated) {
-                    $signups = "Signed up:" . $event->getSignupCountByEventId($act->id);
-                }
-                
-                if ($activity_event->maximal_signups_activated) {
-                    $signups .= "/" . $activity_event->maximal_signups;
-                }
-
-                if ($activity_event->minimal_signups_activated) {
-                    $signups .= " (" . $activity_event->minimal_signups . " req)";
-                }
-
-                $signups .= $event->getActivityDetailsView($act->id);
-                $subView->addContent('{##activity_signups##}',  $signups);
-                
-                break;
-            case '3' : 
-                $poll = new Activity_Poll();
-                $activity_event = $poll->getActivity($act->id);
-                
-                if (isset($activity_event->comments_activated) AND $activity_event->comments_activated == '1') {
-                    $allow_comments = TRUE;
-                } else {
-                    $allow_comments = FALSE;
-                }
-
-                $event_data = Parsedown::instance()->text($activity_event->description);
-                $event_data .= $activity_event->date . " @ ";
-                $event_data .= $activity_event->time;
-                    
-                $content = $event_data;
-                if ($activity_event->minimal_signups_activated) {
-                    $content .= " (" . $activity_event->minimal_signups . " req)";
-                }
-
-                $delete_link = '/activity/poll/delete/' . $act->id;
-                $update_link = '/activity/poll/update/' . $act->id;
-                $comment_link = '/comment/activity/view/' . $act->id;
-                $details_link = '/activity/poll/details/' . $act->id;
-                break;
-        }
-        $subView->addContent('{##activity_content##}',  $content);
+    function getSubView($act_id = NULL, $compact = NULL) {
+        $env = Env::getInstance();
+        $act = $this->getActivityById($act_id);
         
-        if (isset($act->userid)) {
-            $identity = new Identity();
-            $subView->addContent('{##activity_identity##}', $identity->getIdentityById($act->userid, 0));
-            $subView->addContent('{##avatar##}', $identity->getAvatarByUserId($act->userid));
+        $type_name = (isset($act->type_name)) ? $act->type_name : NULL;
+
+        if (isset($env::$hooks[$type_name])) {
+            $event_data = $env::$hooks[$type_name]($act_id, $compact);
+            return $event_data;
         }
-
-        if ($allow_comments === TRUE) {
-            $comment = new Comment();
-            $comment_count = $comment->getCommentCount($act->id);
-
-            $visitorView = new View();
-            $visitorView->setTmpl($view->getSubTemplate('{##activity_not_logged_in##}'));
-            $visitorView->addContent('{##comment_link##}', $comment_link);
-            $visitorView->addContent('{##comment_link_text##}',  'comments (' . $comment_count . ')');
-            $visitorView->replaceTags();
-            $subView->addContent('{##activity_not_logged_in##}',  $visitorView);
-        } else {
-            $subView->addContent('{##activity_not_logged_in##}',  '');
-        }
-        
-        $login = new Login();
-        if ($login->isLoggedIn() AND isset($act->userid)) {
-            if ($login->currentUserID() === $act->userid) {
-                $memberView = new View();
-                $memberView->setTmpl($view->getSubTemplate('{##activity_logged_in##}'));
-                $memberView->addContent('{##delete_link##}', $delete_link);
-                $memberView->addContent('{##delete_link_text##}',  'delete');
-                $memberView->addContent('{##update_link##}', $update_link);
-                $memberView->addContent('{##update_link_text##}',  'update');
-                $memberView->replaceTags();
-            } else {
-                $memberView = '';
-            }
-            $subView->addContent('{##activity_logged_in##}',  $memberView);
-        }
-
-        if ($details_link !== '') {
-            $linkView = new View();
-            $linkView->setTmpl($view->getSubTemplate('{##details_link_area##}'));
-
-            $linkView->addContent('{##details_link##}', $details_link);
-            $linkView->addContent('{##details_link_text##}',  Parsedown::instance()->text($activity_event->title));
-            $linkView->replaceTags();
-        } else {
-            $linkView = '';
-        }
-        $subView->addContent('{##details_link_area##}',  $linkView);
-
-        $subView->replaceTags();
-        return $subView;
+        return false;
     }
 
     /*
@@ -293,7 +140,7 @@ class Activity {
                     continue;
                 }
                 
-                $subView = $this->getSubView($act, $view, $compact = TRUE);
+                $subView = $this->getSubView($act->id, $compact = TRUE);
                 
                 $activity_loop .= $subView;
             }
@@ -304,15 +151,8 @@ class Activity {
     }
 
     function getActivityView($id = NULL) {
-        $view = new View();
-        $view->setTmpl($view->loadFile('/views/activity/list_all_activities.php'));
-        $act = $this->getActivityById($id);
-        if (false !== $act) {
-            $subView = $this->getSubView($act, $view);
-            $view->addContent('{##activity_loop##}',  $subView);
-        }
-        $view->replaceTags();
-        return $view;
+        $subView = $this->getSubView($id, $view);
+        return $subView;
     }
     
     function createSlug($str) {

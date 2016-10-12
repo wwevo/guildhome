@@ -17,6 +17,7 @@ class Activity_Event extends Activity {
         Toro::addRoute(["/activities/events" => "Activity_Event"]);
         Toro::addRoute(["/activity/event/:alpha" => "Activity_Event"]);
         Toro::addRoute(["/activity/event/:alpha/:alpha" => "Activity_Event"]);
+        Env::registerHook('event', array(new Activity_Event(), 'getActivityView'));
     }
 
     function get($alpha = '', $id = NULL) {
@@ -288,6 +289,133 @@ class Activity_Event extends Activity {
         return false;
     }
 
+    function getActivityView($act = NULL, $compact = NULL) {
+        $act = $this->getActivityById($act);
+        
+        $view = new View();
+        $view->setTmpl($view->loadFile('/views/activity/list_all_activities.php'));
+
+        $subView = new View();
+        $subView->setTmpl($view->getSubTemplate('{##activity_loop##}'));
+        
+        if (isset($act->create_time)) {
+            $subView->addContent('{##activity_published##}', $act->create_time);
+        }
+        if (isset($act->type_description)) {
+            $subView->addContent('{##activity_type##}',  $act->type_description);
+        }
+        if (isset($act->event_date)) {
+            $subView->addContent('{##css##}', ' pulled_to_top');
+        }
+        $type = (isset($act->type)) ? $act->type : NULL;
+        $type_name = (isset($act->type_name)) ? $act->type_name : NULL;
+
+        $delete_link = '/activity/event/delete/' . $act->id;
+        $update_link = '/activity/event/update/' . $act->id;
+        $comment_link = '/comment/activity/view/' . $act->id;
+        $details_link = '/activity/event/details/' . $act->id;
+
+        $activity_event = $this->getActivity($act->id);
+
+        if (isset($activity_event->comments_activated) AND $activity_event->comments_activated == '1') {
+            $allow_comments = TRUE;
+        } else {
+            $allow_comments = FALSE;
+        }
+
+        $event_data = Parsedown::instance()->text($activity_event->description);
+        if (!is_null($compact)) {
+            $link_view = new View();
+            $link_view->setTmpl($view->getSubTemplate('{##link_more##}'));
+            $link_view->addContent('{##link_more_link##}', $details_link);
+            $link_view->addContent('{##link_more_link_text##}', '...more');
+            $link_view->replaceTags();
+            $link_more = $link_view;
+
+            $subView->addContent('{##link_more##}',  $link_more);
+
+            $event_data = substr(strip_tags($event_data), 0, 200) . " ...";
+        }
+        
+        $content = $event_data;
+        $subView->addContent('{##activity_content##}',  $content);
+
+        $event_date = $activity_event->date . " @ ";
+        $event_date .= $activity_event->time;
+        $subView->addContent('{##activity_event_date##}', $event_date);
+
+
+        $signups = '';
+        if ($activity_event->signups_activated) {
+            $signups = "Signed up:" . $this->getSignupCountByEventId($act->id);
+        }
+
+        if ($activity_event->maximal_signups_activated) {
+            $signups .= "/" . $activity_event->maximal_signups;
+        }
+
+        if ($activity_event->minimal_signups_activated) {
+            $signups .= " (" . $activity_event->minimal_signups . " req)";
+        }
+
+        $signups .= $this->getActivityDetailsView($act->id);
+        $subView->addContent('{##activity_signups##}',  $signups);
+        if (isset($act->userid)) {
+            $identity = new Identity();
+            $subView->addContent('{##activity_identity##}', $identity->getIdentityById($act->userid, 0));
+            $subView->addContent('{##avatar##}', $identity->getAvatarByUserId($act->userid));
+        }
+
+        if ($allow_comments === TRUE) {
+            $comment = new Comment();
+            $comment_count = $comment->getCommentCount($act->id);
+
+            $visitorView = new View();
+            $visitorView->setTmpl($view->getSubTemplate('{##activity_not_logged_in##}'));
+            $visitorView->addContent('{##comment_link##}', $comment_link);
+            $visitorView->addContent('{##comment_link_text##}',  'comments (' . $comment_count . ')');
+            $visitorView->replaceTags();
+            $subView->addContent('{##activity_not_logged_in##}',  $visitorView);
+        } else {
+            $subView->addContent('{##activity_not_logged_in##}',  '');
+        }
+        
+        $login = new Login();
+        if ($login->isLoggedIn() AND isset($act->userid)) {
+            if ($login->currentUserID() === $act->userid) {
+                $memberView = new View();
+                $memberView->setTmpl($view->getSubTemplate('{##activity_logged_in##}'));
+                $memberView->addContent('{##delete_link##}', $delete_link);
+                $memberView->addContent('{##delete_link_text##}',  'delete');
+                $memberView->addContent('{##update_link##}', $update_link);
+                $memberView->addContent('{##update_link_text##}',  'update');
+                $memberView->replaceTags();
+            } else {
+                $memberView = '';
+            }
+            $subView->addContent('{##activity_logged_in##}',  $memberView);
+        }
+
+        if ($details_link !== '') {
+            $linkView = new View();
+            $linkView->setTmpl($view->getSubTemplate('{##details_link_area##}'));
+
+            $linkView->addContent('{##details_link##}', $details_link);
+            $linkView->addContent('{##details_link_text##}',  Parsedown::instance()->text($activity_event->title));
+            $linkView->replaceTags();
+        } else {
+            $linkView = '';
+        }
+        $subView->addContent('{##details_link_area##}',  $linkView);
+        $subView->replaceTags();
+
+        $view->addContent('{##activity_loop##}',  $subView);
+        $view->replaceTags();
+
+        return $view;
+
+    }
+    
     function getActivityForm($id = NULL) {
         $env = Env::getInstance();
         $msg = Msg::getInstance();
