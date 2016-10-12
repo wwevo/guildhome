@@ -172,7 +172,7 @@ class Activity {
                     
                     $subView->addContent('{##link_more##}',  $link_more);
 
-                    $event_data = substr($event_data, 0, 100);
+                    $event_data = substr(strip_tags($event_data), 0, 200) . " ...";
                 }
                 $event_date = $activity_event->date . " @ ";
                 $event_date .= $activity_event->time;
