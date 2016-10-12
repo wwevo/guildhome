@@ -22,17 +22,17 @@ class Activity_Event extends Activity {
 
     function get($alpha = '', $id = NULL) {
         $login = new Login();
+        $page = Page::getInstance();
+        $page->addContent('{##main##}', parent::activityMenu());
+
         switch ($alpha) {
             default :
                 $page = Page::getInstance();
-                $page->setContent('{##main##}', '<h2>All events</h2>');
-                $this->activity_menu();
+                $page->addContent('{##main##}', '<h2>All events</h2>');
                 $page->addContent('{##main##}', $this->getAllActivitiesView('2')); // 2 = event 
                 break;
             case 'details' :
-                $page = Page::getInstance();
-                $page->setContent('{##main##}', '<h2>Event details</h2>');
-                
+                $page->addContent('{##main##}', '<h2>Event details</h2>');
                 $page->addContent('{##main##}', $this->getActivityView($id));
                 $comments = new Comment();
                 if ($login->isLoggedIn()) {
@@ -45,27 +45,21 @@ class Activity_Event extends Activity {
                 if (!$login->isLoggedIn()) {
                     return false;
                 }
-                $page = Page::getInstance();
-                $page->setContent('{##main##}', '<h2>New event</h2>');
-                $this->activity_menu();
+                $page->addContent('{##main##}', '<h2>New event</h2>');
                 $page->addContent('{##main##}', $this->getActivityForm());
                 break;
             case 'update' :
                 if (!$login->isLoggedIn()) {
                     return false;
                 }
-                $page = Page::getInstance();
-                $page->setContent('{##main##}', '<h2>Update event</h2>');
-                $this->activity_menu();
+                $page->addContent('{##main##}', '<h2>Update event</h2>');
                 $page->addContent('{##main##}', $this->getActivityForm($id));
                 break;
             case 'delete' :
                 if (!$login->isLoggedIn()) {
                     return false;
                 }
-                $page = Page::getInstance();
-                $page->setContent('{##main##}', '<h2>Delete event</h2>');
-                $this->activity_menu();
+                $page->addContent('{##main##}', '<h2>Delete event</h2>');
                 $page->addContent('{##main##}', $this->getDeleteActivityForm($id));
                 break;
         }

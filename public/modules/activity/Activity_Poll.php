@@ -23,17 +23,16 @@ class Activity_Poll extends Activity {
 
     function get($alpha = '', $id = NULL) {
         $login = new Login();
+        $page = Page::getInstance();
+        $page->addContent('{##main##}', parent::activityMenu());
+
         switch ($alpha) {
             default :
-                $page = Page::getInstance();
-                $page->setContent('{##main##}', '<h2>All polls</h2>');
-                $this->activity_menu();
+                $page->addContent('{##main##}', '<h2>All polls</h2>');
                 $page->addContent('{##main##}', $this->getAllActivitiesView('3')); // 3 = poll 
                 break;
             case 'details' :
-                $page = Page::getInstance();
-                $page->setContent('{##main##}', '<h2>Poll details</h2>');
-                
+                $page->addContent('{##main##}', '<h2>Poll details</h2>');
                 $page->addContent('{##main##}', $this->getActivityView($id));
                 $page->addContent('{##main##}', $this->getActivityDetailsView($id));
                 break;
@@ -41,27 +40,21 @@ class Activity_Poll extends Activity {
                 if (!$login->isLoggedIn()) {
                     return false;
                 }
-                $page = Page::getInstance();
-                $page->setContent('{##main##}', '<h2>New poll</h2>');
-                $this->activity_menu();
+                $page->addContent('{##main##}', '<h2>New poll</h2>');
                 $page->addContent('{##main##}', $this->getNewActivityForm());
                 break;
             case 'update' :
                 if (!$login->isLoggedIn()) {
                     return false;
                 }
-                $page = Page::getInstance();
-                $page->setContent('{##main##}', '<h2>Update poll</h2>');
-                $this->activity_menu();
+                $page->addContent('{##main##}', '<h2>Update poll</h2>');
                 $page->addContent('{##main##}', $this->getUpdateActivityForm($id));
                 break;
             case 'delete' :
                 if (!$login->isLoggedIn()) {
                     return false;
                 }
-                $page = Page::getInstance();
-                $page->setContent('{##main##}', '<h2>Delete poll</h2>');
-                $this->activity_menu();
+                $page->addContent('{##main##}', '<h2>Delete poll</h2>');
                 $page->addContent('{##main##}', $this->getDeleteActivityForm($id));
                 break;
         }

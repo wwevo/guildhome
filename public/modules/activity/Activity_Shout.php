@@ -23,38 +23,32 @@ class Activity_Shout extends Activity {
 
     function get($alpha = '', $id = NULL) {
         $login = new Login();
+        $page = Page::getInstance();
+        $page->addContent('{##main##}', parent::activityMenu());
         switch ($alpha) {
             default :
-                $page = Page::getInstance();
-                $page->setContent('{##main##}', '<h2>All shouts</h2>');
-                $this->activity_menu();
+                $page->addContent('{##main##}', '<h2>All shouts</h2>');
                 $page->addContent('{##main##}', $this->getAllActivitiesView('1')); // 1 = shout
                 break;
             case 'new' :
                 if (!$login->isLoggedIn()) {
                     return false;
                 }
-                $page = Page::getInstance();
-                $page->setContent('{##main##}', '<h2>New shout</h2>');
-                $this->activity_menu();
+                $page->addContent('{##main##}', '<h2>New shout</h2>');
                 $page->addContent('{##main##}', $this->getNewActivityForm());
                 break;
             case 'update' :
                 if (!$login->isLoggedIn()) {
                     return false;
                 }
-                $page = Page::getInstance();
-                $page->setContent('{##main##}', '<h2>Update shout</h2>');
-                $this->activity_menu();
+                $page->addContent('{##main##}', '<h2>Update shout</h2>');
                 $page->addContent('{##main##}', $this->getUpdateActivityForm($id));
                 break;
             case 'delete' :
                 if (!$login->isLoggedIn()) {
                     return false;
                 }
-                $page = Page::getInstance();
-                $page->setContent('{##main##}', '<h2>Delete shout</h2>');
-                $this->activity_menu();
+                $page->addContent('{##main##}', '<h2>Delete shout</h2>');
                 $page->addContent('{##main##}', $this->getDeleteActivityForm($id));
                 break;
         }

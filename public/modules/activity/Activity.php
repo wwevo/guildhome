@@ -17,26 +17,36 @@ class Activity {
         Toro::addRoute(["/activities" => "Activity"]);
     }
         
-    function activity_menu() {
+    function activityMenu() {
+        $view = new View();
+        $view->setTmpl($view->loadFile('/views/core/one_tag.php'));
+
         $login = new Login();
-        $page = Page::getInstance();
-        $page->addContent('{##main##}', '<nav>');
-        $page->addContent('{##main##}', '<ul>');
-        $page->addContent('{##main##}', '<li><a href="/activities">10 days of EoL</a></li>');
-        $page->addContent('{##main##}', '<li><a href="/activities/shouts">Shouts</a></li>');
+        $view->addContent('{##data##}', '<nav class="activities">');
+        $view->addContent('{##data##}', '<ul>');
+        $view->addContent('{##data##}', '<li><a href="/activities">10 days of EoL</a></li>');
+
+        $view->addContent('{##data##}', '<li>');
+        $view->addContent('{##data##}', '<a href="/activities/shouts">Shouts</a>');
         if ($login->isLoggedIn()) {
-            $page->addContent('{##main##}', '<li class="add"><a href="/activity/shout/new">(+)</a></li>');
+            $view->addContent('{##data##}', ' <a href="/activity/shout/new">(+)</a>');
         }
-        $page->addContent('{##main##}', '<li><a href="/activities/events">Events</a></li>');
+        $view->addContent('{##data##}', '</li>');
+        
+        $view->addContent('{##data##}', '<li>');
+        $view->addContent('{##data##}', '<a href="/activities/events">Events</a>');
         if ($login->isLoggedIn()) {
-            $page->addContent('{##main##}', '<li class="add"><a href="/activity/event/new">(+)</a></li>');
+            $view->addContent('{##data##}', ' <a href="/activity/event/new">(+)</a>');
         }
-//        $page->addContent('{##main##}', '<li><a href="/activities/polls">Polls</a></li>');
+        $view->addContent('{##data##}', '</li>');
+//        $view->addContent('{##data##}', '<li><a href="/activities/polls">Polls</a></li>');
 //        if ($login->isLoggedIn()) {
-//            $page->addContent('{##main##}', '<li class="add"><a href="/activity/poll/new">(+)</a></li>');
+//            $view->addContent('{##data##}', '<li class="add"><a href="/activity/poll/new">(+)</a></li>');
 //        }
-        $page->addContent('{##main##}', '</ul>');
-        $page->addContent('{##main##}', '</nav>');
+        $view->addContent('{##data##}', '</ul>');
+        $view->addContent('{##data##}', '</nav>');
+        $view->replaceTags();
+        return $view;
     }
     
     function get() {
@@ -44,8 +54,8 @@ class Activity {
         $env->clearPost('activity');
 
         $page = Page::getInstance();
-        $page->setContent('{##main##}', '<h2>Activities</h2>');
-        $this->activity_menu();
+        $page->setContent('{##main##}', $this->activityMenu());
+        $page->addContent('{##main##}', '<h2>Activities of the last 10 Days</h2>');
         $page->addContent('{##main##}', $this->getAllActivitiesView());
 //        $page->addContent('{##sidebar##}', '<aside>Change Identity</aside>');
 
