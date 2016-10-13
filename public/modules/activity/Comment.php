@@ -21,14 +21,15 @@ class Comment {
     function get($type = 'activity', $action = 'view', $id = '') {       
         $login = new Login();
 
+        $activity = new Activity();
         $page = Page::getInstance();
-        $page->setContent('{##main##}', '<h2>Comments</h2>');
+        $page->setContent('{##main##}', $activity->activityMenu());
         switch ($type) {
             case 'activity' :
                 switch ($action) {
                     default:
                         $act = new Activity();
-                        $page->setContent('{##main##}', '<h2>Comments</h2>');
+                        $page->addContent('{##main##}', '<h2>Comments</h2>');
                         $page->addContent('{##main##}', $act->getActivityView($id));
                         if ($login->isLoggedIn()) {
                             $page->addContent('{##main##}', $this->getNewCommentForm($id));
@@ -36,14 +37,14 @@ class Comment {
                         $page->addContent('{##main##}', $this->getAllCommentsView($id));
                         break;
                     case 'update' :
-                        $page->setContent('{##main##}', '<h2>Update comment</h2>');
+                        $page->addContent('{##main##}', '<h2>Update comment</h2>');
                         $this->getParent($id);
                         if ($login->isLoggedIn()) {
                             $page->addContent('{##main##}', $this->getEditCommentForm($id));
                         }
                         break;
                     case 'delete' :
-                        $page->setContent('{##main##}', '<h2>Delete comment</h2>');
+                        $page->addContent('{##main##}', '<h2>Delete comment</h2>');
                         if ($login->isLoggedIn()) {
                             $page->addContent('{##main##}', $this->getDeleteCommentForm($id));
                         }
