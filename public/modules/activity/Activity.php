@@ -161,7 +161,7 @@ class Activity {
     }
 
     function getActivityView($id = NULL) {
-        $subView = $this->getSubView($id, $view);
+        $subView = $this->getSubView($id);
         return $subView;
     }
     
