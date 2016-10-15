@@ -262,19 +262,7 @@ class Activity_Event extends Activity {
     function getActivity($id) {
         $db = db::getInstance();
 
-$sql = "SELECT ae.activity_id AS activity_id, ae.title AS title, ae.description AS description, ae.date AS date, ae.time AS time, ae.comments_activated AS comments_activated, 
-ae.signups_activated AS signups_activated, a.userid AS userid, aes.event_id, aes.minimal_signups_activated AS minimal_signups_activated, aes.minimal_signups AS minimal_signups, 
-aes.maximal_signups_activated AS maximal_signups_activated, aes.maximal_signups AS maximal_signups, aes.signup_open_beyond_maximal AS signup_open_beyond_maximal, 
-aes.class_registration_enabled AS class_registration_enabled,aes.roles_registration_enabled, aes.preference_selection_enabled AS preference_selection_enabled, aet.name AS event_type,
--- wenn das event date - 2 stunden kleiner als now + 48 stunden ist -> featured
-IF(DATE_ADD(concat(ae.date,' ', ae.time),INTERVAL 2 HOUR) >= NOW() AND concat(ae.date,' ', ae.time) <= DATE_ADD(NOW(),INTERVAL 48 HOUR),'true','false') as featured,
--- wenn das event date > now -1 h und kleiner now + 1h ist -> hot
-IF(concat(ae.date,' ', ae.time) >= DATE_ADD(NOW(),INTERVAL -1 HOUR) AND concat(ae.date,' ', ae.time) <= DATE_ADD(NOW(),INTERVAL 1 HOUR),'true','false') as hot
-FROM activity_events ae
-LEFT JOIN activities a ON ae.activity_id = a.id 
-LEFT JOIN activity_events_signups aes ON ae.activity_id = aes.event_id
-LEFT JOIN activity_events_types aet ON ae.event_type = aet.id
-WHERE activity_id = '$id';";
+        $sql = "SELECT ae.activity_id AS activity_id, ae.title AS title, ae.description AS description, ae.date AS date, ae.time AS time, ae.comments_activated AS comments_activated, ae.signups_activated AS signups_activated, a.userid AS userid, aes.event_id, aes.minimal_signups_activated AS minimal_signups_activated, aes.minimal_signups AS minimal_signups, aes.maximal_signups_activated AS maximal_signups_activated, aes.maximal_signups AS maximal_signups, aes.signup_open_beyond_maximal AS signup_open_beyond_maximal, aes.class_registration_enabled AS class_registration_enabled,aes.roles_registration_enabled, aes.preference_selection_enabled AS preference_selection_enabled, aet.name AS event_type, IF(DATE_ADD(concat(ae.date,' ', ae.time),INTERVAL 2 HOUR) >= NOW() AND concat(ae.date,' ', ae.time) <= DATE_ADD(NOW(),INTERVAL 48 HOUR),'true','false') as featured, IF(concat(ae.date,' ', ae.time) >= DATE_ADD(NOW(),INTERVAL -1 HOUR) AND concat(ae.date,' ', ae.time) <= DATE_ADD(NOW(),INTERVAL 1 HOUR),'true','false') as hot FROM activity_events ae LEFT JOIN activities a ON ae.activity_id = a.id LEFT JOIN activity_events_signups aes ON ae.activity_id = aes.event_id LEFT JOIN activity_events_types aet ON ae.event_type = aet.id WHERE activity_id = '$id';";
 
         $query = $db->query($sql);
 
@@ -286,19 +274,20 @@ WHERE activity_id = '$id';";
     }
 
     function getActivityView($id = NULL, $compact = NULL) {
+        $act_meta = parent::getActivityById($id);
         $act = $this->getActivity($id);
-
+        
         $view = new View();
         $view->setTmpl($view->loadFile('/views/activity/list_all_activities.php'));
 
         $subView = new View();
         $subView->setTmpl($view->getSubTemplate('{##activity_loop##}'));
 
-        if (isset($act->create_time)) {
-            $subView->addContent('{##activity_published##}', $act->create_time);
+        if (isset($act_meta->create_time)) {
+            $subView->addContent('{##activity_published##}', $act_meta->create_time);
         }
-        if (isset($act->type_description)) {
-            $subView->addContent('{##activity_type##}',  $act->type_description);
+        if (isset($act_meta->type_description)) {
+            $subView->addContent('{##activity_type##}',  $act_meta->type_description);
         }
         if ($act->featured === 'true') {
             $subView->addContent('{##css##}', ' pulled_to_top');
@@ -306,9 +295,6 @@ WHERE activity_id = '$id';";
         if ($act->hot === 'true') {
             $subView->addContent('{##css##}', ' hot');
         }
-        $type = (isset($act->type)) ? $act->type : NULL;
-        $type_name = (isset($act->type_name)) ? $act->type_name : NULL;
-
         $delete_link = '/activity/event/delete/' . $act->activity_id;
         $update_link = '/activity/event/update/' . $act->activity_id;
         $comment_link = '/comment/activity/view/' . $act->activity_id;
@@ -359,10 +345,10 @@ WHERE activity_id = '$id';";
 
         $signups .= $this->getActivityDetailsView($act->activity_id);
         $subView->addContent('{##activity_signups##}',  $signups);
-        if (isset($act->userid)) {
+        if (isset($act_meta->userid)) {
             $identity = new Identity();
-            $subView->addContent('{##activity_identity##}', $identity->getIdentityById($act->userid, 0));
-            $subView->addContent('{##avatar##}', $identity->getAvatarByUserId($act->userid));
+            $subView->addContent('{##activity_identity##}', $identity->getIdentityById($act_meta->userid, 0));
+            $subView->addContent('{##avatar##}', $identity->getAvatarByUserId($act_meta->userid));
         }
 
         if ($allow_comments === TRUE) {
@@ -380,8 +366,8 @@ WHERE activity_id = '$id';";
         }
         
         $login = new Login();
-        if ($login->isLoggedIn() AND isset($act->userid)) {
-            if ($login->currentUserID() === $act->userid) {
+        if ($login->isLoggedIn() AND isset($act_meta->userid)) {
+            if ($login->currentUserID() === $act_meta->userid) {
                 $memberView = new View();
                 $memberView->setTmpl($view->getSubTemplate('{##activity_logged_in##}'));
                 $memberView->addContent('{##delete_link##}', $delete_link);
