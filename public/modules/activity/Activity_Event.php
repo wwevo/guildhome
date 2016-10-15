@@ -262,17 +262,6 @@ class Activity_Event extends Activity {
     function getActivity($id) {
         $db = db::getInstance();
 
-        $sql = "SELECT ae.activity_id AS activity_id, ae.title AS title, ae.description AS description, ae.date AS date, ae.time AS time, ae.comments_activated AS comments_activated, 
-ae.signups_activated AS signups_activated, a.userid AS userid, aes.event_id, aes.minimal_signups_activated AS minimal_signups_activated, aes.minimal_signups AS minimal_signups, 
-aes.maximal_signups_activated AS maximal_signups_activated, aes.maximal_signups AS maximal_signups, aes.signup_open_beyond_maximal AS signup_open_beyond_maximal, 
-aes.class_registration_enabled AS class_registration_enabled,aes.roles_registration_enabled, aes.preference_selection_enabled AS preference_selection_enabled, aet.name AS event_type,
-IF(DATE_ADD(concat(ae.date,' ', ae.time),INTERVAL 2 HOUR) >= NOW() AND concat(ae.date,' ', ae.time) <= DATE_ADD(NOW(),INTERVAL 48 HOUR),'true','false') as featured
-FROM activity_events ae
-LEFT JOIN activities a ON ae.activity_id = a.id 
-LEFT JOIN activity_events_signups aes ON ae.activity_id = aes.event_id
-LEFT JOIN activity_events_types aet ON ae.event_type = aet.id
-where activity_id = '$id';";
-
 $sql = "SELECT ae.activity_id AS activity_id, ae.title AS title, ae.description AS description, ae.date AS date, ae.time AS time, ae.comments_activated AS comments_activated, 
 ae.signups_activated AS signups_activated, a.userid AS userid, aes.event_id, aes.minimal_signups_activated AS minimal_signups_activated, aes.minimal_signups AS minimal_signups, 
 aes.maximal_signups_activated AS maximal_signups_activated, aes.maximal_signups AS maximal_signups, aes.signup_open_beyond_maximal AS signup_open_beyond_maximal, 
@@ -286,17 +275,6 @@ LEFT JOIN activities a ON ae.activity_id = a.id
 LEFT JOIN activity_events_signups aes ON ae.activity_id = aes.event_id
 LEFT JOIN activity_events_types aet ON ae.event_type = aet.id
 WHERE activity_id = '$id';";
-
-//        $sql = "SELECT ae.activity_id AS activity_id, ae.title AS title, ae.description AS description, ae.date AS date, ae.time AS time, ae.comments_activated AS comments_activated, 
-//                    ae.signups_activated AS signups_activated, a.userid AS userid, aes.event_id, aes.minimal_signups_activated AS minimal_signups_activated, aes.minimal_signups AS minimal_signups, 
-//                    aes.maximal_signups_activated AS maximal_signups_activated, aes.maximal_signups AS maximal_signups, aes.signup_open_beyond_maximal AS signup_open_beyond_maximal, 
-//                    aes.class_registration_enabled AS class_registration_enabled,aes.roles_registration_enabled, aes.preference_selection_enabled AS preference_selection_enabled,
-//                    aet.name AS event_type
-//                    FROM activity_events ae
-//                    LEFT JOIN activities a ON ae.activity_id = a.id 
-//                    LEFT JOIN activity_events_signups aes ON ae.activity_id = aes.event_id
-//                    LEFT JOIN activity_events_types aet ON ae.event_type = aet.id
-//                    WHERE ae.activity_id = '$id';";
 
         $query = $db->query($sql);
 
