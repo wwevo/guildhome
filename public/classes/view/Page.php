@@ -24,5 +24,5 @@ class Page extends View {
         }
         return static::$instance;
     }
-
+    
 }

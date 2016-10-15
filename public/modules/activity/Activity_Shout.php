@@ -35,7 +35,7 @@ class Activity_Shout extends Activity {
                     return false;
                 }
                 $page->addContent('{##main##}', '<h2>New shout</h2>');
-                $page->addContent('{##main##}', $this->getNewActivityForm());
+                $page->addContent('{##main##}', $this->getActivityForm());
                 break;
             case 'update' :
                 if (!$login->isLoggedIn()) {
@@ -186,7 +186,7 @@ class Activity_Shout extends Activity {
         return $view;
     }
     
-    function getNewActivityForm() {
+    function getActivityForm() {
         $env = Env::getInstance();
         $msg = Msg::getInstance();
 
@@ -239,12 +239,16 @@ class Activity_Shout extends Activity {
         return $view;
     }
     
-    function getDeleteActivityForm($id) {
+    function getDeleteActivityForm($id = NULL) {
         $env = Env::getInstance();
         $msg = Msg::getInstance();
 
-        $act = $this->getActivity($id);
-        $content = $act->content;
+        if ($id !== NULL) {
+            $act = $this->getActivity($id);
+            $content = $act->title . "<br />" . $act->description;
+        } else {
+            $content = '';
+        }
         
         $view = new View();
         $view->setTmpl($view->loadFile('/views/activity/delete_activity_form.php'), array(

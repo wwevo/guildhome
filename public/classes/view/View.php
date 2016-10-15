@@ -120,6 +120,12 @@ class View {
         return $this->tmpl;
     }
     
+    function clearAll() {
+        foreach ($this as &$value) {
+            $value = null;
+        }
+    }
+    
     function __toString() {
         return $this->show();
     }

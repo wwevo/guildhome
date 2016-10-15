@@ -42,8 +42,6 @@
         <div class="footer-container">
             <footer class="wrapper">
                 {##footer##}
-                <h3>footer</h3>
-                {/##footer##}
             </footer>
         </div>
     </body>

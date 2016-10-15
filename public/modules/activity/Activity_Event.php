@@ -263,53 +263,80 @@ class Activity_Event extends Activity {
         $db = db::getInstance();
 
         $sql = "SELECT ae.activity_id AS activity_id, ae.title AS title, ae.description AS description, ae.date AS date, ae.time AS time, ae.comments_activated AS comments_activated, 
-                    ae.signups_activated AS signups_activated, a.userid AS userid, aes.event_id, aes.minimal_signups_activated AS minimal_signups_activated, aes.minimal_signups AS minimal_signups, 
-                    aes.maximal_signups_activated AS maximal_signups_activated, aes.maximal_signups AS maximal_signups, aes.signup_open_beyond_maximal AS signup_open_beyond_maximal, 
-                    aes.class_registration_enabled AS class_registration_enabled,aes.roles_registration_enabled, aes.preference_selection_enabled AS preference_selection_enabled,
-                    aet.name AS event_type
-                    FROM activity_events ae
-                    LEFT JOIN activities a ON ae.activity_id = a.id 
-                    LEFT JOIN activity_events_signups aes ON ae.activity_id = aes.event_id
-                    LEFT JOIN activity_events_types aet ON ae.event_type = aet.id
-                    WHERE ae.activity_id = '$id';";
-        
+ae.signups_activated AS signups_activated, a.userid AS userid, aes.event_id, aes.minimal_signups_activated AS minimal_signups_activated, aes.minimal_signups AS minimal_signups, 
+aes.maximal_signups_activated AS maximal_signups_activated, aes.maximal_signups AS maximal_signups, aes.signup_open_beyond_maximal AS signup_open_beyond_maximal, 
+aes.class_registration_enabled AS class_registration_enabled,aes.roles_registration_enabled, aes.preference_selection_enabled AS preference_selection_enabled, aet.name AS event_type,
+IF(DATE_ADD(concat(ae.date,' ', ae.time),INTERVAL 2 HOUR) >= NOW() AND concat(ae.date,' ', ae.time) <= DATE_ADD(NOW(),INTERVAL 48 HOUR),'true','false') as featured
+FROM activity_events ae
+LEFT JOIN activities a ON ae.activity_id = a.id 
+LEFT JOIN activity_events_signups aes ON ae.activity_id = aes.event_id
+LEFT JOIN activity_events_types aet ON ae.event_type = aet.id
+where activity_id = '$id';";
+
+$sql = "SELECT ae.activity_id AS activity_id, ae.title AS title, ae.description AS description, ae.date AS date, ae.time AS time, ae.comments_activated AS comments_activated, 
+ae.signups_activated AS signups_activated, a.userid AS userid, aes.event_id, aes.minimal_signups_activated AS minimal_signups_activated, aes.minimal_signups AS minimal_signups, 
+aes.maximal_signups_activated AS maximal_signups_activated, aes.maximal_signups AS maximal_signups, aes.signup_open_beyond_maximal AS signup_open_beyond_maximal, 
+aes.class_registration_enabled AS class_registration_enabled,aes.roles_registration_enabled, aes.preference_selection_enabled AS preference_selection_enabled, aet.name AS event_type,
+-- wenn das event date - 2 stunden kleiner als now + 48 stunden ist -> featured
+IF(DATE_ADD(concat(ae.date,' ', ae.time),INTERVAL 2 HOUR) >= NOW() AND concat(ae.date,' ', ae.time) <= DATE_ADD(NOW(),INTERVAL 48 HOUR),'true','false') as featured,
+-- wenn das event date > now -1 h und kleiner now + 1h ist -> hot
+IF(concat(ae.date,' ', ae.time) >= DATE_ADD(NOW(),INTERVAL -1 HOUR) AND concat(ae.date,' ', ae.time) <= DATE_ADD(NOW(),INTERVAL 1 HOUR),'true','false') as hot
+FROM activity_events ae
+LEFT JOIN activities a ON ae.activity_id = a.id 
+LEFT JOIN activity_events_signups aes ON ae.activity_id = aes.event_id
+LEFT JOIN activity_events_types aet ON ae.event_type = aet.id
+WHERE activity_id = '$id';";
+
+//        $sql = "SELECT ae.activity_id AS activity_id, ae.title AS title, ae.description AS description, ae.date AS date, ae.time AS time, ae.comments_activated AS comments_activated, 
+//                    ae.signups_activated AS signups_activated, a.userid AS userid, aes.event_id, aes.minimal_signups_activated AS minimal_signups_activated, aes.minimal_signups AS minimal_signups, 
+//                    aes.maximal_signups_activated AS maximal_signups_activated, aes.maximal_signups AS maximal_signups, aes.signup_open_beyond_maximal AS signup_open_beyond_maximal, 
+//                    aes.class_registration_enabled AS class_registration_enabled,aes.roles_registration_enabled, aes.preference_selection_enabled AS preference_selection_enabled,
+//                    aet.name AS event_type
+//                    FROM activity_events ae
+//                    LEFT JOIN activities a ON ae.activity_id = a.id 
+//                    LEFT JOIN activity_events_signups aes ON ae.activity_id = aes.event_id
+//                    LEFT JOIN activity_events_types aet ON ae.event_type = aet.id
+//                    WHERE ae.activity_id = '$id';";
+
         $query = $db->query($sql);
 
         if ($query !== false AND $query->num_rows >= 1) {
             $activity = $query->fetch_object();
-
             return $activity;
         }
         return false;
     }
 
-    function getActivityView($act = NULL, $compact = NULL) {
-        $act = $this->getActivityById($act);
-        
+    function getActivityView($id = NULL, $compact = NULL) {
+        $act = $this->getActivity($id);
+
         $view = new View();
         $view->setTmpl($view->loadFile('/views/activity/list_all_activities.php'));
 
         $subView = new View();
         $subView->setTmpl($view->getSubTemplate('{##activity_loop##}'));
-        
+
         if (isset($act->create_time)) {
             $subView->addContent('{##activity_published##}', $act->create_time);
         }
         if (isset($act->type_description)) {
             $subView->addContent('{##activity_type##}',  $act->type_description);
         }
-        if (isset($act->event_date)) {
+        if ($act->featured === 'true') {
             $subView->addContent('{##css##}', ' pulled_to_top');
+        }
+        if ($act->hot === 'true') {
+            $subView->addContent('{##css##}', ' hot');
         }
         $type = (isset($act->type)) ? $act->type : NULL;
         $type_name = (isset($act->type_name)) ? $act->type_name : NULL;
 
-        $delete_link = '/activity/event/delete/' . $act->id;
-        $update_link = '/activity/event/update/' . $act->id;
-        $comment_link = '/comment/activity/view/' . $act->id;
-        $details_link = '/activity/event/details/' . $act->id;
+        $delete_link = '/activity/event/delete/' . $act->activity_id;
+        $update_link = '/activity/event/update/' . $act->activity_id;
+        $comment_link = '/comment/activity/view/' . $act->activity_id;
+        $details_link = '/activity/event/details/' . $act->activity_id;
 
-        $activity_event = $this->getActivity($act->id);
+        $activity_event = $this->getActivity($act->activity_id);
 
         if (isset($activity_event->comments_activated) AND $activity_event->comments_activated == '1') {
             $allow_comments = TRUE;
@@ -341,7 +368,7 @@ class Activity_Event extends Activity {
 
         $signups = '';
         if ($activity_event->signups_activated) {
-            $signups = "Signed up:" . $this->getSignupCountByEventId($act->id);
+            $signups = "Signed up:" . $this->getSignupCountByEventId($act->activity_id);
         }
 
         if ($activity_event->maximal_signups_activated) {
@@ -352,7 +379,7 @@ class Activity_Event extends Activity {
             $signups .= " (" . $activity_event->minimal_signups . " req)";
         }
 
-        $signups .= $this->getActivityDetailsView($act->id);
+        $signups .= $this->getActivityDetailsView($act->activity_id);
         $subView->addContent('{##activity_signups##}',  $signups);
         if (isset($act->userid)) {
             $identity = new Identity();
@@ -362,7 +389,7 @@ class Activity_Event extends Activity {
 
         if ($allow_comments === TRUE) {
             $comment = new Comment();
-            $comment_count = $comment->getCommentCount($act->id);
+            $comment_count = $comment->getCommentCount($act->activity_id);
 
             $visitorView = new View();
             $visitorView->setTmpl($view->getSubTemplate('{##activity_not_logged_in##}'));
@@ -574,12 +601,13 @@ class Activity_Event extends Activity {
         return true;
     }
     
-    function getDeleteActivityForm($id) {
-        $env = Env::getInstance();
-        $msg = Msg::getInstance();
-
-        $act = $this->getActivity($id);
-        $content = $act->title . "<br />" . $act->description;
+    function getDeleteActivityForm($id = NULL) {
+        if ($id !== NULL) {
+            $act = $this->getActivity($id);
+            $content = $act->title . "<br />" . $act->description;
+        } else {
+            $content = '';
+        }
         
         $view = new View();
         $view->setTmpl($view->loadFile('/views/activity/delete_activity_form.php'), array(
@@ -649,7 +677,7 @@ class Activity_Event extends Activity {
         $selectable_roles = isset($env->post('activity')['selectable_roles']) ? '1' : '0';
 
         $sql = "SELECT * FROM activity_events_signups WHERE event_id = '$activity_id';";
-        $query = $db->query($sql);
+        $db->query($sql);
         if ($db->affected_rows == 0) {
             $sql = "INSERT INTO activity_events_signups (event_id, minimal_signups_activated, minimal_signups, maximal_signups_activated, maximal_signups, signup_open_beyond_maximal, class_registration_enabled, roles_registration_enabled, preference_selection_enabled) VALUES ('$activity_id', '$signups_min', '$signups_min_val', '$signups_max', '$signups_max_val', '$keep_signups_open', '$class_registration', '$selectable_roles', '0');";
         } else {

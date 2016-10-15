@@ -57,8 +57,6 @@ class Activity {
         $page->setContent('{##main##}', $this->activityMenu());
         $page->addContent('{##main##}', '<h2>Activities of the last 10 Days</h2>');
         $page->addContent('{##main##}', $this->getAllActivitiesView());
-//        $page->addContent('{##sidebar##}', '<aside>Change Identity</aside>');
-
     }
     
     function save($type = '1') {
@@ -95,7 +93,7 @@ class Activity {
     function getActivities($interval = NULL) {
         $db = db::getInstance();
         
-        $interval = (is_numeric($interval)) ? " LIMIT " . $interval : '';
+        $interval_sql = (is_numeric($interval)) ? " LIMIT " . $interval : '';
         
         $sql = "SELECT activities.id, activities.userid, from_unixtime(activities.create_time) AS create_time, activities.type AS type, activity_types.name AS type_name, activity_types.description AS type_description,
                     (SELECT concat(ae.date,' ', ae.time) as timestamp FROM activity_events ae WHERE ae.activity_id = activities.id HAVING DATE_ADD(timestamp,INTERVAL 2 HOUR) >= NOW() AND timestamp <= DATE_ADD(NOW(),INTERVAL 48 HOUR)) as event_date
@@ -103,7 +101,7 @@ class Activity {
                     INNER JOIN activity_types
                     ON activities.type = activity_types.id
                     ORDER BY event_date IS NULL, event_date ASC, activities.create_time DESC
-                    $interval;
+                    $interval_sql;
                 ";
         $query = $db->query($sql);
 
