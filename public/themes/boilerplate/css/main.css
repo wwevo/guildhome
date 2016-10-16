@@ -128,8 +128,9 @@ article.pulled_to_top {
     border: 1px solid #eda73e;
 }
 
-article.hot {
-    border: 1px solid #ea6C12;
+article.hot,
+article.preview {
+    border: 1px dashed #ea6C12;
 }
 
 article.comment:after,

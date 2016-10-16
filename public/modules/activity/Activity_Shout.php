@@ -22,11 +22,13 @@ class Activity_Shout extends Activity {
     }
 
     function get($alpha = '', $id = NULL) {
+        $env = Env::getInstance();
         $login = new Login();
         $page = Page::getInstance();
         $page->addContent('{##main##}', parent::activityMenu());
         switch ($alpha) {
             default :
+                $env->clearPost('activity');
                 $page->addContent('{##main##}', '<h2>All shouts</h2>');
                 $page->addContent('{##main##}', $this->getAllActivitiesView('1')); // 1 = shout
                 break;
@@ -36,6 +38,9 @@ class Activity_Shout extends Activity {
                 }
                 $page->addContent('{##main##}', '<h2>New shout</h2>');
                 $page->addContent('{##main##}', $this->getActivityForm());
+                if (isset($env->post('activity')['preview'])) {
+                    $page->addContent('{##main##}', $this->getActivityPreview());
+                }
                 break;
             case 'update' :
                 if (!$login->isLoggedIn()) {
@@ -43,6 +48,9 @@ class Activity_Shout extends Activity {
                 }
                 $page->addContent('{##main##}', '<h2>Update shout</h2>');
                 $page->addContent('{##main##}', $this->getUpdateActivityForm($id));
+                if (isset($env->post('activity')['preview'])) {
+                    $page->addContent('{##main##}', $this->getActivityPreview());
+                }
                 break;
             case 'delete' :
                 if (!$login->isLoggedIn()) {
@@ -62,22 +70,22 @@ class Activity_Shout extends Activity {
         }
         switch ($alpha) {
             case 'new' :
-                if ($this->validateActivity() === true) {
+                if ($this->validateActivity() === true AND !isset($env->post('activity')['preview'])) {
                     if ($this->saveActivity() === true) {
                         header("Location: /activities/shouts");
+                        exit;
                     }
-                } else {
-                    $this->get('new', $id);
                 }
+                $this->get('new', $id);
                 break;
             case 'update' :
-                if ($this->validateActivity() === true) {
+                if ($this->validateActivity() === true AND !isset($env->post('activity')['preview'])) {
                     if ($this->updateActivity($id) === true) {
                         header("Location: /activities/shouts");
+                        exit;
                     }
-                } else {
-                    $this->get('update', $id);
                 }
+                $this->get('update', $id);
                 break;
             case 'delete' :
                 if (isset($env->post('activity')['submit'])) {
@@ -113,6 +121,32 @@ class Activity_Shout extends Activity {
         return false;
     }
     
+    function getActivityPreview() {
+        $view = new View();
+        $view->setTmpl($view->loadFile('/views/activity/list_all_activities.php'));
+        $view->setContent('{##activity_message##}', '<p>This is how your Shout will look:</p>');
+
+        $subView = new View();
+        $subView->setTmpl($view->getSubTemplate('{##activity_loop##}'));
+        $subView->addContent('{##activity_published##}', date('Y-m-d H:i:s'));
+        $subView->addContent('{##activity_type##}',  '<strong>a shout</strong>');
+
+        $env = Env::getInstance();
+        $content = Parsedown::instance()->text($env->post('activity')['content']);
+        $subView->addContent('{##css##}', ' preview');
+        $subView->addContent('{##activity_content##}', $content);
+        $login = new Login();
+        $identity = new Identity();
+        $subView->addContent('{##activity_identity##}', $identity->getIdentityById($login->currentUserID(), 0));
+        $subView->addContent('{##avatar##}', $identity->getAvatarByUserId($login->currentUserID()));
+        $subView->replaceTags();
+        
+        $view->addContent('{##activity_loop##}',  $subView);
+        $view->replaceTags();
+
+        return $view;
+    }
+    
     function getActivityView($act = NULL, $compact = NULL) {
         $act = $this->getActivityById($act);
 
@@ -125,7 +159,7 @@ class Activity_Shout extends Activity {
             $subView->addContent('{##activity_published##}', $act->create_time);
         }
         if (isset($act->type_description)) {
-            $subView->addContent('{##activity_type##}',  $act->type_description);
+            $subView->addContent('{##activity_type##}', $act->type_description);
         }
 
         $activity_event = $this->getActivity($act->id);
@@ -138,7 +172,6 @@ class Activity_Shout extends Activity {
         $delete_link = '/activity/shout/delete/' . $act->id;
         $update_link = '/activity/shout/update/' . $act->id;
         $comment_link = '/comment/activity/view/' . $act->id;
-        $details_link = '';
         
         $subView->addContent('{##activity_content##}',  $content);
         
@@ -190,26 +223,35 @@ class Activity_Shout extends Activity {
         $env = Env::getInstance();
         $msg = Msg::getInstance();
 
-        if ($env->post('activity') === FALSE) {
+        if ($env->post('activity') === FALSE) { // check comments by default
             $comments_checked = 'checked="checked"';
         } else {
             if (!empty($env->post('activity')['comments']) AND is_string($env->post('activity')['comments']) === TRUE) {
                 $comments_checked = 'checked="checked"';
-                
             } else {
                 $comments_checked = '';
             }
         }
+
+        if ($env->post('activity') === FALSE) { // check preview by default
+            $preview_checked = 'checked="checked"';
+        } else {
+            if (!empty($env->post('activity')['preview']) AND is_string($env->post('activity')['preview']) === TRUE) {
+                $preview_checked = 'checked="checked"';
+            } else {
+                $preview_checked = '';
+            }
+        }
         
         $view = new View();
-        $view->setTmpl($view->loadFile('/views/activity/shout/new_activity_shout_form.php'), array(
+        $view->setTmpl($view->loadFile('/views/activity/shout/activity_shout_form.php'), array(
             '{##form_action##}' => '/activity/shout/new',
             '{##activity_content##}' => $env->post('activity')['content'],
             '{##activity_content_validation##}' => $msg->fetch('activity_shout_content_validation'),
             '{##activity_comments_checked##}' => $comments_checked,
+            '{##activity_preview_checked##}' => $preview_checked,
             '{##preview_text##}' => 'Preview',
-            '{##draft_text##}' => 'Save as draft',
-            '{##submit_text##}' => 'say it loud',
+            '{##submit_text##}' => 'Say it loud',
         ));
         $view->replaceTags();
         return $view;
@@ -225,12 +267,16 @@ class Activity_Shout extends Activity {
         $comments_checked = (isset($env->post('activity')['comments'])) ? $env->post('activity')['comments'] : $act->comments_activated;
         $comments_checked = ($comments_checked == '1') ? 'checked="' . $comments_checked . '"' : '';
 
+        $preview_checked = (isset($env->post('activity')['preview'])) ? $env->post('activity')['preview'] : '0';
+        $preview_checked = ($preview_checked == '1') ? 'checked="' . $preview_checked . '"' : '';
+
         $view = new View();
-        $view->setTmpl($view->loadFile('/views/activity/shout/update_activity_shout_form.php'), array(
+        $view->setTmpl($view->loadFile('/views/activity/shout/activity_shout_form.php'), array(
             '{##form_action##}' => '/activity/shout/update/' . $id,
             '{##activity_content##}' => $content,
             '{##activity_content_validation##}' => $msg->fetch('activity_shout_content_validation'),
             '{##activity_comments_checked##}' => $comments_checked,
+            '{##activity_preview_checked##}' => $preview_checked,
             '{##preview_text##}' => 'Preview',
             '{##draft_text##}' => 'Save as draft',
             '{##submit_text##}' => "i'm sure now!",
@@ -240,12 +286,10 @@ class Activity_Shout extends Activity {
     }
     
     function getDeleteActivityForm($id = NULL) {
-        $env = Env::getInstance();
-        $msg = Msg::getInstance();
 
         if ($id !== NULL) {
             $act = $this->getActivity($id);
-            $content = $act->title . "<br />" . $act->description;
+            $content = $act->content;
         } else {
             $content = '';
         }
