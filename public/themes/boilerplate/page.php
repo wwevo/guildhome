@@ -7,7 +7,7 @@
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="apple-touch-icon" href="apple-touch-icon.png">
-        <link rel="stylesheet" href="/themes/boilerplate/css/normalize.css">
+        <link rel="stylesheet" href="/themes/boilerplate/css/normalize.min.css">
         <link rel="stylesheet" href="/themes/boilerplate/css/main.css">
         <!--[if lt IE 9]>
             <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
