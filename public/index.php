@@ -77,7 +77,7 @@ $page->addContent('{##footer##}', '<p>created by the community: for the communit
  * Do the routing as per modules instructions!!
  * Can be overridden here
  */
-Toro::addRoute(["/" => "Home"]);
+Toro::addRoute(["/" => "Pages"]);
 ToroHook::add('404', function() {
     header('HTTP/1.0 404 Not Found');
     $page = Page::getInstance();

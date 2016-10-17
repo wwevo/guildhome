@@ -41,6 +41,7 @@ video {
 
 textarea {
     resize: vertical;
+    min-height: 160px;
     width: 100%;
 }
 
