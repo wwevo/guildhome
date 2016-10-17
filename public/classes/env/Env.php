@@ -44,7 +44,7 @@ class Env {
             $_SESSION['evo']['post_messages'] = $inst->post;
         }
         
-        $inst->get = filter_input_array(INPUT_GET, FILTER_SANITIZE_STRING);
+       $inst->get = filter_input_array(INPUT_GET, FILTER_SANITIZE_STRING);
         if (is_array($inst->get) && !empty($inst->get)) {
             $_SESSION['evo']['get_messages'] = $inst->get;    
         }

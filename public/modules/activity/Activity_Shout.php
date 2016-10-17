@@ -76,6 +76,7 @@ class Activity_Shout extends Activity {
                         exit;
                     }
                 }
+                unset($env->post('activity')['preview']);
                 $this->get('new', $id);
                 break;
             case 'update' :
@@ -85,6 +86,7 @@ class Activity_Shout extends Activity {
                         exit;
                     }
                 }
+                unset($env->post('activity')['preview']);
                 $this->get('update', $id);
                 break;
             case 'delete' :
@@ -233,23 +235,12 @@ class Activity_Shout extends Activity {
             }
         }
 
-        if ($env->post('activity') === FALSE) { // check preview by default
-            $preview_checked = 'checked="checked"';
-        } else {
-            if (!empty($env->post('activity')['preview']) AND is_string($env->post('activity')['preview']) === TRUE) {
-                $preview_checked = 'checked="checked"';
-            } else {
-                $preview_checked = '';
-            }
-        }
-        
         $view = new View();
         $view->setTmpl($view->loadFile('/views/activity/shout/activity_shout_form.php'), array(
             '{##form_action##}' => '/activity/shout/new',
             '{##activity_content##}' => $env->post('activity')['content'],
             '{##activity_content_validation##}' => $msg->fetch('activity_shout_content_validation'),
             '{##activity_comments_checked##}' => $comments_checked,
-            '{##activity_preview_checked##}' => $preview_checked,
             '{##preview_text##}' => 'Preview',
             '{##submit_text##}' => 'Say it loud',
         ));
@@ -267,16 +258,12 @@ class Activity_Shout extends Activity {
         $comments_checked = (isset($env->post('activity')['comments'])) ? $env->post('activity')['comments'] : $act->comments_activated;
         $comments_checked = ($comments_checked == '1') ? 'checked="' . $comments_checked . '"' : '';
 
-        $preview_checked = (isset($env->post('activity')['preview'])) ? $env->post('activity')['preview'] : '0';
-        $preview_checked = ($preview_checked == '1') ? 'checked="' . $preview_checked . '"' : '';
-
         $view = new View();
         $view->setTmpl($view->loadFile('/views/activity/shout/activity_shout_form.php'), array(
             '{##form_action##}' => '/activity/shout/update/' . $id,
             '{##activity_content##}' => $content,
             '{##activity_content_validation##}' => $msg->fetch('activity_shout_content_validation'),
             '{##activity_comments_checked##}' => $comments_checked,
-            '{##activity_preview_checked##}' => $preview_checked,
             '{##preview_text##}' => 'Preview',
             '{##draft_text##}' => 'Save as draft',
             '{##submit_text##}' => "i'm sure now!",
