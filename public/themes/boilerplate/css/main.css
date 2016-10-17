@@ -118,6 +118,10 @@ aside time {
     text-decoration: underline;
 }
 
+.hidden {
+    display: none;
+}
+
 article.comment,
 article.activity {
     margin: 0.5em 0;

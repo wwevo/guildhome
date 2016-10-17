@@ -13,10 +13,7 @@ require_once('activity/Activity_Shout.php'); // (*)
 require_once('activity/Activity_Event.php'); // (*)
 require_once('activity/Activity_Poll.php'); // (*)
 require_once('pages/Pages.php'); // (*)
-//require_once('home/Home.php'); // (*)
-//require_once('about/About.php'); // (*)
 require_once('gw2api/gw2api.php'); // (*)
-//require_once('sdtd/sdtd.php'); // (*)
 /*
  * for development purposes
  */

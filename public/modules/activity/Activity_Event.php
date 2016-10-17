@@ -21,13 +21,13 @@ class Activity_Event extends Activity {
     }
 
     function get($alpha = '', $id = NULL) {
+        $env = Env::getInstance();
         $login = new Login();
         $page = Page::getInstance();
         $page->addContent('{##main##}', parent::activityMenu());
-
         switch ($alpha) {
             default :
-                $page = Page::getInstance();
+                $env->clearPost('activity');
                 $page->addContent('{##main##}', '<h2>All events</h2>');
                 $page->addContent('{##main##}', $this->getAllActivitiesView('2')); // 2 = event 
                 break;
@@ -47,6 +47,9 @@ class Activity_Event extends Activity {
                 }
                 $page->addContent('{##main##}', '<h2>New event</h2>');
                 $page->addContent('{##main##}', $this->getActivityForm());
+                if (isset($env->post('activity')['preview'])) {
+                    $page->addContent('{##main##}', $this->getActivityPreview());
+                }
                 break;
             case 'update' :
                 if (!$login->isLoggedIn()) {
@@ -54,6 +57,9 @@ class Activity_Event extends Activity {
                 }
                 $page->addContent('{##main##}', '<h2>Update event</h2>');
                 $page->addContent('{##main##}', $this->getActivityForm($id));
+                if (isset($env->post('activity')['preview'])) {
+                    $page->addContent('{##main##}', $this->getActivityPreview());
+                }
                 break;
             case 'delete' :
                 if (!$login->isLoggedIn()) {
@@ -74,9 +80,9 @@ class Activity_Event extends Activity {
         switch ($alpha) {
             case 'signup' :
             case 'signout' :
-                    $this->toggleSignup($login->currentUserID(), $id);
-                    header("Location: /activities/events");
-                break;
+                $this->toggleSignup($login->currentUserID(), $id);
+                header("Location: /activities/events");
+                exit;
             case 'new' :
                 if (isset($env->post('activity')['submit']) AND isset($env->post('activity')['submit']['submit_add_role'])) {
                     if ($this->validateRole() === TRUE) {
@@ -93,13 +99,13 @@ class Activity_Event extends Activity {
                     break;    
                 }
 
-                if ($this->validateActivity() === true) {
+                if ($this->validateActivity() === true AND !isset($env->post('activity')['preview'])) {
                     if ($this->saveActivity() === true) {
                         header("Location: /activities/events");
+                        exit;
                     }
-                } else {
-                    $this->get('new', $id);
                 }
+                $this->get('new', $id);
                 break;
             case 'update' :
                 if (isset($env->post('activity')['submit']) AND isset($env->post('activity')['submit']['submit_add_role'])) {
@@ -117,23 +123,25 @@ class Activity_Event extends Activity {
                     break;    
                 }
 
-                if ($this->validateActivity() === true) {
+                if ($this->validateActivity() === true AND !isset($env->post('activity')['preview'])) {
                     if ($this->saveActivity($id) === true) {
                         header("Location: /activity/event/details/$id");
+                        exit;
                     }
-                } else {
-                    $this->get('update', $id);
                 }
+                $this->get('update', $id);
                 break;
             case 'delete' :
                 if (isset($env->post('activity')['submit'])) {
                     if ($env->post('activity')['submit'] === 'delete') {
                         if ($this->deleteActivity($id) === true) {
                             header("Location: /activities/events");
+                            exit;
                         }
                     }
                     if ($env->post('activity')['submit'] === 'cancel') {
                         header("Location: /activities/events");
+                        exit;
                     }
                 }
                 break;
@@ -273,6 +281,41 @@ class Activity_Event extends Activity {
         return false;
     }
 
+    function getActivityPreview() {
+        $view = new View();
+        $view->setTmpl($view->loadFile('/views/activity/list_all_activities.php'));
+        $view->setContent('{##activity_message##}', '<p>This is how your Event will look:</p>');
+
+        $subView = new View();
+        $subView->setTmpl($view->getSubTemplate('{##activity_loop##}'));
+        $subView->addContent('{##activity_published##}', date('Y-m-d H:i:s'));
+        $subView->addContent('{##activity_type##}',  '<strong>an event</strong>');
+        $subView->addContent('{##css##}', ' preview');
+        $env = Env::getInstance();
+        $content = Parsedown::instance()->text($env->post('activity')['content']);
+        $subView->addContent('{##activity_content##}', $content);
+        $login = new Login();
+        $identity = new Identity();
+        $subView->addContent('{##activity_identity##}', $identity->getIdentityById($login->currentUserID(), 0));
+        $subView->addContent('{##avatar##}', $identity->getAvatarByUserId($login->currentUserID()));
+        $event_date = $env->post('activity')['date'] . " @ " . $env->post('activity')['time'];
+        $subView->addContent('{##activity_event_date##}', $event_date);
+
+        $linkView = new View();
+        $linkView->setTmpl($view->getSubTemplate('{##details_link_area##}'));
+        $details_link = '/activity/event/details/';
+        $linkView->addContent('{##details_link##}', $details_link);
+        $linkView->addContent('{##details_link_text##}', Parsedown::instance()->text($env->post('activity')['title']));
+        $linkView->replaceTags();
+
+        $subView->addContent('{##details_link_area##}', $linkView);
+        $subView->replaceTags();
+        
+        $view->addContent('{##activity_loop##}',  $subView);
+        $view->replaceTags();
+        return $view;
+    }
+    
     function getActivityView($id = NULL, $compact = NULL) {
         $act_meta = parent::getActivityById($id);
         $act = $this->getActivity($id);
@@ -325,10 +368,8 @@ class Activity_Event extends Activity {
         $content = $event_data;
         $subView->addContent('{##activity_content##}',  $content);
 
-        $event_date = $activity_event->date . " @ ";
-        $event_date .= $activity_event->time;
+        $event_date = $activity_event->date . " @ " . $activity_event->time;
         $subView->addContent('{##activity_event_date##}', $event_date);
-
 
         $signups = '';
         if ($activity_event->signups_activated) {
@@ -434,14 +475,18 @@ class Activity_Event extends Activity {
         $view->addContent('{##add_new_role_title##}', '');
         $view->addContent('{##submit_add_role_text##}', 'add role');
         $view->addContent('{##delete_selected_roles_text##}', 'delete selected roles');
+        
+        $view->addContent('{##activity_title_validation##}', $msg->fetch('activity_event_title_validation'));
         $view->addContent('{##add_role_title_validation##}', $msg->fetch('activity_add_role_title_validation'));
+        $view->addContent('{##activity_date_validation##}', $msg->fetch('activity_event_date_validation'));
+        $view->addContent('{##activity_content_validation##}', $msg->fetch('activity_event_content_validation'));
 
         if ($id === NULL) {
             
             $title = (!empty($env->post('activity')['title'])) ? $env->post('activity')['title'] : '';
             $content = (!empty($env->post('activity')['content'])) ? $env->post('activity')['content'] : '';
-            $date = (!empty($env->post('activity')['date'])) ? $env->post('activity')['date'] : '';
-            $time = (!empty($env->post('activity')['time'])) ? $env->post('activity')['time'] : '';
+            $date = (isset($env->post('activity')['date'])) ? $env->post('activity')['date'] : '';
+            $time = (isset($env->post('activity')['time'])) ? $env->post('activity')['time'] : '';
             $signups_min_val = (!empty($env->post('activity')['signups_min_val'])) ? $env->post('activity')['signups_min_val'] : '';
             $signups_max_val = (!empty($env->post('activity')['signups_max_val'])) ? $env->post('activity')['signups_max_val'] : '';
 
@@ -465,8 +510,8 @@ class Activity_Event extends Activity {
 
             $title = (!empty($env->post('activity')['title'])) ? $env->post('activity')['title'] : $act->title;
             $content = (!empty($env->post('activity')['content'])) ? $env->post('activity')['content'] : $act->description;
-            $date = (!empty($env->post('activity')['date'])) ? $env->post('activity')['date'] : $act->date;
-            $time = (!empty($env->post('activity')['time'])) ? $env->post('activity')['time'] : $act->time;
+            $date = (isset($env->post('activity')['date'])) ? $env->post('activity')['date'] : $act->date;
+            $time = (isset($env->post('activity')['time'])) ? $env->post('activity')['time'] : $act->time;
             $signups_min_val = (!empty($env->post('activity')['signups_min_val'])) ? $env->post('activity')['signups_min_val'] : $act->minimal_signups;
             $signups_max_val = (!empty($env->post('activity')['signups_max_val'])) ? $env->post('activity')['signups_max_val'] : $act->maximal_signups;
 
@@ -600,9 +645,8 @@ class Activity_Event extends Activity {
         if (empty($env->post('activity')['date'])) {
             $msg->add('activity_event_date_validation', 'When?');
             $errors = true;
-        }
-        if (empty($env->post('activity')['time'])) {
-            $msg->add('activity_event_time_validation', 'When exactly?');
+        } elseif (empty($env->post('activity')['time'])) {
+            $msg->add('activity_event_date_validation', 'When exactly?');
             $errors = true;
         }
 

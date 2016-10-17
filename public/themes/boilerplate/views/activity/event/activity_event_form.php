@@ -1,3 +1,12 @@
+<script type="text/javascript">
+function toggle(div){
+    if (document.getElementById(div).className == 'hidden') {
+        document.getElementById(div).className = '';
+    } else {
+        document.getElementById(div).className = 'hidden';
+    }
+}
+</script>
 <section class="form">
     <p>Together we are strong!</p>
     <form method="post" action="{##form_action##}">
@@ -14,18 +23,11 @@
             <textarea id="activity_content" name="activity[content]" placeholder="{##activity_content_text##}">{##activity_content##}</textarea>
             {##activity_content_validation##}<br />
             Date: <input type="date" name="activity[date]" placeholder="Date" value="{##activity_date##}" />
-            Time: <input type="time" name="activity[time]" placeholder="Time" value="{##activity_time##}" /><br />
-<!--            <input disabled="disabled" type="checkbox" name="activity[calendar]" value="calendar" /> Display event on calendar<br />
-            <input disabled="disabled" type="checkbox" name="activity[repeat]" value="repeat" /> Repeat Events 
-            <select disabled="disabled" name="activity[schedule]">
-                <option value="1">Weekly</option>
-                <option value="2">Biweekly</option>
-                <option value="3">Monthly</option>
-            </select>
-            <br /> //-->
+            Time: <input type="time" name="activity[time]" placeholder="Time" value="{##activity_time##}" /> {##activity_date_validation##}<br />
             <input type="checkbox" {##activity_comments_checked##} name="activity[comments]" value="1" /> Allow comments for this event<br />
         </fieldset>
-        <fieldset>
+        Signups <a href="#" onclick="toggle('signups');">(+/-)</a>
+        <fieldset id="signups" class="hidden">
             <legend>Event signups</legend>
             <input type="checkbox" {##activity_signups_checked##} name="activity[signups]" value="1" /> Allow signups<br />
             <input {##activity_signups_min_checked##} type="checkbox" name="activity[signups_min]" value="1" /> Minimum signups for event to happen
@@ -34,7 +36,8 @@
             <input type="number" name="activity[signups_max_val]" value="{##signups_max_val##}" /><br />
             <input {##activity_keep_signups_open_checked##} type="checkbox" name="activity[keep_signups_open]" value="1" /> Keep signups open beyond set limit<br />
         </fieldset>
-        <fieldset>
+        Class registration <a href="#" onclick="toggle('class_registration');">(+/-)</a>
+        <fieldset id="class_registration" class="hidden">
             <legend>Class registration</legend>
             <input type="checkbox" {##activity_class_registration_checked##}  name="activity[class_registration]" value="1" /> Class registration<br />
             <input type="checkbox" {##activity_selectable_roles_checked##}  name="activity[selectable_roles]" value="1" /> Set selectable roles<br />
@@ -55,6 +58,7 @@
 <!--            <input disabled="disabled" type="submit" name="activity[preview]" value="{##preview_text##}" />
             <input disabled="disabled" type="submit" name="activity[draft]" value="{##draft_text##}" /> //-->
             <input type="submit" name="activity[submit]" value="{##submit_text##}" />
+            <input type="submit" name="activity[preview]" value="{##preview_text##}" />
 <!--            <input disabled="disabled" type="checkbox" name="activity[template_activated]" value="template_activated" /> Save as event template //-->
         </fieldset>
         {##activity_general_validation##}
