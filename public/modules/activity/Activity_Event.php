@@ -252,9 +252,6 @@ class Activity_Event extends Activity {
     }
 
     function getSignupsRoles($event_id) {
-        $login = new Login();
-        $user_id = $login->currentUserID();
-
         $db = db::getInstance();
         $sql = "SELECT * FROM activity_events_signups_roles WHERE event_id = '$event_id';";
         $query = $db->query($sql);
@@ -439,21 +436,14 @@ class Activity_Event extends Activity {
         $view->replaceTags();
 
         return $view;
-
     }
     
-    function getActivityForm($id = NULL) {
-        $env = Env::getInstance();
+    function getClassSelectionFormView($id) {
         $msg = Msg::getInstance();
-
+        $env = Env::getInstance();
+        
         $view = new View();
-        $view->setTmpl($view->loadFile('/views/activity/event/activity_event_form.php'), array(
-            '{##activity_title_validation##}' => $msg->fetch('activity_event_title_validation'),
-            '{##activity_content_validation##}' => $msg->fetch('activity_event_content_validation'),
-            '{##activity_date_validation##}' => $msg->fetch('activity_event_date_validation'),
-            '{##activity_time_validation##}' => $msg->fetch('activity_event_time_validation'),
-        ));
-
+        $view->setTmpl($view->loadFile('/views/activity/event/activity_class_selection_form.php'));
         if ($roles = $this->getRoles()) {
             $options_list = '';
             $signups_roles = $this->getSignupsRoles($id);
@@ -471,64 +461,96 @@ class Activity_Event extends Activity {
             }
             $view->addContent('{##roles_select_option##}', $options_list);
         }
+        if ($id === NULL) {
+            $class_registration_checked = (!empty($env->post('activity')['class_registration']) AND $env->post('activity')['class_registration'] !== NULL) ? '1' : '';
+            $selectable_roles_checked = (!empty($env->post('activity')['selectable_roles']) AND $env->post('activity')['selectable_roles'] !== NULL) ? '1' : '';
+        } else {
+            $act = $this->getActivity($id);
+            $class_registration_checked = (!empty($env->post('activity')['class_registration'])) ? $env->post('activity')['class_registration'] : $act->class_registration_enabled;
+            $selectable_roles_checked = (!empty($env->post('activity')['selectable_roles'])) ? $env->post('activity')['selectable_roles'] : $act->roles_registration_enabled;
+        }
+        
         $view->addContent('{##add_role_title_text##}', 'new role title');
         $view->addContent('{##add_new_role_title##}', '');
         $view->addContent('{##submit_add_role_text##}', 'add role');
         $view->addContent('{##delete_selected_roles_text##}', 'delete selected roles');
-        
-        $view->addContent('{##activity_title_validation##}', $msg->fetch('activity_event_title_validation'));
         $view->addContent('{##add_role_title_validation##}', $msg->fetch('activity_add_role_title_validation'));
-        $view->addContent('{##activity_date_validation##}', $msg->fetch('activity_event_date_validation'));
-        $view->addContent('{##activity_content_validation##}', $msg->fetch('activity_event_content_validation'));
-
+        $view->addContent('{##activity_class_registration_checked##}', ($class_registration_checked === '1') ? 'checked="checked"' : '');
+        $view->addContent('{##activity_selectable_roles_checked##}', ($selectable_roles_checked === '1') ? 'checked="checked"' : '');
+        $view->replaceTags();
+        
+        return $view;        
+    }
+    
+    function getSignupsFormView($id) {
+        $msg = Msg::getInstance();
+        $env = Env::getInstance();
+        
+        $view = new View();
+        $view->setTmpl($view->loadFile('/views/activity/event/activity_signups_form.php'));
         if ($id === NULL) {
-            
-            $title = (!empty($env->post('activity')['title'])) ? $env->post('activity')['title'] : '';
-            $content = (!empty($env->post('activity')['content'])) ? $env->post('activity')['content'] : '';
-            $date = (isset($env->post('activity')['date'])) ? $env->post('activity')['date'] : '';
-            $time = (isset($env->post('activity')['time'])) ? $env->post('activity')['time'] : '';
             $signups_min_val = (!empty($env->post('activity')['signups_min_val'])) ? $env->post('activity')['signups_min_val'] : '';
             $signups_max_val = (!empty($env->post('activity')['signups_max_val'])) ? $env->post('activity')['signups_max_val'] : '';
-
-            $comments_checked = (!empty($env->post('activity')['comments']) AND $env->post('activity')['comments'] !== NULL) ? '1' : '';
             $signups_checked = (!empty($env->post('activity')['signups']) AND $env->post('activity')['signups'] !== NULL) ? '1' : '';
             $signups_min_checked = (!empty($env->post('activity')['signups_min']) AND $env->post('activity')['signups_min'] !== NULL) ? '1' : '';
             $signups_max_checked = (!empty($env->post('activity')['signups_max']) AND $env->post('activity')['signups_max'] !== NULL) ? '1' : '';
             $keep_signups_open_checked = (!empty($env->post('activity')['keep_signups_open']) AND $env->post('activity')['keep_signups_open'] !== NULL) ? '1' : '';
-
-            $class_registration_checked = (!empty($env->post('activity')['class_registration']) AND $env->post('activity')['class_registration'] !== NULL) ? '1' : '';
-            $selectable_roles_checked = (!empty($env->post('activity')['selectable_roles']) AND $env->post('activity')['selectable_roles'] !== NULL) ? '1' : '';
-
-            $view->addContent('{##form_action##}', '/activity/event/new');
-
-            $view->addContent('{##preview_text##}', 'Preview');
-            $view->addContent('{##draft_text##}', 'Save as draft');
-            $view->addContent('{##submit_text##}', 'Create');
-            
         } else {
+            $act = $this->getActivity($id);
+            $signups_min_val = (!empty($env->post('activity')['signups_min_val'])) ? $env->post('activity')['signups_min_val'] : $act->minimal_signups;
+            $signups_max_val = (!empty($env->post('activity')['signups_max_val'])) ? $env->post('activity')['signups_max_val'] : $act->maximal_signups;
+            $signups_checked = (!empty($env->post('activity')['signups'])) ? $env->post('activity')['signups'] : $act->signups_activated;
+            $signups_min_checked = (!empty($env->post('activity')['signups_min'])) ? $env->post('activity')['signups_min'] : $act->minimal_signups_activated;
+            $signups_max_checked = (!empty($env->post('activity')['signups_max'])) ? $env->post('activity')['signups_max'] : $act->maximal_signups_activated;
+            $keep_signups_open_checked = (!empty($env->post('activity')['keep_signups_open'])) ? $env->post('activity')['keep_signups_open'] : $act->signup_open_beyond_maximal;
+        }
+        $view->addContent('{##activity_signups_checked##}' , ($signups_checked === '1') ? 'checked="checked"' : '');
+        $view->addContent('{##activity_signups_min_checked##}' , ($signups_min_checked === '1') ? 'checked="checked"' : '');
+        $view->addContent('{##signups_min_val##}' , $signups_min_val);
+        $view->addContent('{##activity_signups_max_checked##}' , ($signups_max_checked === '1') ? 'checked="checked"' : '');
+        $view->addContent('{##signups_max_val##}' , $signups_max_val);
+        $view->addContent('{##activity_keep_signups_open_checked##}' , ($keep_signups_open_checked === '1') ? 'checked="checked"' : '');
+        $view->replaceTags();
+        
+        return $view;        
+    }
+    
+    function getActivityForm($id = NULL) {
+        $env = Env::getInstance();
+        $msg = Msg::getInstance();
+
+        $view = new View();
+        $view->setTmpl($view->loadFile('/views/activity/event/activity_event_form.php'), array(
+            '{##class_selection_form##}' => $this->getClassSelectionFormView($id),
+            '{##signups_form##}' => $this->getSignupsFormView($id),
+            '{##preview_text##}' => 'Preview',
+            '{##draft_text##}' => 'Save as draft',
+            '{##activity_title_validation##}' => $msg->fetch('activity_event_title_validation'),
+            '{##activity_content_validation##}' => $msg->fetch('activity_event_content_validation'),
+            '{##activity_date_validation##}' => $msg->fetch('activity_event_date_validation'),
+            '{##activity_time_validation##}' => $msg->fetch('activity_event_time_validation'),
+        ));
+
+        if ($id === NULL) {
+            $view->addContent('{##form_action##}', '/activity/event/new');
+            $view->addContent('{##submit_text##}', 'Create');
+
+            $title = (!empty($env->post('activity')['title'])) ? $env->post('activity')['title'] : '';
+            $content = (!empty($env->post('activity')['content'])) ? $env->post('activity')['content'] : '';
+            $date = (isset($env->post('activity')['date'])) ? $env->post('activity')['date'] : '';
+            $time = (isset($env->post('activity')['time'])) ? $env->post('activity')['time'] : '';
+            $comments_checked = (!empty($env->post('activity')['comments']) AND $env->post('activity')['comments'] !== NULL) ? '1' : '';
+        } else {
+            $view->addContent('{##form_action##}', '/activity/event/update/' . $id);
+            $view->addContent('{##submit_text##}' , 'Update');
+
             $act = $this->getActivity($id);
 
             $title = (!empty($env->post('activity')['title'])) ? $env->post('activity')['title'] : $act->title;
             $content = (!empty($env->post('activity')['content'])) ? $env->post('activity')['content'] : $act->description;
             $date = (isset($env->post('activity')['date'])) ? $env->post('activity')['date'] : $act->date;
             $time = (isset($env->post('activity')['time'])) ? $env->post('activity')['time'] : $act->time;
-            $signups_min_val = (!empty($env->post('activity')['signups_min_val'])) ? $env->post('activity')['signups_min_val'] : $act->minimal_signups;
-            $signups_max_val = (!empty($env->post('activity')['signups_max_val'])) ? $env->post('activity')['signups_max_val'] : $act->maximal_signups;
-
             $comments_checked = (!empty($env->post('activity')['comments'])) ? $env->post('activity')['comments'] : $act->comments_activated;
-            $signups_checked = (!empty($env->post('activity')['signups'])) ? $env->post('activity')['signups'] : $act->signups_activated;
-            $signups_min_checked = (!empty($env->post('activity')['signups_min'])) ? $env->post('activity')['signups_min'] : $act->minimal_signups_activated;
-            $signups_max_checked = (!empty($env->post('activity')['signups_max'])) ? $env->post('activity')['signups_max'] : $act->maximal_signups_activated;
-            $keep_signups_open_checked = (!empty($env->post('activity')['keep_signups_open'])) ? $env->post('activity')['keep_signups_open'] : $act->signup_open_beyond_maximal;
-
-            $class_registration_checked = (!empty($env->post('activity')['class_registration'])) ? $env->post('activity')['class_registration'] : $act->class_registration_enabled;
-            $selectable_roles_checked = (!empty($env->post('activity')['selectable_roles'])) ? $env->post('activity')['selectable_roles'] : $act->roles_registration_enabled;
-
-            $view->addContent('{##form_action##}', '/activity/event/update/' . $id);
-
-            $view->addContent('{##preview_text##}' , 'Preview');
-            $view->addContent('{##draft_text##}' , 'Save as draft');
-            $view->addContent('{##submit_text##}' , 'Update');
         }
         
         $view->addContent('{##activity_title##}' , $title);
@@ -536,14 +558,7 @@ class Activity_Event extends Activity {
         $view->addContent('{##activity_date##}' , $date);
         $view->addContent('{##activity_time##}' , $time);
         $view->addContent('{##activity_comments_checked##}' , ($comments_checked === '1') ? 'checked="checked"' : '');
-        $view->addContent('{##activity_signups_checked##}' , ($signups_checked === '1') ? 'checked="checked"' : '');
-        $view->addContent('{##activity_signups_min_checked##}' , ($signups_min_checked === '1') ? 'checked="checked"' : '');
-        $view->addContent('{##signups_min_val##}' , $signups_min_val);
-        $view->addContent('{##activity_signups_max_checked##}' , ($signups_max_checked === '1') ? 'checked="checked"' : '');
-        $view->addContent('{##signups_max_val##}' , $signups_max_val);
-        $view->addContent('{##activity_keep_signups_open_checked##}' , ($keep_signups_open_checked === '1') ? 'checked="checked"' : '');
-        $view->addContent('{##activity_class_registration_checked##}' , ($class_registration_checked === '1') ? 'checked="checked"' : '');
-        $view->addContent('{##activity_selectable_roles_checked##}' , ($selectable_roles_checked === '1') ? 'checked="checked"' : '');
+
         $view->replaceTags();
         return $view;
     }
