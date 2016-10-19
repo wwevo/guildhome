@@ -14,8 +14,10 @@
 class Activity_ActionMsg extends Activity {
 
     function initEnv() {
+        // hooks for the various places where messages can be implemented
         Env::registerHook('save_comment_hook', array(new Activity_ActionMsg(), 'saveCommentAction'));
         Env::registerHook('new_user_hook', array(new Activity_ActionMsg(), 'saveNewUserAction'));
+        // hook for the activity module
         Env::registerHook('actnmsg', array(new Activity_ActionMsg(), 'getActivityView'));
     }
     
@@ -60,8 +62,9 @@ class Activity_ActionMsg extends Activity {
         $activity = parent::getActivityById($activity_id);
         $actionmsg = parent::getActivityById($actionmsg_id);
         $identity = new Identity();
-                
-        $message = $identity->getIdentityById($actionmsg->userid) . ' commented on ' . $activity->type_description;
+        $profile = new Profile();
+        $message  = '<a href="' . $profile->getProfileUrlById($actionmsg->userid) . '">' . $identity->getIdentityById($actionmsg->userid) . '</a>';
+        $message .= ' commented on ' . $activity->type_description;
                 
         $sql = "INSERT INTO activity_actionmsg (activity_id, message, related_activity_id) VALUES ('$actionmsg_id', '$message', '$activity_id');";
         $db->query($sql);        

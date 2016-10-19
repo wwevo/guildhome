@@ -139,7 +139,17 @@ article.preview {
 }
 
 article.actionmsg {
+    padding: 0 0.5em;
     background-color: #ffffff;
+}
+
+article.actionmsg a {
+    color: #eda73e;
+    text-decoration: none;
+}
+
+article.actionmsg a:hover {
+    text-decoration: underline;
 }
 
 article.comment:after,
