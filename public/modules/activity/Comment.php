@@ -136,7 +136,7 @@ class Comment {
         $content = $env->post('comment')['content'];
         
         $sql = "INSERT INTO comments (content, userid, create_time, parent_comment) VALUES ('$content', '$userid', '$uxtime', '$parent_comment');";
-        $query = $db->query($sql);
+        $db->query($sql);
     }
     
     function update($id) {
@@ -200,6 +200,9 @@ class Comment {
         $query = $db->query($sql);
         if ($query !== false) {
             $env->clearPost('comment');
+                if (isset($env::$hooks['save_comment_hook'])) {
+                $env::$hooks['save_comment_hook']($activity_id);
+            }
             return true;
         }
         return false;
@@ -207,9 +210,6 @@ class Comment {
 
     
     function getDeleteCommentForm($id) {
-        $env = Env::getInstance();
-        $msg = Msg::getInstance();
-
         $cmt = $this->getComment($id);
         $content = $cmt->content;
         

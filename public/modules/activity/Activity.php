@@ -67,7 +67,7 @@ class Activity {
         $uxtime = time();
         
         $sql = "INSERT INTO activities (id, userid, create_time, type) VALUES ('NULL', '$userid', '$uxtime', '$type');";
-        $query = $db->query($sql);
+        $db->query($sql);
     }
 
     function getActivityById($id = NULL) {

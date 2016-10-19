@@ -12,6 +12,7 @@ require_once('activity/Comment.php'); // (*)
 require_once('activity/Activity_Shout.php'); // (*)
 require_once('activity/Activity_Event.php'); // (*)
 require_once('activity/Activity_Poll.php'); // (*)
+require_once('activity/Activity_ActionMsg.php'); // (*)
 require_once('pages/Pages.php'); // (*)
 require_once('gw2api/gw2api.php'); // (*)
 /*

@@ -138,6 +138,10 @@ article.preview {
     border: 1px dashed #ea6C12;
 }
 
+article.actionmsg {
+    background-color: #ffffff;
+}
+
 article.comment:after,
 article.activity:after {
     content: ".";
