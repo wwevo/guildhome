@@ -2,7 +2,7 @@
 require_once('config/Initialize.php');
 
 /*
- * I lied, this is no autoload. NOT YET! Don't push me :'(
+ * I lied, this is no autoload. NOT YET! Don't push me D:
  * 
  * Core modules. I call them classes. Because I can!
  * These I consider Core. There will be no EoL php-Project without these.
