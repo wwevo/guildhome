@@ -42,6 +42,7 @@ class Register {
         $env = Env::getInstance();
         $msg = Msg::getInstance();
 
+        $error = 0;
         if (empty($env->post('register')['voucher'])) {
             $msg->add('register_voucher_validation', 'Sorry, VIP only; please obtain your personal voucher from any guild officer!');
             $error = 1;
@@ -110,6 +111,9 @@ class Register {
                 if ($result) {
                     $msg->add('register_general_validation', "User " . $username . " has been created.");
                     $env->clearPost('register');
+                    if (isset($env::$hooks['new_user_hook'])) {
+                        $env::$hooks['new_user_hook']($db->insert_id);
+                    }
                     return true; // user creation complete
                 } else {
                     $msg->add('register_general_validation', "Something unexpected happened during Database operations. No user has been created.");

@@ -14,7 +14,8 @@
 class Activity_ActionMsg extends Activity {
 
     function initEnv() {
-        Env::registerHook('save_comment_hook', array(new Activity_ActionMsg(), 'saveActivity'));
+        Env::registerHook('save_comment_hook', array(new Activity_ActionMsg(), 'saveCommentAction'));
+        Env::registerHook('new_user_hook', array(new Activity_ActionMsg(), 'saveNewUserAction'));
         Env::registerHook('actnmsg', array(new Activity_ActionMsg(), 'getActivityView'));
     }
     
@@ -41,14 +42,16 @@ class Activity_ActionMsg extends Activity {
         $actionmsg = $this->getActivityById($id);
 
         $message = $actionmsg->message;
-        $message .= ' <a href="/comment/activity/view/'.$actionmsg->related_activity_id.'">view</a>';
+        if (isset($actionmsg->related_activity_id)) {
+            $message .= ' <a href="/comment/activity/view/'.$actionmsg->related_activity_id.'">view</a>';
+        }
         $view->setContent('{##action_message##}', $message);
         $view->replaceTags();
 
         return $view;    
     }
 
-    function saveActivity($activity_id = NULL) {
+    function saveCommentAction($activity_id = NULL) {
         $db = db::getInstance();
 
         $this->save($type = '4'); // save metadata as action messages are activities
@@ -64,6 +67,17 @@ class Activity_ActionMsg extends Activity {
         $db->query($sql);        
     }
 
+    function saveNewUserAction($user_id = NULL) {
+        $db = db::getInstance();
+        $this->save($type = '4'); // save metadata as action messages are activities
+        $actionmsg_id = $db->insert_id;
+        $identity = new Identity();
+        $message = $identity->getIdentityById($user_id, 0) . ' created an account';
+
+        $sql = "INSERT INTO activity_actionmsg (activity_id, message) VALUES ('$actionmsg_id', '$message');";
+        $db->query($sql);        
+    }
+    
 }
 $activity_actionmsg = new Activity_ActionMsg();
 $activity_actionmsg->initEnv();

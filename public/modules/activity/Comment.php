@@ -200,7 +200,7 @@ class Comment {
         $query = $db->query($sql);
         if ($query !== false) {
             $env->clearPost('comment');
-                if (isset($env::$hooks['save_comment_hook'])) {
+            if (isset($env::$hooks['save_comment_hook'])) {
                 $env::$hooks['save_comment_hook']($activity_id);
             }
             return true;
