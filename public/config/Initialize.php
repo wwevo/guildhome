@@ -1,15 +1,21 @@
 <?php
-
+header("Content-Type: text/html;charset=utf-8");
+include_once 'config/env.php';
 /* 
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * config/env.php:
+ * <?php
+ * define('GH_BASEDIR', '');
+ *
  */
 
-header("Content-Type: text/html;charset=utf-8");
-error_reporting(E_ALL);
-//error_reporting(E_ALL & ~E_NOTICE);
-ini_set("display_errors", 1);
+if (constant('GH_BASEDIR') == 'beta.eol.gw2.localhost') {
+    error_reporting(E_ALL);
+    //error_reporting(E_ALL & ~E_NOTICE);
+    ini_set("display_errors", 1);
+} else {
+    error_reporting(E_ERROR);
+    ini_set("display_errors", 0);
+}
 
 // we need sessions in this one, make sure it's started
 if (!session_id()) {
@@ -22,11 +28,3 @@ if (version_compare(PHP_VERSION, '5.3.7', '<')) {
 } else if (version_compare(PHP_VERSION, '5.5.0', '<')) {
     require_once("libraries/password_compatibility_library.php");
 }
-
-require_once("libraries/bulletproof_image_upload.php");
-
-include_once 'config/env.php';
-
-//config/env.php:
-//<?php
-//define('GH_BASEDIR', '');

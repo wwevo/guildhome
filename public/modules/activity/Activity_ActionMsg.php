@@ -47,7 +47,7 @@ class Activity_ActionMsg extends Activity {
 
         $message = $actionmsg->message;
         if (isset($actionmsg->related_activity_id)) {
-            $message .= ' <a href="/comment/activity/view/'.$actionmsg->related_activity_id.'">view</a>';
+            $message .= ' (<a href="/comment/activity/view/'.$actionmsg->related_activity_id.'">view</a>)';
         }
         $view->setContent('{##action_message##}', $message);
         $view->replaceTags();
