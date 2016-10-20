@@ -185,15 +185,22 @@ class Activity_Event extends Activity {
         $sql = "SELECT * FROM activity_events_signups_user WHERE user_id = '$user_id' AND event_id = '$event_id';";
         $query = $db->query($sql);
         if ($query !== false AND $query->num_rows >= 1) {
+            $signup = FALSE;
             $sql = "DELETE FROM activity_events_signups_user 
                         WHERE user_id = '$user_id' AND event_id = '$event_id';";
             $query = $db->query($sql);        
         } else {
+            $signup = TRUE;
             $sql = "INSERT INTO activity_events_signups_user (event_id, user_id, registration_id, preferred) VALUES ('$event_id', '$user_id', '', '0');";
             $query = $db->query($sql);        
         }
 
         if ($query !== false) {
+            $env = Env::getInstance();
+            if (isset($env::$hooks['toggle_event_signup_hook'])) {
+                $env::$hooks['toggle_event_signup_hook']($event_id, $signup);
+            }
+
             return true;
         }
         return false;
