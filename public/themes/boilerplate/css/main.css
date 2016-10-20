@@ -139,8 +139,9 @@ article.preview {
 }
 
 article.actionmsg {
-    padding: 0 0.5em;
-    background-color: #ffffff;
+    border: 1px solid #eda73e;
+    padding: 0 0.5em 0 1.33em; margin-bottom: 2px;
+    background: #ffffff url('../img/info_icon_17x17.png') no-repeat 2px 4px;
 }
 
 article.actionmsg a {
