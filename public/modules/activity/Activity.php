@@ -59,17 +59,6 @@ class Activity {
         $page->addContent('{##main##}', $this->getAllActivitiesView());
     }
     
-    function save($type = '1') {
-        $db = db::getInstance();
-        $login = new Login();
-        
-        $userid = $login->currentUserID();
-        $uxtime = time();
-        
-        $sql = "INSERT INTO activities (id, userid, create_time, type) VALUES ('NULL', '$userid', '$uxtime', '$type');";
-        $db->query($sql);
-    }
-
     function getActivityById($id = NULL) {
         if ($id === NULL) {
             return false;
@@ -93,19 +82,20 @@ class Activity {
     function getActivities($interval = NULL) {
         $db = db::getInstance();
         
-        //$interval_sql = (is_numeric($interval)) ? " LIMIT " . $interval : '';
-        $interval_sql = '';
-        $interval = !is_null($interval) ? "HAVING create_time >= DATE_SUB(CURDATE(), INTERVAL $interval DAY)" : '';
-                
-        $sql = "SELECT activities.id, activities.userid, from_unixtime(activities.create_time) AS create_time, activities.type AS type, activity_types.name AS type_name, activity_types.description AS type_description,
-                    (SELECT concat(ae.date,' ', ae.time) as timestamp FROM activity_events ae WHERE ae.activity_id = activities.id HAVING DATE_ADD(timestamp,INTERVAL 2 HOUR) >= NOW() AND timestamp <= DATE_ADD(NOW(),INTERVAL 48 HOUR)) as event_date
+        $interval_sql = (is_numeric($interval)) ? "HAVING create_time >= DATE_SUB(CURDATE(), INTERVAL $interval DAY)" : '';
+        
+        $sql = "SELECT activities.id, activities.userid, activities.create_time AS timestamp, from_unixtime(activities.create_time) AS create_time, activities.type AS type, activity_types.name AS type_name, activity_types.description AS type_description,
+                    (SELECT concat(ae.date, ' ', ae.time) AS timestamp
+                        FROM activity_events ae
+                        WHERE ae.activity_id = activities.id
+                        HAVING DATE_ADD(timestamp,INTERVAL 2 HOUR) >= NOW() AND timestamp <= DATE_ADD(NOW(),INTERVAL 48 HOUR)
+                    ) AS event_date,
+                    DAY(from_unixtime(activities.create_time)) as event_day
                     FROM activities
                     INNER JOIN activity_types
-                    ON activities.type = activity_types.id
-                    $interval
-                    ORDER BY event_date IS NULL, event_date ASC, activities.create_time DESC
-                    $interval_sql;
-                ";
+                        ON activities.type = activity_types.id
+                    $interval_sql
+                    ORDER BY event_date IS NULL, event_date ASC, activities.create_time DESC";
         $query = $db->query($sql);
 
         if ($query !== false AND $query->num_rows >= 1) {
@@ -118,9 +108,59 @@ class Activity {
     }
     
     /*
+     * Being a patchwork funtion at the moment, a lot of stuff is Jerry-Rigged here
+     * A lot of stuff has to be worked out to be viable for public release
+     * Whats clearly missing:
+     *      - automatic detection of activity type and corresponding class
+     */
+    function getAllActivitiesView($type = NULL) {
+        $view = new View();
+        $view->setTmpl($view->loadFile('/views/activity/list_all_activities.php'));
+        
+        $activities = ($type === NULL) ? $this->getActivities(10) : $this->getActivities();
+        if (false !== $activities) {
+            $d_var = getdate($activities[0]->timestamp);
+            $activity_loop = '<header class="day_header"><h3>' . $d_var["weekday"] . '</h3>, <time>' . $d_var["month"] . ' '. $d_var["mday"] . '</time></header>';
+            $activity_loop .= '<ul class="day_wrapper">';
+            $activity_loop .= '<li><ul class="activity_wrapper ' . $activities[0]->type_name . '">';
+            $last_type = $activities[0]->type;
+            $last_day = $activities[0]->event_day;
+            foreach ($activities as $act) {
+                if ($type !== NULL AND $act->type !== $type) {
+                    continue;
+                }
+                
+                if ($last_day != $act->event_day) {
+                    $activity_loop .= '</ul></li></ul>';
+                    $d_var = getdate($act->timestamp);
+                    $activity_loop .= '<header class="day_header"><h3>' . $d_var["weekday"] . '</h3>, <time>' . $d_var["month"] . ' '. $d_var["mday"] . '</time></header>';
+                    $activity_loop .= '<ul class="day_wrapper">';
+                    $activity_loop .= '<li><ul class="activity_wrapper ' . $act->type_name . ' ' . $act->id . '">';
+                    $last_day = $act->event_day;
+                }
+
+                if ($last_type != $act->type) {
+                    $activity_loop .= '</ul>';
+                    $activity_loop .= '<ul class="activity_wrapper ' . $act->type_name . '">';
+                    $last_type = $act->type;
+                }
+
+                $subView = $this->getActivityView($act->id, $compact = TRUE);
+                $activity_loop .= '<li>' . $subView . '</li>';
+
+            }
+            $activity_loop .= '</ul></li>';
+            $activity_loop .= '</ul>';
+            $view->addContent('{##activity_loop##}',  $activity_loop);
+        }
+        $view->replaceTags();
+        return $view;
+    }
+    
+    /*
      * Spaghetti-Code at it's best :)
      */
-    function getSubView($act_id = NULL, $compact = NULL) {
+    function getActivityView($act_id = NULL, $compact = NULL) {
         $env = Env::getInstance();
         $act = $this->getActivityById($act_id);
         
@@ -133,51 +173,17 @@ class Activity {
         return false;
     }
 
-    /*
-     * Being a patchwork funtion at the moment, a lot of stuff is Jerry-Rigged here
-     * A lot of stuff has to be worked out to be viable for public release
-     * Whats clearly missing:
-     *      - automatic detection of activity type and corresponding class
-     */
-    function getAllActivitiesView($type = NULL) {
-        $view = new View();
-        $view->setTmpl($view->loadFile('/views/activity/list_all_activities.php'));
-        $activities = ($type === NULL) ? $this->getActivities(10) : $this->getActivities();
-
-        if (false !== $activities) {
-            $activity_loop = NULL;
-            foreach ($activities as $act) {
-                if ($type !== NULL AND $act->type !== $type) {
-                    continue;
-                }
-                
-                $subView = $this->getSubView($act->id, $compact = TRUE);
-                
-                $activity_loop .= $subView;
-            }
-            $view->addContent('{##activity_loop##}',  $activity_loop);
-        }
-        $view->replaceTags();
-        return $view;
+    function save($type = '1') {
+        $db = db::getInstance();
+        $login = new Login();
+        
+        $userid = $login->currentUserID();
+        $uxtime = time();
+        
+        $sql = "INSERT INTO activities (id, userid, create_time, type) VALUES ('NULL', '$userid', '$uxtime', '$type');";
+        $db->query($sql);
     }
 
-    function getActivityView($id = NULL) {
-        $subView = $this->getSubView($id);
-        return $subView;
-    }
-    
-    function createSlug($str) {
-	if ($str !== mb_convert_encoding(mb_convert_encoding($str, 'UTF-32', 'UTF-8'), 'UTF-8', 'UTF-32')) {
-            $str = mb_convert_encoding($str, 'UTF-8', mb_detect_encoding($str));
-        }
-        $str = htmlentities($str, ENT_NOQUOTES, 'UTF-8');
-        $str = preg_replace('`&([a-z]{1,2})(acute|uml|circ|grave|ring|cedil|slash|tilde|caron|lig);`i', '\\1', $str);
-        $str = html_entity_decode($str, ENT_NOQUOTES, 'UTF-8');
-        $str = preg_replace(array('`[^a-z0-9]`i','`[-]+`'), '-', $str);
-        $str = strtolower(trim($str, '-'));
-        return $str;
-    }
-   
 }
 $activity = new Activity();
 $activity->initEnv();

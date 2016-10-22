@@ -139,8 +139,9 @@ article.preview {
 }
 
 article.actionmsg {
+    font-size: 0.75em;
     border: 1px solid #eda73e;
-    padding: 0 0.5em 0 1.33em; margin-bottom: 2px;
+    padding: 0 0.5em 0 1.75em; margin-bottom: 2px;
     background: #ffffff url('../img/info_icon_17x17.png') no-repeat 2px 4px;
 }
 
@@ -223,6 +224,27 @@ article.comment section.not_logged_in,
 article.activity section.not_logged_in {
     float: left;
     text-align: left;
+}
+
+article header.day_header h3 {
+    font-size: 1.33em;
+    margin: 0.5em 0 0 0; padding: 0; display: inline-block;
+}
+
+article header.day_header time {
+    font-size: 0.75em;
+    margin: 0; padding: 0; display: inline;
+}
+
+article ul.day_wrapper,
+article ul.activity_wrapper {
+    margin: 0; padding: 0;
+    list-style-type: none;
+}
+
+article ul.day_wrapper > li,
+article ul.activity_wrapper > li {
+    margin: 0; padding: 0;
 }
 
 /* ==============

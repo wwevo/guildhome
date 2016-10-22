@@ -20,7 +20,7 @@ $log::lfile($logpath . 'eol_log.txt');
  * 
  * Most websites will be useless without these and most Modules will need
  *  them as well.
- * Classes are instantiated inside the {Classname}.php file and a call to
+ * Modules are instantiated inside the {Classname}.php file and a call to
  *  the initEnv() function is made, if available. I marked those classes
  *  with (*) in this file.
  * I chose the initEnv approach to have on-Load functionality in classes in
@@ -32,8 +32,6 @@ require_once ('modules/autoload.php');
 /*
  * Get some settings from the db
  */
-
-define('default_theme', 'boilerplate');
 $settings = new Settings();
 $theme_name = filter_var($settings->getSettingByKey('theme_name'), FILTER_SANITIZE_STRING);
 if ($theme_name !== false AND !empty($theme_name) AND in_array($theme_name, ['eol', 'boilerplate', 'evolution'])) {
@@ -87,6 +85,7 @@ ToroHook::add('404', function() {
     exit;
 });
 Toro::serve();
+
 /*
  * You did it! This website is being displayed now ;)
  */

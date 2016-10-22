@@ -25,7 +25,12 @@ class Activity_ActionMsg extends Activity {
     
     function getActivityById($id = NULL) {
         $db = db::getInstance();
-        $sql = "SELECT * FROM activity_actionmsg WHERE activity_id = $id
+        $sql = "SELECT activity_actionmsg.*, from_unixtime(activities.create_time, '%Y-%m-%d') AS create_date,
+                    from_unixtime(activities.create_time, '%H:%i') AS create_time
+                    FROM activity_actionmsg
+                    INNER JOIN activities
+                        ON activities.id = activity_actionmsg.activity_id
+                    WHERE activity_actionmsg.activity_id = $id
                     LIMIT 1;";
         $query = $db->query($sql);
 
@@ -39,13 +44,14 @@ class Activity_ActionMsg extends Activity {
         
     }
     
-    function getActivityView($id = NULL) {
+    function getActivityView($id = NULL, $compact = NULL) {
         $view = new View();
         $view->setTmpl($view->loadFile('/views/activity/action_msg_view.php'));
 
         $actionmsg = $this->getActivityById($id);
 
-        $message = $actionmsg->message;
+        $message = 'at ' . $actionmsg->create_time . ', ';
+        $message .= $actionmsg->message;
         if (isset($actionmsg->related_activity_id)) {
             $message .= ' (<a href="/comment/activity/view/'.$actionmsg->related_activity_id.'">view</a>)';
         }

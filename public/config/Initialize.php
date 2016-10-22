@@ -9,13 +9,15 @@ include_once 'config/env.php';
  */
 
 if (constant('GH_BASEDIR') == 'beta.eol.gw2.localhost') {
-    error_reporting(E_ALL);
+    error_reporting(E_ALL | E_STRICT);
     //error_reporting(E_ALL & ~E_NOTICE);
     ini_set("display_errors", 1);
 } else {
     error_reporting(E_ERROR);
     ini_set("display_errors", 0);
 }
+
+define('default_theme', 'boilerplate');
 
 // we need sessions in this one, make sure it's started
 if (!session_id()) {
