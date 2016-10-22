@@ -120,7 +120,10 @@ class Activity {
         $activities = ($type === NULL) ? $this->getActivities(10) : $this->getActivities();
         if (false !== $activities) {
             $d_var = getdate($activities[0]->timestamp);
-            $activity_loop = '<header class="day_header"><h3>' . $d_var["weekday"] . '</h3>, <time>' . $d_var["month"] . ' '. $d_var["mday"] . '</time></header>';
+            $activity_loop = '';
+            if (!isset($activities[0]->event_date)) {
+                $activity_loop .= '<header class="day_header"><h3>' . $d_var["weekday"] . '</h3>, <time>' . $d_var["month"] . ' '. $d_var["mday"] . '</time></header>';
+            }
             $activity_loop .= '<ul class="day_wrapper">';
             $activity_loop .= '<li><ul class="activity_wrapper ' . $activities[0]->type_name . '">';
             $last_type = $activities[0]->type;
@@ -133,7 +136,9 @@ class Activity {
                 if ($last_day != $act->event_day) {
                     $activity_loop .= '</ul></li></ul>';
                     $d_var = getdate($act->timestamp);
-                    $activity_loop .= '<header class="day_header"><h3>' . $d_var["weekday"] . '</h3>, <time>' . $d_var["month"] . ' '. $d_var["mday"] . '</time></header>';
+                    if (!isset($act->event_date)) {
+                        $activity_loop .= '<header class="day_header"><h3>' . $d_var["weekday"] . '</h3>, <time>' . $d_var["month"] . ' '. $d_var["mday"] . '</time></header>';
+                    }
                     $activity_loop .= '<ul class="day_wrapper">';
                     $activity_loop .= '<li><ul class="activity_wrapper ' . $act->type_name . ' ' . $act->id . '">';
                     $last_day = $act->event_day;
