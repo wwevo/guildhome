@@ -338,17 +338,25 @@ class Comment {
         return $view;
     }
     
-    function getNewCommentForm($id) {
+    function getNewCommentForm($activity_id) {
         $env = Env::getInstance();
         $msg = Msg::getInstance();
 
+        $activity = new Activity();
+        $act = $activity->getActivityById($activity_id);
+
         $view = new View();
-        $view->setTmpl($view->loadFile('/views/activity/new_comment_form.php'), array(
-            '{##form_action##}' => '/comment/activity/new/' . $id,
-            '{##comment_content##}' => $env->post('comment')['content'],
-            '{##comment_content_validation##}' => $msg->fetch('comment_content_validation'),
-            '{##submit_text##}' => 'Say it loud',
-        ));
+        if ($act->deleted == '1') {
+            $view->setTmpl($view->loadFile('/views/core/one_tag.php'));
+            $view->setContent('{##data##}', 'No commenting on deleted content :)');
+        } else {
+            $view->setTmpl($view->loadFile('/views/activity/new_comment_form.php'), array(
+                '{##form_action##}' => '/comment/activity/new/' . $activity_id,
+                '{##comment_content##}' => $env->post('comment')['content'],
+                '{##comment_content_validation##}' => $msg->fetch('comment_content_validation'),
+                '{##submit_text##}' => 'Say it loud',
+            ));
+        }
         $view->replaceTags();
         return $view;
     }
@@ -358,15 +366,22 @@ class Comment {
         $msg = Msg::getInstance();
         
         $comment =  $this->getComment($id);
+        $activity = new Activity();
+        $act = $activity->getActivityById($comment->activity_id);
         $content = (!empty($env->post('comment')['content'])) ? $env->post('comment')['content'] : $comment->content;
 
         $view = new View();
-        $view->setTmpl($view->loadFile('/views/activity/edit_comment_form.php'), array(
-            '{##form_action##}' => '/comment/activity/update/' . $id,
-            '{##comment_content##}' => $content,
-            '{##comment_content_validation##}' => $msg->fetch('comment_content_validation'),
-            '{##submit_text##}' => 'Revised and ready!',
-        ));
+        if ($act->deleted == '1') {
+            $view->setTmpl($view->loadFile('/views/core/one_tag.php'));
+            $view->setContent('{##data##}', 'No commenting-editing on deleted content :)');
+        } else {
+            $view->setTmpl($view->loadFile('/views/activity/edit_comment_form.php'), array(
+                '{##form_action##}' => '/comment/activity/update/' . $id,
+                '{##comment_content##}' => $content,
+                '{##comment_content_validation##}' => $msg->fetch('comment_content_validation'),
+                '{##submit_text##}' => 'Revised and ready!',
+            ));
+        }
         $view->replaceTags();
         return $view;
     }

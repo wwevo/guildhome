@@ -149,8 +149,8 @@ class Activity_Shout extends Activity {
         return $view;
     }
     
-    function getActivityView($act = NULL, $compact = NULL) {
-        $act = $this->getActivityById($act);
+    function getActivityView($activity_id = NULL, $compact = NULL) {
+        $act = parent::getActivityById($activity_id);
 
         $view = new View();
         $view->setTmpl($view->loadFile('/views/activity/list_all_activities.php'));
@@ -162,6 +162,9 @@ class Activity_Shout extends Activity {
         }
         if (isset($act->type_description)) {
             $subView->addContent('{##activity_type##}', $act->type_description);
+        }
+        if ($act->deleted == '1') {
+            $subView->addContent('{##css##}', ' deleted');
         }
 
         $activity_event = $this->getActivity($act->id);
@@ -356,24 +359,23 @@ class Activity_Shout extends Activity {
         return false;
     }
     
-    function deleteActivity($id) {
+    function deleteActivity($activity_id) {
         $db = db::getInstance();
         $env = Env::getInstance();
         $login = new Login();
 
         $userid = $login->currentUserID();
-        $actid = $this->getActivity($id)->userid;
+        $actid = $this->getActivity($activity_id)->userid;
         if ($userid != $actid) {
             return false;
         }
-        $sql = "DELETE FROM activity_shouts 
-                    WHERE activity_id = '$id';";
-        $query = $db->query($sql);
-        $sql = "DELETE FROM activities 
-                    WHERE id = '$id';";
+        $sql = "UPDATE activities SET deleted = '1' WHERE id = '$activity_id';";
         $query = $db->query($sql);
         if ($query !== false) {
             $env->clearPost('activity');
+            if (isset($env::$hooks['delete_event_hook'])) {
+                $env::$hooks['delete_event_hook']($activity_id);
+            }
             return true;
         }
         return false;

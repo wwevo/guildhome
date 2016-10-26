@@ -18,6 +18,7 @@ class Activity_ActionMsg extends Activity {
         Env::registerHook('save_comment_hook', array(new Activity_ActionMsg(), 'saveCommentAction'));
         Env::registerHook('new_user_hook', array(new Activity_ActionMsg(), 'saveNewUserAction'));
         Env::registerHook('toggle_event_signup_hook', array(new Activity_ActionMsg(), 'toggleEventSignupAction'));
+        Env::registerHook('delete_event_hook', array(new Activity_ActionMsg(), 'deleteEventAction'));
         
         // hook for the activity module
         Env::registerHook('actnmsg', array(new Activity_ActionMsg(), 'getActivityView'));
@@ -73,6 +74,23 @@ class Activity_ActionMsg extends Activity {
         $profile = new Profile();
         $message  = '<a href="' . $profile->getProfileUrlById($actionmsg->userid) . '">' . $identity->getIdentityById($actionmsg->userid) . '</a>';
         $message .= ' commented on ' . $activity->type_description;
+                
+        $sql = "INSERT INTO activity_actionmsg (activity_id, message, related_activity_id) VALUES ('$actionmsg_id', '$message', '$activity_id');";
+        $db->query($sql);        
+    }
+
+    function deleteEventAction($activity_id = NULL) {
+        $db = db::getInstance();
+
+        $this->save($type = '4'); // save metadata as action messages are activities
+        $actionmsg_id = $db->insert_id;
+        
+        $activity = parent::getActivityById($activity_id);
+        $actionmsg = parent::getActivityById($actionmsg_id);
+        $identity = new Identity();
+        $profile = new Profile();
+        $message  = '<a href="' . $profile->getProfileUrlById($actionmsg->userid) . '">' . $identity->getIdentityById($actionmsg->userid) . '</a>';
+        $message .= ' deleted ' . $activity->type_description;
                 
         $sql = "INSERT INTO activity_actionmsg (activity_id, message, related_activity_id) VALUES ('$actionmsg_id', '$message', '$activity_id');";
         $db->query($sql);        

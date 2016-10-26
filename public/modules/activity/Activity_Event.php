@@ -342,6 +342,10 @@ class Activity_Event extends Activity {
         if ($act->hot === 'true') {
             $subView->addContent('{##css##}', ' hot');
         }
+        if ($act_meta->deleted == '1') {
+            $subView->addContent('{##css##}', ' deleted');
+        }
+
         $delete_link = '/activity/event/delete/' . $act->activity_id;
         $update_link = '/activity/event/update/' . $act->activity_id;
         $comment_link = '/comment/activity/view/' . $act->activity_id;
@@ -743,7 +747,6 @@ class Activity_Event extends Activity {
         $db = db::getInstance();
         $env = Env::getInstance();
 
-        $class_registration = isset($env->post('activity')['class_registration']) ? '1' : '0';
         $signups_roles = isset($env->post('activity')['roles']) ? $env->post('activity')['roles'] : false;
         
         $this->deleteSignupsRolesByEventId($activity_id);
@@ -896,22 +899,24 @@ class Activity_Event extends Activity {
     }
 
     
-    function deleteActivity($id) {
+    function deleteActivity($activity_id) {
         $db = db::getInstance();
         $env = Env::getInstance();
         $login = new Login();
 
         $userid = $login->currentUserID();
-        $actid = $this->getActivity($id)->userid;
+        $actid = $this->getActivity($activity_id)->userid;
         if ($userid != $actid) {
             return false;
         }
 
-        $sql = "DELETE FROM activities 
-                    WHERE id = '$id';";
+        $sql = "UPDATE activities SET deleted = '1' WHERE id = '$activity_id';";
         $query = $db->query($sql);
         if ($query !== false) {
             $env->clearPost('activity');
+            if (isset($env::$hooks['delete_event_hook'])) {
+                $env::$hooks['delete_event_hook']($activity_id);
+            }
             return true;
         }
         return false;

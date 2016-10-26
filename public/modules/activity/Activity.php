@@ -64,7 +64,7 @@ class Activity {
             return false;
         }
         $db = db::getInstance();
-        $sql = "SELECT activities.id, activities.userid, from_unixtime(activities.create_time) AS create_time, activities.type AS type, activity_types.name AS type_name, activity_types.description AS type_description
+        $sql = "SELECT activities.deleted as deleted, activities.id, activities.userid, from_unixtime(activities.create_time) AS create_time, activities.type AS type, activity_types.name AS type_name, activity_types.description AS type_description
                     FROM activities
                     INNER JOIN activity_types
                     ON activities.type = activity_types.id
@@ -94,6 +94,7 @@ class Activity {
                     FROM activities
                     INNER JOIN activity_types
                         ON activities.type = activity_types.id
+                    WHERE activities.deleted = 0
                     $interval_sql
                     ORDER BY event_date IS NULL, event_date ASC, activities.create_time DESC";
         $query = $db->query($sql);

@@ -138,6 +138,20 @@ article.preview {
     border: 1px dashed #ea6C12;
 }
 
+article.deleted .content {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' version='1.1' preserveAspectRatio='none' viewBox='0 0 100 100'><path d='M100 0 L0 100 ' stroke='black' stroke-width='1'/><path d='M0 0 L100 100 ' stroke='black' stroke-width='1'/></svg>");
+    background-repeat:no-repeat;
+    background-position:center center;
+    background-size: 100% 100%, auto;
+
+}
+
+article.deleted a {
+    pointer-events: none !important;
+    cursor: default !important;
+    opacity: 0.6 !important;
+}
+
 article.actionmsg {
     font-size: 0.75em;
     border: 1px solid #eda73e;
