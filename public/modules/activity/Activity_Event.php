@@ -325,7 +325,7 @@ class Activity_Event extends Activity {
         $act = $this->getActivity($id);
         
         $view = new View();
-        $view->setTmpl($view->loadFile('/views/activity/list_all_activities.php'));
+        $view->setTmpl($view->loadFile('/views/activity/event/activity_event_view.php'));
 
         $subView = new View();
         $subView->setTmpl($view->getSubTemplate('{##activity_loop##}'));
@@ -389,16 +389,18 @@ class Activity_Event extends Activity {
         }
 
         if ($activity_event->minimal_signups_activated) {
-            $signups .= " (" . $activity_event->minimal_signups . " req)";
+            $signups .= " (" . $activity_event->minimal_signups . " required)";
         }
 
-        $signups .= $this->getActivityDetailsView($act->activity_id);
         $subView->addContent('{##activity_signups##}',  $signups);
         if (isset($act_meta->userid)) {
             $identity = new Identity();
             $subView->addContent('{##activity_identity##}', $identity->getIdentityById($act_meta->userid, 0));
             $subView->addContent('{##avatar##}', $identity->getAvatarByUserId($act_meta->userid));
         }
+
+        $subView->addContent('{##activity_signup_form##}', $this->getSignupForm($act->activity_id));
+        $subView->addContent('{##activity_signups_list##}',  $this->getActivityDetailsView($act->activity_id));
 
         if ($allow_comments === TRUE) {
             $comment = new Comment();
@@ -435,7 +437,7 @@ class Activity_Event extends Activity {
             $linkView->setTmpl($view->getSubTemplate('{##details_link_area##}'));
 
             $linkView->addContent('{##details_link##}', $details_link);
-            $linkView->addContent('{##details_link_text##}',  Parsedown::instance()->text($activity_event->title));
+            $linkView->addContent('{##details_link_text##}',  Parsedown::instance()->line($activity_event->title));
             $linkView->replaceTags();
         } else {
             $linkView = '';
@@ -603,26 +605,29 @@ class Activity_Event extends Activity {
             '{##activity_type##}' => $event_type,
             '{##activity_owner##}' => $event_owner,
             '{##activity_owner_profile_url##}' => $event_owner_profile,
+            '{##signups##}' => $signed_up_users,
         ));
         
+        $view->replaceTags();
+        return $view;
+    }
+    
+    function getSignupForm($activity_id) {
+        $act = $this->getActivity($activity_id);
+
         $login = new Login();
-        $signupsView = new View();
-        $signupsView->setTmpl($view->getSubTemplate('{##signups_activated##}'));
-        $signupsView->addContent('{##signups##}', $signed_up_users);
-
-
-        if ($login->isLoggedIn() AND $act->signups_activated == 1 AND $this->eventIsCurrent($act)) {
-            $memberView = new View();
-            $memberView->setTmpl($signupsView->getSubTemplate('{##activity_logged_in##}'));
-            $memberView->addContent('{##signup##}', '/activity/event/signup/' . $id);
-            $memberView->addContent('{##signup_text##}', 'Signup/out');
-            $memberView->replaceTags();
-            $signupsView->addContent('{##activity_logged_in##}',  $memberView);
+        if (!$login->isLoggedIn() OR $act->signups_activated != '1' OR $this->eventIsCurrent($act) === false) {
+            return false;
         }
-
-        $signupsView->replaceTags();
-     
-        $view->addContent('{##signups_activated##}',  $signupsView);
+        
+        $view = new View();
+        $view->setTmpl($view->loadFile('/views/activity/event/activity_event_signup_button.php'));        
+        $view->setContent('{##signup##}', '/activity/event/signup/' . $activity_id);
+        if ($this->isSignedUp($activity_id)) {
+            $view->addContent('{##signup_text##}', 'Signout');
+        } else {
+            $view->addContent('{##signup_text##}', 'Signup');
+        }
         $view->replaceTags();
         return $view;
     }
