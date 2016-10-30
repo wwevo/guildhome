@@ -28,7 +28,6 @@ class Activity_Event extends Activity {
         switch ($alpha) {
             default :
                 $env->clearPost('activity');
-                $page->addContent('{##main##}', '<h2>All events</h2>');
                 $page->addContent('{##main##}', $this->getAllActivitiesView('2')); // 2 = event 
                 break;
             case 'details' :

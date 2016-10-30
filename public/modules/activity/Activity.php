@@ -67,17 +67,12 @@ class Activity {
     
     function getActivityCountByType($type = 0) {
         $db = db::getInstance();
-        $sql = "SELECT from_unixtime(activities.create_time) AS create_time, count(*) AS count
-                    FROM activities
-                    WHERE type = $type
-                    HAVING create_time >= DATE_SUB(CURDATE(), INTERVAL 10 DAY);";
+        $sql = "SELECT (SELECT count(*) AS count FROM activities WHERE type = $type) AS count_all, count(*) AS count FROM activities WHERE type = $type AND from_unixtime(create_time) >= DATE_SUB(CURDATE(), INTERVAL 10 DAY);";
         $query = $db->query($sql);
         
         if ($query !== false AND $query->num_rows == 1) {
             $count = $query->fetch_object();
-            return $count->count;
-        } else {
-            return '0';
+            return $count;
         }
         return false;
     }
@@ -120,9 +115,10 @@ class Activity {
             $view->addContent('{##data##}', '<li>');
         }
         $view->addContent('{##data##}', '<div class="count">');
-        $view->addContent('{##data##}', '<a href="/activities/shouts">' . $this->getActivityCountByType('1') . '</a>');
+        $count = $this->getActivityCountByType('1');
+        $view->addContent('{##data##}', '<a href="/activities/shouts">' . $count->count . '</a>');
         $view->addContent('{##data##}', '</div>');
-        $view->addContent('{##data##}', '<div class="title"><a href="/activities/shouts">Shouts</a></div>');
+        $view->addContent('{##data##}', '<div class="title"><a href="/activities/shouts">Shouts</a> (' . $count->count_all . ')</div>');
         if ($login->isLoggedIn()) {
             $view->addContent('{##data##}', '<div class="action"><a href="/activity/shout/new">+</a></div>');
         }
@@ -134,9 +130,10 @@ class Activity {
             $view->addContent('{##data##}', '<li>');
         }
         $view->addContent('{##data##}', '<div class="count">');
-        $view->addContent('{##data##}', '<a href="/activities/events">' . $this->getActivityCountByType('2') . '</a>');
+        $count = $this->getActivityCountByType('2');
+        $view->addContent('{##data##}', '<a href="/activities/events">' . $count->count . '</a>');
         $view->addContent('{##data##}', '</div>');
-        $view->addContent('{##data##}', '<div class="title"><a href="/activities/events">Events</a></div>');
+        $view->addContent('{##data##}', '<div class="title"><a href="/activities/events">Events</a> (' . $count->count_all . ')</div>');
         if ($login->isLoggedIn()) {
             $view->addContent('{##data##}', '<div class="action"><a href="/activity/event/new">+</a></div>');
         }
@@ -148,9 +145,10 @@ class Activity {
             $view->addContent('{##data##}', '<li>');
         }
         $view->addContent('{##data##}', '<div class="count">');
-        $view->addContent('{##data##}', '<a href="/activities/polls">' . $this->getActivityCountByType('3') . '</a>');
+        $count = $this->getActivityCountByType('3');
+        $view->addContent('{##data##}', '<a href="/activities/polls">' . $count->count . '</a>');
         $view->addContent('{##data##}', '</div>');
-        $view->addContent('{##data##}', '<div class="title"><a href="/activities/polls">Polls</a></div>');
+        $view->addContent('{##data##}', '<div class="title"><a href="/activities/polls">Polls</a> (' . $count->count_all . ')</div>');
         if ($login->isLoggedIn() AND $login->isOperator()) {
             $view->addContent('{##data##}', '<div class="action"><a href="/activity/poll/new">+</a></div>');
         }

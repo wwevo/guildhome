@@ -29,7 +29,6 @@ class Activity_Shout extends Activity {
         switch ($alpha) {
             default :
                 $env->clearPost('activity');
-                $page->addContent('{##main##}', '<h2>All shouts</h2>');
                 $page->addContent('{##main##}', $this->getAllActivitiesView('1')); // 1 = shout
                 break;
             case 'new' :
