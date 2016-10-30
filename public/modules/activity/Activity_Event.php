@@ -24,7 +24,7 @@ class Activity_Event extends Activity {
         $env = Env::getInstance();
         $login = new Login();
         $page = Page::getInstance();
-        $page->addContent('{##main##}', parent::activityMenu());
+        $page->addContent('{##main##}', parent::activityMenu('event'));
         switch ($alpha) {
             default :
                 $env->clearPost('activity');

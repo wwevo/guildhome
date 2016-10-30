@@ -25,7 +25,7 @@ class Activity_Shout extends Activity {
         $env = Env::getInstance();
         $login = new Login();
         $page = Page::getInstance();
-        $page->addContent('{##main##}', parent::activityMenu());
+        $page->addContent('{##main##}', parent::activityMenu('shout'));
         switch ($alpha) {
             default :
                 $env->clearPost('activity');

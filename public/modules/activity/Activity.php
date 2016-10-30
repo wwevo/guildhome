@@ -1,52 +1,9 @@
 <?php
-
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
-/**
- * Description of activity
- *
- * @author ecv
- */
 class Activity {
     
+     // start controller (i guess)
     function initEnv() {
         Toro::addRoute(["/activities" => "Activity"]);
-    }
-        
-    function activityMenu() {
-        $view = new View();
-        $view->setTmpl($view->loadFile('/views/core/one_tag.php'));
-
-        $login = new Login();
-        $view->addContent('{##data##}', '<nav class="activities">');
-        $view->addContent('{##data##}', '<ul>');
-        $view->addContent('{##data##}', '<li><a href="/activities">10 days of EoL</a></li>');
-
-        $view->addContent('{##data##}', '<li>');
-        $view->addContent('{##data##}', '<a href="/activities/shouts">Shouts</a>');
-        if ($login->isLoggedIn()) {
-            $view->addContent('{##data##}', ' <a href="/activity/shout/new">(+)</a>');
-        }
-        $view->addContent('{##data##}', '</li>');
-        
-        $view->addContent('{##data##}', '<li>');
-        $view->addContent('{##data##}', '<a href="/activities/events">Events</a>');
-        if ($login->isLoggedIn()) {
-            $view->addContent('{##data##}', ' <a href="/activity/event/new">(+)</a>');
-        }
-        $view->addContent('{##data##}', '</li>');
-//        $view->addContent('{##data##}', '<li><a href="/activities/polls">Polls</a></li>');
-//        if ($login->isLoggedIn()) {
-//            $view->addContent('{##data##}', '<li class="add"><a href="/activity/poll/new">(+)</a></li>');
-//        }
-        $view->addContent('{##data##}', '</ul>');
-        $view->addContent('{##data##}', '</nav>');
-        $view->replaceTags();
-        return $view;
     }
     
     function get() {
@@ -54,31 +11,11 @@ class Activity {
         $env->clearPost('activity');
 
         $page = Page::getInstance();
-        $page->setContent('{##main##}', $this->activityMenu());
-        $page->addContent('{##main##}', '<h2>Activities of the last 10 Days</h2>');
+        $page->setContent('{##main##}', $this->activityMenu('activity'));
         $page->addContent('{##main##}', $this->getAllActivitiesView());
     }
-    
-    function getActivityById($id = NULL) {
-        if ($id === NULL) {
-            return false;
-        }
-        $db = db::getInstance();
-        $sql = "SELECT activities.deleted as deleted, activities.id, activities.userid, from_unixtime(activities.create_time) AS create_time, activities.type AS type, activity_types.name AS type_name, activity_types.description AS type_description
-                    FROM activities
-                    INNER JOIN activity_types
-                    ON activities.type = activity_types.id
-                    WHERE activities.id = $id
-                    ORDER BY activities.create_time DESC LIMIT 1;";
-        $query = $db->query($sql);
-        
-        if ($query !== false AND $query->num_rows == 1) {
-            $result = $query->fetch_object();
-            return $result;
-        }
-        return false;
-    }
-    
+    // end controller    
+    // start model (i suppose)
     function getActivities($interval = NULL) {
         $db = db::getInstance();
         
@@ -107,13 +44,127 @@ class Activity {
         }
         return false;
     }
+
+    function getActivityById($id = NULL) {
+        if ($id === NULL) {
+            return false;
+        }
+        $db = db::getInstance();
+        $sql = "SELECT activities.deleted as deleted, activities.id, activities.userid, from_unixtime(activities.create_time) AS create_time, activities.type AS type, activity_types.name AS type_name, activity_types.description AS type_description
+                    FROM activities
+                    INNER JOIN activity_types
+                    ON activities.type = activity_types.id
+                    WHERE activities.id = $id
+                    ORDER BY activities.create_time DESC LIMIT 1;";
+        $query = $db->query($sql);
+        
+        if ($query !== false AND $query->num_rows == 1) {
+            $result = $query->fetch_object();
+            return $result;
+        }
+        return false;
+    }
+    
+    function getActivityCountByType($type = 0) {
+        $db = db::getInstance();
+        $sql = "SELECT from_unixtime(activities.create_time) AS create_time, count(*) AS count
+                    FROM activities
+                    WHERE type = $type
+                    HAVING create_time >= DATE_SUB(CURDATE(), INTERVAL 10 DAY);";
+        $query = $db->query($sql);
+        
+        if ($query !== false AND $query->num_rows == 1) {
+            $count = $query->fetch_object();
+            return $count->count;
+        } else {
+            return '0';
+        }
+        return false;
+    }
+    
+    function save($type = '1') {
+        $db = db::getInstance();
+        $login = new Login();
+        
+        $userid = $login->currentUserID();
+        $uxtime = time();
+        
+        $sql = "INSERT INTO activities (id, userid, create_time, type) VALUES ('NULL', '$userid', '$uxtime', '$type');";
+        $db->query($sql);
+    }
+    // end model
+    // start view (i'd say)
     
     /*
-     * Being a patchwork funtion at the moment, a lot of stuff is Jerry-Rigged here
-     * A lot of stuff has to be worked out to be viable for public release
-     * Whats clearly missing:
-     *      - automatic detection of activity type and corresponding class
+     * just a mockup, this should one day be converted to a real menu-handling
+     * class thingy
      */
+    function activityMenu($active = NULL) {
+        $view = new View();
+        $view->setTmpl($view->loadFile('/views/core/one_tag.php'));
+
+        $login = new Login();
+        $view->addContent('{##data##}', '<nav class="activities clearfix">');
+        if ($active == NULL) {
+            $view->addContent('{##data##}', '<div class="header active">');
+        } else {
+            $view->addContent('{##data##}', '<div class="header">');
+        }
+        $view->addContent('{##data##}', '<h2><a href="/activities">Activity Stream (last 10 days)</h2></a>');
+        $view->addContent('{##data##}', '</div>');
+        $view->addContent('{##data##}', '<ul>');
+
+        if ($active == 'shout') {
+            $view->addContent('{##data##}', '<li class="active">');
+        } else {
+            $view->addContent('{##data##}', '<li>');
+        }
+        $view->addContent('{##data##}', '<div class="count">');
+        $view->addContent('{##data##}', '<a href="/activities/shouts">' . $this->getActivityCountByType('1') . '</a>');
+        $view->addContent('{##data##}', '</div>');
+        $view->addContent('{##data##}', '<div class="title"><a href="/activities/shouts">Shouts</a></div>');
+        if ($login->isLoggedIn()) {
+            $view->addContent('{##data##}', '<div class="action"><a href="/activity/shout/new">+</a></div>');
+        }
+        $view->addContent('{##data##}', '</li>');
+        
+        if ($active == 'event') {
+            $view->addContent('{##data##}', '<li class="active">');
+        } else {
+            $view->addContent('{##data##}', '<li>');
+        }
+        $view->addContent('{##data##}', '<div class="count">');
+        $view->addContent('{##data##}', '<a href="/activities/events">' . $this->getActivityCountByType('2') . '</a>');
+        $view->addContent('{##data##}', '</div>');
+        $view->addContent('{##data##}', '<div class="title"><a href="/activities/events">Events</a></div>');
+        if ($login->isLoggedIn()) {
+            $view->addContent('{##data##}', '<div class="action"><a href="/activity/event/new">+</a></div>');
+        }
+        $view->addContent('{##data##}', '</li>');
+
+        if ($active == 'poll') {
+            $view->addContent('{##data##}', '<li class="active">');
+        } else {
+            $view->addContent('{##data##}', '<li>');
+        }
+        $view->addContent('{##data##}', '<div class="count">');
+        $view->addContent('{##data##}', '<a href="/activities/polls">' . $this->getActivityCountByType('3') . '</a>');
+        $view->addContent('{##data##}', '</div>');
+        $view->addContent('{##data##}', '<div class="title"><a href="/activities/polls">Polls</a></div>');
+        if ($login->isLoggedIn() AND $login->isOperator()) {
+            $view->addContent('{##data##}', '<div class="action"><a href="/activity/poll/new">+</a></div>');
+        }
+        $view->addContent('{##data##}', '</li>');
+        $view->addContent('{##data##}', '</ul>');
+        $view->addContent('{##data##}', '</nav>');
+        $view->replaceTags();
+        return $view;
+    }
+
+    /*
+     * being a patchwork funtion at the moment, a lot of stuff is jerry-rigged here
+     * to-do: make this template based, make it human readable again ^^
+     */   
     function getAllActivitiesView($type = NULL) {
         $view = new View();
         $view->setTmpl($view->loadFile('/views/activity/list_all_activities.php'));
@@ -164,7 +215,9 @@ class Activity {
     }
     
     /*
-     * Spaghetti-Code at it's best :)
+     * this is my attempt of making this modular. every activity-submodule can
+     * register it's output-view in the env-class and we will look for that here.
+     * feel free to come up with something nicer
      */
     function getActivityView($act_id = NULL, $compact = NULL) {
         $env = Env::getInstance();
@@ -175,21 +228,13 @@ class Activity {
         if (isset($env::$hooks[$type_name])) {
             $event_data = $env::$hooks[$type_name]($act_id, $compact);
             return $event_data;
+        } else {
+            // you can place a fallback here, at least the activity meta-data
+            // should be available
         }
         return false;
     }
-
-    function save($type = '1') {
-        $db = db::getInstance();
-        $login = new Login();
-        
-        $userid = $login->currentUserID();
-        $uxtime = time();
-        
-        $sql = "INSERT INTO activities (id, userid, create_time, type) VALUES ('NULL', '$userid', '$uxtime', '$type');";
-        $db->query($sql);
-    }
-
+    // end view
 }
 $activity = new Activity();
 $activity->initEnv();

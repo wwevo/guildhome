@@ -23,7 +23,7 @@ class Comment {
 
         $activity = new Activity();
         $page = Page::getInstance();
-        $page->setContent('{##main##}', $activity->activityMenu());
+        $page->setContent('{##main##}', $activity->activityMenu($type));
         switch ($type) {
             case 'activity' :
                 switch ($action) {

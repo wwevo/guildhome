@@ -267,6 +267,11 @@ article.activity section.content {
     margin: 0 0.5em;
 }
 
+article.activity section.content .more {
+    float: right;
+    clear: both;
+}
+
 article.comment section.logged_in,
 article.comment section.not_logged_in,
 article.activity section.logged_in,
@@ -379,39 +384,92 @@ article ul.activity_wrapper > li {
    Author's custom styles
    ========================================================================== */
 
+/**
+ * activity navigation 'block' 
+ **/
 nav.activities {
+    font-size: 16px; line-height: 1.33em;
     background: #ea6c12;
     width: 100%;
     color: white;
-    clear: both;
-}
-
-nav.activities ul {
-    display: table;
-    width: 100%;
-    table-layout: fixed;
-}
-
-nav.activities li {
-    display: table-cell;
 }
 
 nav.activities a {
-    display: block;
-    text-align: center;
-    float: left;
-    color: white;
+    display: inline-block;
+    width: 100%;
+    color: #fff;
     text-decoration: none;
-    padding: 0 0.25em;
 }
 
-nav.activities a:hover {
+nav.activities h2 {
+    font-size: 1em; line-height: 1.33em;
+    padding: 0.25em 0 0.25em 1em; margin: 0;
+}
+
+nav.activities ul {
+    margin: 0; padding: 0;
+    list-style: none;
+
+    display: -webkit-box;
+    display: -moz-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    display: flex;
+  
+    -webkit-flex-flow: row wrap;
+    justify-content: space-around;
+}
+
+nav.activities li {
+    font-weight: bold;
+    font-size: 1em;
+    text-align: center;
+    flex: 1 1 auto;
+    border: 1px solid #ea6c12;
+    position: relative;
+    background-color: #eda73e;
+}
+nav.activities li.active,
+nav.activities li:hover {
+    background-color: #ea6c12;
+}
+
+nav.activities div.header {
+    border: 1px solid #ea6c12;
+    background-color: #ea6c12;
+}
+nav.activities div.header:hover a {
     text-decoration: underline;
 }
 
-.more {
-    float: right;
-    clear: both;
+nav.activities div.count {
+    font-size: 3em; line-height: 1em;
+    font-weight: bold;
+    text-align: center;
+    padding-top: 0.125em;
+}
+nav.activities li:hover div.action {
+    background-color: #eda73e;
+}
+
+nav.activities div.title {
+    width: 100%;
+    text-align: center;
+}
+
+nav.activities div.action {
+    font-size: 16px;
+    cursor: crosshair;
+    position: absolute;
+    top: 0.25em; right: 0.25em;
+    width: 1.5em;
+    height: 1.5em;
+    border-radius: 50px;
+    line-height: 1.5em;
+    text-align: center;
+}
+nav.activities li:hover div.action:hover {
+    font-size: 1.25em;
 }
 
 /* Start of "Micro clearfix" */
