@@ -25,7 +25,8 @@ class Activity_Poll extends Activity {
         $login = new Login();
         $page = Page::getInstance();
         $page->addContent('{##main##}', parent::activityMenu('poll'));
-
+        return;
+        
         switch ($action) {
             default :
                 $page->addContent('{##main##}', '<h2>All polls</h2>');
@@ -67,6 +68,8 @@ class Activity_Poll extends Activity {
             header("Location: /activities/polls");
             exit;
         }
+        return;
+        
         switch ($action) {
             case 'vote' :
                 if ($this->vote($login->currentUserID(), $id)) {
