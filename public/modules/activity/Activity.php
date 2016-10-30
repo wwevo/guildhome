@@ -85,7 +85,12 @@ class Activity {
         $uxtime = time();
         
         $sql = "INSERT INTO activities (id, userid, create_time, type) VALUES ('NULL', '$userid', '$uxtime', '$type');";
-        $db->query($sql);
+        $query = $db->query($sql);
+        
+        if ($query !== false) {
+            return $db->insert_id;
+        }
+        return false;
     }
     // end model
     // start view (i'd say)

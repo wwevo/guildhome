@@ -315,10 +315,9 @@ class Activity_Shout extends Activity {
         $env = Env::getInstance();
         
         // save activity meta data
-        $this->save($type=1); // 1=shout
+        $activity_id = $this->save($type = '1'); // 1=shout
 
         // save 'shout' specific data
-        $activity_id = $db->insert_id;
         $content = $env->post('activity')['content'];
         $allow_comments = isset($env->post('activity')['comments']) ? '1' : '0';
 

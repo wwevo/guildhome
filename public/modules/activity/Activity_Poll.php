@@ -534,9 +534,8 @@ class Activity_Poll extends Activity {
         $env = Env::getInstance();
 
         // save activity meta data
-        $this->save($type = 3); // 3=poll
+        $activity_id = $this->save($type = '3'); // 3=poll
         // save 'event' specific data
-        $activity_id = $db->insert_id;
         
         $title = $env->post('activity')['title'];
         $description = $env->post('activity')['content'];

@@ -65,8 +65,7 @@ class Activity_ActionMsg extends Activity {
     function saveCommentAction($activity_id = NULL) {
         $db = db::getInstance();
 
-        $this->save($type = '4'); // save metadata as action messages are activities
-        $actionmsg_id = $db->insert_id;
+        $actionmsg_id = $this->save($type = '4'); // save metadata as action messages are activities
         
         $activity = parent::getActivityById($activity_id);
         $actionmsg = parent::getActivityById($actionmsg_id);
@@ -82,8 +81,7 @@ class Activity_ActionMsg extends Activity {
     function deleteEventAction($activity_id = NULL) {
         $db = db::getInstance();
 
-        $this->save($type = '4'); // save metadata as action messages are activities
-        $actionmsg_id = $db->insert_id;
+        $actionmsg_id = $this->save($type = '4'); // save metadata as action messages are activities
         
         $activity = parent::getActivityById($activity_id);
         $actionmsg = parent::getActivityById($actionmsg_id);
@@ -99,8 +97,7 @@ class Activity_ActionMsg extends Activity {
     function toggleEventSignupAction($activity_id = NULL, $signup = FALSE) {
         $db = db::getInstance();
 
-        $this->save($type = '4'); // save metadata as action messages are activities
-        $actionmsg_id = $db->insert_id;
+        $actionmsg_id = $this->save($type = '4'); // save metadata as action messages are activities
         
         $activity = parent::getActivityById($activity_id);
         $actionmsg = parent::getActivityById($actionmsg_id);
@@ -120,8 +117,7 @@ class Activity_ActionMsg extends Activity {
 
     function saveNewUserAction($user_id = NULL) {
         $db = db::getInstance();
-        $this->save($type = '4'); // save metadata as action messages are activities
-        $actionmsg_id = $db->insert_id;
+        $actionmsg_id = $this->save($type = '4'); // save metadata as action messages are activities
         $identity = new Identity();
         $message = $identity->getIdentityById($user_id, 0) . ' created an account';
 

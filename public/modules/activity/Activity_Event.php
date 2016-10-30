@@ -860,8 +860,7 @@ class Activity_Event extends Activity {
         $allow_signups = isset($env->post('activity')['signups']) ? '1' : '0';
 
         if ($id === NULL) {
-            $this->save($type = 2);
-            $activity_id = $db->insert_id;
+            $activity_id = $this->save($type = '2');
             $sql = "INSERT INTO activity_events (activity_id, event_type, title, description, date, time, calendar_activated, schedule_activated, comments_activated, signups_activated, template_activated) VALUES ($activity_id, '$event_type', '$title', '$description', '$date', '$time', '0', '0', '$allow_comments', '$allow_signups', '0');";
             $query = $db->query($sql);
             if ($query !== false) {
