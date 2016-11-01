@@ -1,22 +1,11 @@
 <?php
-
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
-/**
- * Description of Activity_Event
- *
- * @author Christian Voigt <chris at notjustfor.me>
- */
 class Activity_Event extends Activity {
-
+    // start controller
     function initEnv() {
         Toro::addRoute(["/activities/events" => "Activity_Event"]);
         Toro::addRoute(["/activity/event/:alpha" => "Activity_Event"]);
         Toro::addRoute(["/activity/event/:alpha/:alpha" => "Activity_Event"]);
+        
         Env::registerHook('event', array(new Activity_Event(), 'getActivityView'));
     }
 
@@ -148,7 +137,8 @@ class Activity_Event extends Activity {
                 break;
         }
     }
-    
+    // end controller    
+    // start model
     function saveRole($title, $user_id = NULL) {
         $db = db::getInstance();
         if (is_null($user_id)) {
@@ -458,6 +448,14 @@ class Activity_Event extends Activity {
         return false;
     }
 
+    function eventIsCurrent($act) {
+        $event_date = new DateTime($act->date . " " . $act->time);
+        $current_date = new DateTime();
+        if ($current_date > $event_date) {
+            return false;
+        }
+        return true;
+    }
     
     function deleteActivity($activity_id) {
         $db = db::getInstance();
@@ -482,9 +480,53 @@ class Activity_Event extends Activity {
         return false;
     }
 
+    function validateActivity() {
+        $msg = Msg::getInstance();
+        $env = Env::getInstance();
+
+        $errors = false;
+        if (empty($env->post('activity')['title'])) {
+            $msg->add('activity_event_title_validation', 'Gotta have a name for this baby!');
+            $errors = true;
+        }
+        if (empty($env->post('activity')['content'])) {
+            $msg->add('activity_event_content_validation', 'What is this about?');
+            $errors = true;
+        }
+        if (empty($env->post('activity')['date'])) {
+            $msg->add('activity_event_date_validation', 'When?');
+            $errors = true;
+        } elseif (empty($env->post('activity')['time'])) {
+            $msg->add('activity_event_date_validation', 'When exactly?');
+            $errors = true;
+        }
+
+        if ($errors === false) {
+            return true;
+        }
+        return false;
+    }
+    
+    function validateRole() {
+        $msg = Msg::getInstance();
+        $env = Env::getInstance();
+
+        $errors = false;
+        if (empty($env->post('activity')['add_role_title'])) {
+            $msg->add('activity_add_role_title_validation', 'Gotta have a name for this baby!');
+            $errors = true;
+        }
+
+        if ($errors === false) {
+            return true;
+        }
+        return false;
+    }
+    // end model
+    // start view
     function getActivityPreview() {
         $view = new View();
-        $view->setTmpl($view->loadFile('/views/activity/list_all_activities.php'));
+        $view->setTmpl($view->loadFile('/views/activity/event/activity_event_view.php'));
         $view->setContent('{##activity_message##}', '<p>This is how your Event will look:</p>');
 
         $subView = new View();
@@ -502,14 +544,8 @@ class Activity_Event extends Activity {
         $event_date = $env->post('activity')['date'] . " @ " . $env->post('activity')['time'];
         $subView->addContent('{##activity_event_date##}', $event_date);
 
-        $linkView = new View();
-        $linkView->setTmpl($view->getSubTemplate('{##details_link_area##}'));
         $details_link = '/activity/event/details/';
-        $linkView->addContent('{##details_link##}', $details_link);
-        $linkView->addContent('{##details_link_text##}', Parsedown::instance()->text($env->post('activity')['title']));
-        $linkView->replaceTags();
-
-        $subView->addContent('{##details_link_area##}', $linkView);
+        $subView->addContent('{##details_link##}', View::linkFab($details_link, Parsedown::instance()->line($env->post('activity')['title'])));
         $subView->replaceTags();
         
         $view->addContent('{##activity_loop##}',  $subView);
@@ -564,6 +600,8 @@ class Activity_Event extends Activity {
 
         $event_date = $act->date . " @ " . $act->time;
         $loopView->addContent('{##activity_event_date##}', $event_date);
+        $event_datetime = $act->date . " " . $act->time;
+        $loopView->addContent('{##activity_event_datetime##}', $event_datetime);
 
         $signups = '';
         if ($act->signups_activated) {
@@ -787,15 +825,6 @@ class Activity_Event extends Activity {
         return $view;
     }
     
-    function eventIsCurrent($act) {
-        $event_date = new DateTime($act->date . " " . $act->time);
-        $current_date = new DateTime();
-        if ($current_date > $event_date) {
-            return false;
-        }
-        return true;
-    }
-    
     function getDeleteActivityForm($id = NULL) {
         if ($id !== NULL) {
             $act = $this->getActivity($id);
@@ -815,49 +844,6 @@ class Activity_Event extends Activity {
         return $view;
     }
 
-    function validateActivity() {
-        $msg = Msg::getInstance();
-        $env = Env::getInstance();
-
-        $errors = false;
-        if (empty($env->post('activity')['title'])) {
-            $msg->add('activity_event_title_validation', 'Gotta have a name for this baby!');
-            $errors = true;
-        }
-        if (empty($env->post('activity')['content'])) {
-            $msg->add('activity_event_content_validation', 'What is this about?');
-            $errors = true;
-        }
-        if (empty($env->post('activity')['date'])) {
-            $msg->add('activity_event_date_validation', 'When?');
-            $errors = true;
-        } elseif (empty($env->post('activity')['time'])) {
-            $msg->add('activity_event_date_validation', 'When exactly?');
-            $errors = true;
-        }
-
-        if ($errors === false) {
-            return true;
-        }
-        return false;
-    }
-    
-    function validateRole() {
-        $msg = Msg::getInstance();
-        $env = Env::getInstance();
-
-        $errors = false;
-        if (empty($env->post('activity')['add_role_title'])) {
-            $msg->add('activity_add_role_title_validation', 'Gotta have a name for this baby!');
-            $errors = true;
-        }
-
-        if ($errors === false) {
-            return true;
-        }
-        return false;
-    }
-    
     function getSignupsByUserIdView($user_id) {
         $signups = $this->getSignupsByUserId($user_id);
         $view = new View();
@@ -901,12 +887,10 @@ class Activity_Event extends Activity {
             }
             $view->addContent('{##activity_loop##}',  $activity_loop);
         }
-       
         $view->replaceTags();
         return $view;
     }
-    
 }
-
+// end view
 $activity_event = new Activity_Event();
 $activity_event->initEnv();

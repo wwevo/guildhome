@@ -47,7 +47,7 @@ class Activity_ActionMsg extends Activity {
     
     function getActivityView($id = NULL, $compact = NULL) {
         $view = new View();
-        $view->setTmpl($view->loadFile('/views/activity/action_msg_view.php'));
+        $view->setTmpl($view->loadFile('/views/activity/actionmsg/activity_actionmsg_view.php'));
 
         $actionmsg = $this->getActivityById($id);
 

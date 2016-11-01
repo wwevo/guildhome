@@ -8,24 +8,18 @@
     </section>
     <section class="content clearfix">
         <section class="details">
-            {##details_link_area##}
-            <a href="{##details_link##}">{##details_link_text##}</a>
-            {/##details_link_area##}
-            {##activity_content##}{##link_more##}<a href="{##link_more_link##}" class="more">{##link_more_link_text##}</a>{/##link_more##}
-        </section>
-        <section class="signups clearfix">
-            {##activity_event_date##}<br />
-            {##activity_signups##}
+            {##activity_content##}
         </section>
     </section>
     {##activity_not_logged_in##}
     <section class="not_logged_in">
-        <a href="{##comment_link##}">{##comment_link_text##}</a>
+        {##comment_link##}<a href="{##comment_link_url##}">{##comment_link_text##}</a>{/##comment_link##}
     </section>
     {/##activity_not_logged_in##}
     {##activity_logged_in##}
     <section class="logged_in">
-        <a href="{##update_link##}">{##update_link_text##}</a> | <a href="{##delete_link##}">{##delete_link_text##}</a>
+        {##edit_link##}<a href="{##edit_link_url##}">{##edit_link_text##}</a>{/##edit_link##} |
+        {##delete_link##}<a href="{##delete_link_url##}">{##delete_link_text##}</a>{/##delete_link##}
     </section>
     {/##activity_logged_in##}
 </article>

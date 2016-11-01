@@ -6,10 +6,10 @@
         on {##activity_published##},<br />
         <strong>{##activity_identity##}</strong> posted <strong>{##activity_type##}</strong>.
     </header>
-    <main class="content clearfix">
+    <section class="content clearfix">
         <section class="details">
             <h1>{##details_link##}<a href="{##details_link_url##}">{##details_link_text##}</a>{/##details_link##}</h1>
-            <time>Date: {##activity_event_date##}</time>
+            <time datetime="{##activity_event_datetime##}">Date: {##activity_event_date##}</time>
             <section class="signups clearfix">
                 <span title="{##activity_signups_list##}">{##activity_signups##}</span>
                 {##activity_detailed_signups_list##}
@@ -21,7 +21,7 @@
                 {##activity_signup_form##}
             </section>
         </section>
-    </main>
+    </section>
     <footer>
         {##activity_not_logged_in##}
         <section class="not_logged_in">

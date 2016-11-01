@@ -167,7 +167,7 @@ class Activity_Poll extends Activity {
         $act = $this->getActivityById($act);
 
         $view = new View();
-        $view->setTmpl($view->loadFile('/views/activity/list_all_activities.php'));
+        $view->setTmpl($view->loadFile('/views/activity/poll/activity_poll_view'));
 
         $subView = new View();
         $subView->setTmpl($view->getSubTemplate('{##activity_loop##}'));
@@ -269,7 +269,7 @@ class Activity_Poll extends Activity {
         $comments_checked = (!empty($env->post('activity')['comments']) AND $env->post('activity')['comments'] !== NULL) ? 'checked="checked"' : '';
         $signups_min_checked = (!empty($env->post('activity')['signups_min']) AND $env->post('activity')['signups_min'] !== NULL) ? 'checked="checked"' : '';
         $view = new View();
-        $view->setTmpl($view->loadFile('/views/activity/poll/new_activity_poll_form.php'), array(
+        $view->setTmpl($view->loadFile('/views/activity/poll/activity_poll_form.php'), array(
             '{##form_action##}' => '/activity/poll/new',
             '{##activity_title##}' => $env->post('activity')['title'],
             '{##activity_title_validation##}' => $msg->fetch('activity_event_title_validation'),
@@ -309,7 +309,7 @@ class Activity_Poll extends Activity {
         $signups_min_checked = ($signups_min_checked === '1') ? 'checked="' . $signups_min_checked . '"' : '';
 
         $view = new View();
-        $view->setTmpl($view->loadFile('/views/activity/poll/update_activity_poll_form.php'), array(
+        $view->setTmpl($view->loadFile('/views/activity/poll/activity_poll_form.php'), array(
             '{##form_action##}' => '/activity/poll/update/' . $id,
             '{##activity_title##}' => $title,
             '{##activity_title_validation##}' => $msg->fetch('activity_event_title_validation'),
@@ -331,7 +331,6 @@ class Activity_Poll extends Activity {
     }
     
     function getActivityDetailsView($id) {
-
         $act = $this->getActivity($id);
 
         $identity = new Identity();

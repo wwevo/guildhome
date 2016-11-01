@@ -1,6 +1,6 @@
 <?php
 class Activity {
-     // start controller (i guess)
+    // start controller (i guess)
     function initEnv() {
         Toro::addRoute(["/activities" => "Activity"]);
     }
@@ -113,7 +113,6 @@ class Activity {
     }
     // end model
     // start view (i'd say)
-    
     /*
      * just a mockup, this should one day be converted to a real menu-handling
      * class thingy
@@ -129,7 +128,7 @@ class Activity {
         } else {
             $view->addContent('{##data##}', '<div class="header">');
         }
-        $view->addContent('{##data##}', '<h2><a href="/activities">Activity Stream (last 10 days)</h2></a>');
+        $view->addContent('{##data##}', '<h2><a href="/activities">Activity Stream (last 10 days)</a></h2>');
         $view->addContent('{##data##}', '</div>');
         $view->addContent('{##data##}', '<ul>');
 
@@ -189,14 +188,14 @@ class Activity {
      */   
     function getAllActivitiesView($type = NULL) {
         $view = new View();
-        $view->setTmpl($view->loadFile('/views/activity/list_all_activities.php'));
+        $view->setTmpl($view->loadFile('/views/core/one_tag.php'));
         
         $activities = ($type === NULL) ? $this->getActivities(10) : $this->getActivities();
         if (false !== $activities) {
             $d_var = getdate($activities[0]->timestamp);
             $activity_loop = '';
             if (!isset($activities[0]->event_date)) {
-                $activity_loop .= '<header class="day_header"><h3>' . $d_var["weekday"] . '</h3>, <time>' . $d_var["month"] . ' '. $d_var["mday"] . '</time></header>';
+                $activity_loop .= '<header class="day_header"><h3>' . $d_var["weekday"] . '</h3>, <time datetime="'.date('c', $activities[0]->timestamp).'">' . $d_var["month"] . ' '. $d_var["mday"] . '</time></header>';
             }
             $activity_loop .= '<ul class="day_wrapper">';
             $activity_loop .= '<li><ul class="activity_wrapper ' . $activities[0]->type_name . '">';
@@ -211,7 +210,7 @@ class Activity {
                     $activity_loop .= '</ul></li></ul>';
                     $d_var = getdate($act->timestamp);
                     if (!isset($act->event_date)) {
-                        $activity_loop .= '<header class="day_header"><h3>' . $d_var["weekday"] . '</h3>, <time>' . $d_var["month"] . ' '. $d_var["mday"] . '</time></header>';
+                        $activity_loop .= '<header class="day_header"><h3>' . $d_var["weekday"] . '</h3>, <time datetime="'.date('c', $act->timestamp).'">' . $d_var["month"] . ' '. $d_var["mday"] . '</time></header>';
                     }
                     $activity_loop .= '<ul class="day_wrapper">';
                     $activity_loop .= '<li><ul class="activity_wrapper ' . $act->type_name . ' ' . $act->id . '">';
@@ -230,7 +229,7 @@ class Activity {
             }
             $activity_loop .= '</ul></li>';
             $activity_loop .= '</ul>';
-            $view->addContent('{##activity_loop##}',  $activity_loop);
+            $view->addContent('{##data##}',  $activity_loop);
         }
         $view->replaceTags();
         return $view;

@@ -1,23 +1,11 @@
 <?php
-
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
-/**
- * Description of Activity_Shout
- *
- * @author Christian Voigt <chris at notjustfor.me>
- */
 class Activity_Shout extends Activity {
-
+    // start controller
     function initEnv() {
         Toro::addRoute(["/activities/shouts" => "Activity_Shout"]);
         Toro::addRoute(["/activity/shout/:alpha" => "Activity_Shout"]);
         Toro::addRoute(["/activity/shout/:alpha/:alpha" => "Activity_Shout"]);
-        
+      
         Env::registerHook('shout', array(new Activity_Shout(), 'getActivityView'));
     }
 
@@ -102,7 +90,8 @@ class Activity_Shout extends Activity {
                 break;
         }
     }
-    
+    // end controller    
+    // start model
     function getActivity($id) {
         $db = db::getInstance();
         $sql = "SELECT a.comments_enabled AS comments_enabled, ash.content AS content, a.userid AS userid
@@ -120,10 +109,82 @@ class Activity_Shout extends Activity {
         }
         return false;
     }
+    function saveActivity() {
+        $db = db::getInstance();
+        $env = Env::getInstance();
+        
+        // save activity meta data
+        $allow_comments = isset($env->post('activity')['comments']) ? '1' : '0';
+        $activity_id = $this->save($type = '1', $allow_comments); // 1=shout
+
+        // save 'shout' specific data
+        $content = $env->post('activity')['content'];
+
+        $sql = "INSERT INTO activity_shouts (activity_id, content) VALUES ('$activity_id', '$content');";
+        $query = $db->query($sql);
+        if ($query !== false) {
+            $env->clearPost('activity');
+            return true;
+        }
+        return false;
+    }
     
+    function updateActivity($shout_id) {
+        $db = db::getInstance();
+        $env = Env::getInstance();
+        $login = new Login();
+
+        $userid = $login->currentUserID();
+        $actid = $this->getActivity($shout_id)->userid;
+        if ($userid != $actid) {
+            return false;
+        }
+        
+        $content = $env->post('activity')['content'];
+        $allow_comments = isset($env->post('activity')['comments']) ? '1' : '0';
+        $sql = "UPDATE activities SET
+                            comments_enabled= '$allow_comments'
+                        WHERE id = '$shout_id';";
+        $query = $db->query($sql);
+
+        $sql = "UPDATE activity_shouts SET
+                        content = '$content'
+                    WHERE activity_id = '$shout_id';";
+        
+        $query = $db->query($sql);
+        if ($query !== false) {
+            $env->clearPost('activity');
+            return true;
+        }
+        return false;
+    }
+    
+    function deleteActivity($shout_id) {
+        $db = db::getInstance();
+        $env = Env::getInstance();
+        $login = new Login();
+
+        $userid = $login->currentUserID();
+        $actid = $this->getActivity($shout_id)->userid;
+        if ($userid != $actid) {
+            return false;
+        }
+        $sql = "UPDATE activities SET deleted = '1' WHERE id = '$shout_id';";
+        $query = $db->query($sql);
+        if ($query !== false) {
+            $env->clearPost('activity');
+            if (isset($env::$hooks['delete_event_hook'])) {
+                $env::$hooks['delete_event_hook']($shout_id);
+            }
+            return true;
+        }
+        return false;
+    }
+    // end model
+    // start view
     function getActivityPreview() {
         $view = new View();
-        $view->setTmpl($view->loadFile('/views/activity/list_all_activities.php'));
+        $view->setTmpl($view->loadFile('/views/activity/shout/activity_shout_view.php'));
         $view->setContent('{##activity_message##}', '<p>This is how your Shout will look:</p>');
 
         $subView = new View();
@@ -151,7 +212,7 @@ class Activity_Shout extends Activity {
         $act = parent::getActivityById($activity_id);
 
         $view = new View();
-        $view->setTmpl($view->loadFile('/views/activity/list_all_activities.php'));
+        $view->setTmpl($view->loadFile('/views/activity/shout/activity_shout_view.php'));
 
         $subView = new View();
         $subView->setTmpl($view->getSubTemplate('{##activity_loop##}'));
@@ -167,11 +228,7 @@ class Activity_Shout extends Activity {
 
         $activity_event = $this->getActivity($act->id);
         $content = Parsedown::instance()->text($activity_event->content);
-        if (isset($activity_event->comments_enabled) AND $activity_event->comments_enabled == '1') {
-            $allow_comments = TRUE;
-        } else {
-            $allow_comments = FALSE;
-        }
+
         $delete_link = '/activity/shout/delete/' . $act->id;
         $update_link = '/activity/shout/update/' . $act->id;
         $comment_link = '/comment/activity/view/' . $act->id;
@@ -184,38 +241,28 @@ class Activity_Shout extends Activity {
             $subView->addContent('{##avatar##}', $identity->getAvatarByUserId($act->userid));
         }
 
-        if ($allow_comments === TRUE) {
+        if (isset($activity_event->comments_enabled) AND $activity_event->comments_enabled == '1') {
             $comment = new Comment();
             $comment_count = $comment->getCommentCount($act->id);
 
             $visitorView = new View();
             $visitorView->setTmpl($view->getSubTemplate('{##activity_not_logged_in##}'));
-            $visitorView->addContent('{##comment_link##}', $comment_link);
-            $visitorView->addContent('{##comment_link_text##}',  'comments (' . $comment_count . ')');
+            $visitorView->addContent('{##comment_link##}', View::linkFab($comment_link, "comments ($comment_count)"));
             $visitorView->replaceTags();
             $subView->addContent('{##activity_not_logged_in##}',  $visitorView);
-        } else {
-            $subView->addContent('{##activity_not_logged_in##}',  '');
         }
         
         $login = new Login();
-        if ($login->isLoggedIn() AND isset($act->userid)) {
-            if ($login->currentUserID() === $act->userid) {
-                $memberView = new View();
-                $memberView->setTmpl($view->getSubTemplate('{##activity_logged_in##}'));
-                $memberView->addContent('{##delete_link##}', $delete_link);
-                $memberView->addContent('{##delete_link_text##}',  'delete');
-                $memberView->addContent('{##update_link##}', $update_link);
-                $memberView->addContent('{##update_link_text##}',  'update');
-                $memberView->replaceTags();
-            } else {
-                $memberView = '';
-            }
+        if ($login->isLoggedIn() AND isset($act->userid) AND $login->currentUserID() === $act->userid) {
+            $memberView = new View();
+            $memberView->setTmpl($view->getSubTemplate('{##activity_logged_in##}'));
+            $memberView->addContent('{##delete_link##}', View::linkFab($delete_link, 'delete'));
+            $memberView->addContent('{##edit_link##}', View::linkFab($update_link, 'update'));
+            $memberView->replaceTags();
             $subView->addContent('{##activity_logged_in##}',  $memberView);
         }
-
         $subView->replaceTags();
-        
+
         $view->addContent('{##activity_loop##}',  $subView);
         $view->replaceTags();
 
@@ -308,78 +355,7 @@ class Activity_Shout extends Activity {
         }
         return false;
     }
-    
-    function saveActivity() {
-        $db = db::getInstance();
-        $env = Env::getInstance();
-        
-        // save activity meta data
-        $allow_comments = isset($env->post('activity')['comments']) ? '1' : '0';
-        $activity_id = $this->save($type = '1', $allow_comments); // 1=shout
-
-        // save 'shout' specific data
-        $content = $env->post('activity')['content'];
-
-        $sql = "INSERT INTO activity_shouts (activity_id, content) VALUES ('$activity_id', '$content');";
-        $query = $db->query($sql);
-        if ($query !== false) {
-            $env->clearPost('activity');
-            return true;
-        }
-        return false;
-    }
-    
-    function updateActivity($shout_id) {
-        $db = db::getInstance();
-        $env = Env::getInstance();
-        $login = new Login();
-
-        $userid = $login->currentUserID();
-        $actid = $this->getActivity($shout_id)->userid;
-        if ($userid != $actid) {
-            return false;
-        }
-        
-        $content = $env->post('activity')['content'];
-        $allow_comments = isset($env->post('activity')['comments']) ? '1' : '0';
-        $sql = "UPDATE activities SET
-                            comments_enabled= '$allow_comments'
-                        WHERE id = '$shout_id';";
-        $query = $db->query($sql);
-
-        $sql = "UPDATE activity_shouts SET
-                        content = '$content'
-                    WHERE activity_id = '$shout_id';";
-        
-        $query = $db->query($sql);
-        if ($query !== false) {
-            $env->clearPost('activity');
-            return true;
-        }
-        return false;
-    }
-    
-    function deleteActivity($shout_id) {
-        $db = db::getInstance();
-        $env = Env::getInstance();
-        $login = new Login();
-
-        $userid = $login->currentUserID();
-        $actid = $this->getActivity($shout_id)->userid;
-        if ($userid != $actid) {
-            return false;
-        }
-        $sql = "UPDATE activities SET deleted = '1' WHERE id = '$shout_id';";
-        $query = $db->query($sql);
-        if ($query !== false) {
-            $env->clearPost('activity');
-            if (isset($env::$hooks['delete_event_hook'])) {
-                $env::$hooks['delete_event_hook']($shout_id);
-            }
-            return true;
-        }
-        return false;
-    }
+    // end view
 }
 $activity_shout = new Activity_Shout();
 $activity_shout->initEnv();
