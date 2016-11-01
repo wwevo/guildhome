@@ -20,7 +20,7 @@ class Activity_Event extends Activity {
         Env::registerHook('event', array(new Activity_Event(), 'getActivityView'));
     }
 
-    function get($alpha = '', $id = NULL) {
+    function get($alpha = '', $event_id = NULL) {
         $env = Env::getInstance();
         $login = new Login();
         $page = Page::getInstance();
@@ -32,13 +32,15 @@ class Activity_Event extends Activity {
                 break;
             case 'details' :
                 $page->addContent('{##main##}', '<h2>Event details</h2>');
-                $page->addContent('{##main##}', $this->getActivityView($id));
+                $page->addContent('{##main##}', $this->getActivityView($event_id));
+                $act = new Activity();
                 $comments = new Comment();
-                if ($login->isLoggedIn()) {
-                    $page->addContent('{##main##}', $comments->getNewCommentForm($id));
+                if ($login->isLoggedIn() AND $act->commentsEnabled($event_id)) {
+                    $page->addContent('{##main##}', $comments->getNewCommentForm($event_id));
                 }
-                $page->addContent('{##main##}', $comments->getAllCommentsView($id));
-
+                if ($act->commentsEnabled($event_id)) {
+                    $page->addContent('{##main##}', $comments->getAllCommentsView($event_id));
+                }
                 break;
             case 'new' :
                 if (!$login->isLoggedIn()) {
@@ -55,7 +57,7 @@ class Activity_Event extends Activity {
                     return false;
                 }
                 $page->addContent('{##main##}', '<h2>Update event</h2>');
-                $page->addContent('{##main##}', $this->getActivityForm($id));
+                $page->addContent('{##main##}', $this->getActivityForm($event_id));
                 if (isset($env->post('activity')['preview'])) {
                     $page->addContent('{##main##}', $this->getActivityPreview());
                 }
@@ -65,7 +67,7 @@ class Activity_Event extends Activity {
                     return false;
                 }
                 $page->addContent('{##main##}', '<h2>Delete event</h2>');
-                $page->addContent('{##main##}', $this->getDeleteActivityForm($id));
+                $page->addContent('{##main##}', $this->getDeleteActivityForm($event_id));
                 break;
         }
     }
@@ -273,13 +275,209 @@ class Activity_Event extends Activity {
     function getActivity($id) {
         $db = db::getInstance();
 
-        $sql = "SELECT ae.activity_id AS activity_id, ae.title AS title, ae.description AS description, ae.date AS date, ae.time AS time, ae.comments_activated AS comments_activated, ae.signups_activated AS signups_activated, a.userid AS userid, aes.event_id, aes.minimal_signups_activated AS minimal_signups_activated, aes.minimal_signups AS minimal_signups, aes.maximal_signups_activated AS maximal_signups_activated, aes.maximal_signups AS maximal_signups, aes.signup_open_beyond_maximal AS signup_open_beyond_maximal, aes.class_registration_enabled AS class_registration_enabled,aes.roles_registration_enabled, aes.preference_selection_enabled AS preference_selection_enabled, aet.name AS event_type, IF(DATE_ADD(concat(ae.date,' ', ae.time),INTERVAL 2 HOUR) >= NOW() AND concat(ae.date,' ', ae.time) <= DATE_ADD(NOW(),INTERVAL 48 HOUR),'true','false') as featured, IF(concat(ae.date,' ', ae.time) >= DATE_ADD(NOW(),INTERVAL -1 HOUR) AND concat(ae.date,' ', ae.time) <= DATE_ADD(NOW(),INTERVAL 1 HOUR),'true','false') as hot FROM activity_events ae LEFT JOIN activities a ON ae.activity_id = a.id LEFT JOIN activity_events_signups aes ON ae.activity_id = aes.event_id LEFT JOIN activity_events_types aet ON ae.event_type = aet.id WHERE activity_id = '$id';";
+        $sql = "SELECT ae.activity_id AS activity_id, ae.title AS title, ae.description AS description, ae.date AS date, ae.time AS time, a.comments_enabled AS comments_enabled, ae.signups_activated AS signups_activated, a.userid AS userid, aes.event_id AS eventid, aes.minimal_signups_activated AS minimal_signups_activated, aes.minimal_signups AS minimal_signups, aes.maximal_signups_activated AS maximal_signups_activated, aes.maximal_signups AS maximal_signups, aes.signup_open_beyond_maximal AS signup_open_beyond_maximal, aes.class_registration_enabled AS class_registration_enabled,aes.roles_registration_enabled, aes.preference_selection_enabled AS preference_selection_enabled, aet.name AS event_type,
+                    IF(
+                        DATE_ADD(concat(ae.date, ' ', ae.time), INTERVAL 2 HOUR) >= NOW()
+                    AND
+                        concat(ae.date, ' ', ae.time) <= DATE_ADD(NOW(), INTERVAL 48 HOUR),
+                        'true', 'false'
+                    ) as featured,
+                    IF(
+                        concat(ae.date, ' ', ae.time) >= DATE_ADD(NOW(), INTERVAL -1 HOUR)
+                    AND
+                        concat(ae.date, ' ', ae.time) <= DATE_ADD(NOW(), INTERVAL 1 HOUR),
+                        'true', 'false'
+                    ) as hot
+                    FROM activity_events ae
+                    LEFT JOIN activities a ON ae.activity_id = a.id
+                    LEFT JOIN activity_events_signups aes ON ae.activity_id = aes.event_id
+                    LEFT JOIN activity_events_types aet ON ae.event_type = aet.id
+                    WHERE activity_id = '$id';";
 
         $query = $db->query($sql);
 
         if ($query !== false AND $query->num_rows >= 1) {
             $activity = $query->fetch_object();
             return $activity;
+        }
+        return false;
+    }
+
+    function saveSignups($activity_id) {
+        $db = db::getInstance();
+        $env = Env::getInstance();
+
+        $signups_min = isset($env->post('activity')['signups_min']) ? '1' : '0';
+        $signups_max = isset($env->post('activity')['signups_max']) ? '1' : '0';
+        $signups_min_val = !empty($env->post('activity')['signups_min_val']) ? $env->post('activity')['signups_min_val'] : '0';
+        $signups_max_val = !empty($env->post('activity')['signups_max_val']) ? $env->post('activity')['signups_max_val'] : '0';
+        $keep_signups_open = isset($env->post('activity')['keep_signups_open']) ? '1' : '0';
+        $class_registration = isset($env->post('activity')['class_registration']) ? '1' : '0';
+        $selectable_roles = isset($env->post('activity')['selectable_roles']) ? '1' : '0';
+
+        $sql = "SELECT * FROM activity_events_signups WHERE event_id = '$activity_id';";
+        $db->query($sql);
+        if ($db->affected_rows == 0) {
+            $sql = "INSERT INTO activity_events_signups (event_id, minimal_signups_activated, minimal_signups, maximal_signups_activated, maximal_signups, signup_open_beyond_maximal, class_registration_enabled, roles_registration_enabled, preference_selection_enabled) VALUES ('$activity_id', '$signups_min', '$signups_min_val', '$signups_max', '$signups_max_val', '$keep_signups_open', '$class_registration', '$selectable_roles', '0');";
+        } else {
+            $sql = "UPDATE activity_events_signups
+                        SET 
+                            minimal_signups_activated = '$signups_min',
+                            minimal_signups = '$signups_min_val',
+                            maximal_signups_activated = '$signups_max',
+                            maximal_signups = '$signups_max_val',
+                            signup_open_beyond_maximal = '$keep_signups_open',
+                            class_registration_enabled = '$class_registration',
+                            roles_registration_enabled = '$selectable_roles',
+                            preference_selection_enabled = '0'
+                        WHERE event_id = '$activity_id';";
+        }
+        if ($db->query($sql)) {
+            return true;
+        }
+        return false;
+    }
+    
+    function deleteSignupsRolesByEventId($event_id) {
+        $db = db::getInstance();
+        $sql = "DELETE FROM activity_events_signups_roles WHERE event_id = '$event_id';";
+        $query = $db->query($sql);
+        if ($query !== false) {
+            return true;
+        }
+        return false;
+    }
+
+    function saveSignupsRoles($activity_id) {
+        $db = db::getInstance();
+        $env = Env::getInstance();
+
+        $signups_roles = isset($env->post('activity')['roles']) ? $env->post('activity')['roles'] : false;
+        
+        $this->deleteSignupsRolesByEventId($activity_id);
+
+        $error = false;
+        foreach ($signups_roles as $role) {
+            $sql = "INSERT INTO activity_events_signups_roles (role_id, event_id, name) VALUES ('$role', '$activity_id', '');";
+            if ($db->query($sql) !== true) {
+                $error = true;
+            }
+        }
+
+        if ($error === false) {
+            return true;
+        }
+        return false;
+    }
+    
+    function getSignupsByUserId($user_id) {
+        $db = db::getInstance();
+        $sql = "SELECT * FROM activity_events_signups_user WHERE user_id = '$user_id';";
+        $query = $db->query($sql);
+        if ($query !== false AND $query->num_rows >= 1) {
+            while ($result_row = $query->fetch_object()) {
+                $signups[] = $this->getActivity($result_row->event_id);
+            }
+            return $signups;
+        }
+        return false;
+    }
+
+    function getUpcomingActivities() {
+        $db = db::getInstance();
+        $sql = "SELECT * FROM activity_events WHERE date >= DATE(NOW()) ORDER BY date;";
+        $query = $db->query($sql);
+
+         if ($query !== false AND $query->num_rows >= 1) {
+            while ($result_row = $query->fetch_object()) {
+                $signups[] = $this->getActivity($result_row->activity_id);
+            }
+
+            return $signups;
+        }
+        return false;
+    }
+    
+    function saveActivity($event_id = NULL) {
+        $db = db::getInstance();
+        $env = Env::getInstance();
+
+        $title = $env->post('activity')['title'];
+        $event_type = $env->post('activity')['event_type'];
+        $description = $env->post('activity')['content'];
+        $time = $env->post('activity')['time'];
+        $date = $env->post('activity')['date'];
+
+        $allow_comments = isset($env->post('activity')['comments']) ? '1' : '0';
+        $allow_signups = isset($env->post('activity')['signups']) ? '1' : '0';
+
+        if ($event_id === NULL) {
+            $activity_id = $this->save($type = '2', $allow_comments);
+            $sql = "INSERT INTO activity_events (activity_id, event_type, title, description, date, time, calendar_activated, schedule_activated, signups_activated, template_activated) VALUES ($activity_id, '$event_type', '$title', '$description', '$date', '$time', '0', '0', '$allow_signups', '0');";
+            $query = $db->query($sql);
+            if ($query !== false) {
+                if ($this->saveSignups($activity_id) !== false AND $this->saveSignupsRoles($activity_id) !== false) {
+                    $env->clearPost('activity');
+                    return true;
+                }
+            }
+        } else {
+            $login = new Login();
+
+            $userid = $login->currentUserID();
+            $actid = $this->getActivity($event_id)->userid;
+
+            if ($userid != $actid) {
+                return false;
+            }
+
+            $sql = "UPDATE activities SET
+                            comments_enabled= '$allow_comments'
+                        WHERE id = '$event_id';";
+
+            $query = $db->query($sql);
+
+            $sql = "UPDATE activity_events SET
+                            title = '$title',
+                            event_type = '$event_type',
+                            description = '$description',
+                            time = '$time',
+                            date = '$date',
+                            signups_activated = '$allow_signups'
+                        WHERE activity_id = '$event_id';";
+
+            $query = $db->query($sql);
+
+            if ($db->affected_rows > 0 OR $query !== false) {
+                if ($this->saveSignups($event_id) !== false AND $this->saveSignupsRoles($event_id) !== false) {
+                    $env->clearPost('activity');
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    
+    function deleteActivity($activity_id) {
+        $db = db::getInstance();
+        $env = Env::getInstance();
+        $login = new Login();
+
+        $userid = $login->currentUserID();
+        $actid = $this->getActivity($activity_id)->userid;
+        if ($userid != $actid) {
+            return false;
+        }
+
+        $sql = "UPDATE activities SET deleted = '1' WHERE id = '$activity_id';";
+        $query = $db->query($sql);
+        if ($query !== false) {
+            $env->clearPost('activity');
+            if (isset($env::$hooks['delete_event_hook'])) {
+                $env::$hooks['delete_event_hook']($activity_id);
+            }
+            return true;
         }
         return false;
     }
@@ -319,135 +517,103 @@ class Activity_Event extends Activity {
         return $view;
     }
     
-    function getActivityView($id = NULL, $compact = NULL) {
-        $act_meta = parent::getActivityById($id);
-        $act = $this->getActivity($id);
-        
-        $view = new View();
-        $view->setTmpl($view->loadFile('/views/activity/event/activity_event_view.php'));
+    function getActivityView($event_id = NULL, $compact = NULL) {
+        $activityView = new View();
+        $activityView->setTmpl($activityView->loadFile('/views/activity/event/activity_event_view.php'));
 
-        $subView = new View();
-        $subView->setTmpl($view->getSubTemplate('{##activity_loop##}'));
+        $loopView = new View();
+        $loopView->setTmpl($activityView->getSubTemplate('{##activity_loop##}'));
 
+        $act_meta = parent::getActivityById($event_id);
         if (isset($act_meta->create_time)) {
-            $subView->addContent('{##activity_published##}', $act_meta->create_time);
+            $loopView->addContent('{##activity_published##}', $act_meta->create_time);
         }
         if (isset($act_meta->type_description)) {
-            $subView->addContent('{##activity_type##}',  $act_meta->type_description);
+            $loopView->addContent('{##activity_type##}',  $act_meta->type_description);
         }
+
+        $act = $this->getActivity($event_id);
         if ($act->featured === 'true') {
-            $subView->addContent('{##css##}', ' pulled_to_top');
+            $loopView->addContent('{##css##}', ' pulled_to_top');
         }
         if ($act->hot === 'true') {
-            $subView->addContent('{##css##}', ' hot');
+            $loopView->addContent('{##css##}', ' hot');
         }
         if ($act_meta->deleted == '1') {
-            $subView->addContent('{##css##}', ' deleted');
+            $loopView->addContent('{##css##}', ' deleted');
         }
 
-        $delete_link = '/activity/event/delete/' . $act->activity_id;
-        $update_link = '/activity/event/update/' . $act->activity_id;
-        $comment_link = '/comment/activity/view/' . $act->activity_id;
-        $details_link = '/activity/event/details/' . $act->activity_id;
+        $delete_link = '/activity/event/delete/' . $event_id;
+        $update_link = '/activity/event/update/' . $event_id;
+        $comment_link = '/comment/activity/view/' . $event_id;
+        $details_link = '/activity/event/details/' . $event_id;
 
-        $activity_event = $this->getActivity($act->activity_id);
-
-        if (isset($activity_event->comments_activated) AND $activity_event->comments_activated == '1') {
-            $allow_comments = TRUE;
+        $event_data = Parsedown::instance()->text($act->description);
+        
+        if (is_null($compact)) {
+            $content = $event_data;
+            $loopView->addContent('{##details_link##}', Parsedown::instance()->line($act->title));
+            $loopView->addContent('{##activity_detailed_signups_list##}', $this->getActivitySignupsView($event_id));
         } else {
-            $allow_comments = FALSE;
-        }
-
-        $event_data = Parsedown::instance()->text($activity_event->description);
-        if (!is_null($compact)) {
-            $link_view = new View();
-            $link_view->setTmpl($view->getSubTemplate('{##link_more##}'));
-            $link_view->addContent('{##link_more_link##}', $details_link);
-            $link_view->addContent('{##link_more_link_text##}', '...more');
-            $link_view->replaceTags();
-            $link_more = $link_view;
-
-            $subView->addContent('{##link_more##}',  $link_more);
-
-            $event_data = substr(strip_tags($event_data), 0, 200) . " ...";
+            $content = substr(strip_tags($event_data), 0, 150) . " ...";
+            $loopView->addContent('{##link_more##}',  View::linkFab($details_link, '...more', 'more'));
+            $loopView->addContent('{##details_link##}', View::linkFab($details_link, Parsedown::instance()->line($act->title)));
         }
         
-        $content = $event_data;
-        $subView->addContent('{##activity_content##}',  $content);
+        $loopView->addContent('{##activity_content##}',  $content);
 
-        $event_date = $activity_event->date . " @ " . $activity_event->time;
-        $subView->addContent('{##activity_event_date##}', $event_date);
+        $event_date = $act->date . " @ " . $act->time;
+        $loopView->addContent('{##activity_event_date##}', $event_date);
 
         $signups = '';
-        if ($activity_event->signups_activated) {
-            $signups = "Signed up:" . $this->getSignupCountByEventId($act->activity_id);
+        if ($act->signups_activated) {
+            $signups = "Signed up:" . $this->getSignupCountByEventId($event_id);
         }
 
-        if ($activity_event->maximal_signups_activated) {
-            $signups .= "/" . $activity_event->maximal_signups;
+        if ($act->maximal_signups_activated) {
+            $signups .= "/" . $act->maximal_signups;
         }
 
-        if ($activity_event->minimal_signups_activated) {
-            $signups .= " (" . $activity_event->minimal_signups . " required)";
+        if ($act->minimal_signups_activated) {
+            $signups .= " (" . $act->minimal_signups . " required)";
         }
 
-        $subView->addContent('{##activity_signups##}',  $signups);
+        $loopView->addContent('{##activity_signups##}',  $signups);
+
         if (isset($act_meta->userid)) {
             $identity = new Identity();
-            $subView->addContent('{##activity_identity##}', $identity->getIdentityById($act_meta->userid, 0));
-            $subView->addContent('{##avatar##}', $identity->getAvatarByUserId($act_meta->userid));
+            $loopView->addContent('{##activity_identity##}', $identity->getIdentityById($act_meta->userid, 0));
+            $loopView->addContent('{##avatar##}', $identity->getAvatarByUserId($act_meta->userid));
         }
 
-        $subView->addContent('{##activity_signup_form##}', $this->getSignupForm($act->activity_id));
-        $subView->addContent('{##activity_signups_list##}',  $this->getActivityDetailsView($act->activity_id));
+        $loopView->addContent('{##activity_signup_form##}', $this->getSignupForm($event_id));
+        $loopView->addContent('{##activity_signups_list##}', $this->getActivitySignupsView($event_id));
 
-        if ($allow_comments === TRUE) {
+        if (isset($act->comments_enabled) AND $act->comments_enabled == '1') {
             $comment = new Comment();
-            $comment_count = $comment->getCommentCount($act->activity_id);
-
+            $comment_count = $comment->getCommentCount($event_id);
             $visitorView = new View();
-            $visitorView->setTmpl($view->getSubTemplate('{##activity_not_logged_in##}'));
-            $visitorView->addContent('{##comment_link##}', $comment_link);
-            $visitorView->addContent('{##comment_link_text##}',  'comments (' . $comment_count . ')');
+            $visitorView->setTmpl($loopView->getSubTemplate('{##activity_not_logged_in##}'));
+            $visitorView->addContent('{##comment_link##}', View::linkFab($comment_link, "comments ($comment_count)"));
             $visitorView->replaceTags();
-            $subView->addContent('{##activity_not_logged_in##}',  $visitorView);
-        } else {
-            $subView->addContent('{##activity_not_logged_in##}',  '');
+            $loopView->addContent('{##activity_not_logged_in##}', $visitorView);
         }
         
         $login = new Login();
-        if ($login->isLoggedIn() AND isset($act_meta->userid)) {
-            if ($login->currentUserID() === $act_meta->userid) {
-                $memberView = new View();
-                $memberView->setTmpl($view->getSubTemplate('{##activity_logged_in##}'));
-                $memberView->addContent('{##delete_link##}', $delete_link);
-                $memberView->addContent('{##delete_link_text##}',  'delete');
-                $memberView->addContent('{##update_link##}', $update_link);
-                $memberView->addContent('{##update_link_text##}',  'update');
-                $memberView->replaceTags();
-            } else {
-                $memberView = '';
-            }
-            $subView->addContent('{##activity_logged_in##}',  $memberView);
+        if ($login->isLoggedIn() AND isset($act_meta->userid) AND $login->currentUserID() === $act_meta->userid) {
+            $memberView = new View();
+            $memberView->setTmpl($loopView->getSubTemplate('{##activity_logged_in##}'));
+            $memberView->addContent('{##delete_link##}', View::linkFab($delete_link, 'delete'));
+            $memberView->addContent('{##update_link##}', View::linkFab($update_link, 'update'));
+            $memberView->replaceTags();
+            $loopView->addContent('{##activity_logged_in##}',  $memberView);
         }
+        $loopView->replaceTags();
 
-        if ($details_link !== '') {
-            $linkView = new View();
-            $linkView->setTmpl($view->getSubTemplate('{##details_link_area##}'));
+        $activityView->addContent('{##activity_loop##}', $loopView);
+        $activityView->replaceTags();
 
-            $linkView->addContent('{##details_link##}', $details_link);
-            $linkView->addContent('{##details_link_text##}',  Parsedown::instance()->line($activity_event->title));
-            $linkView->replaceTags();
-        } else {
-            $linkView = '';
-        }
-        $subView->addContent('{##details_link_area##}',  $linkView);
-        $subView->replaceTags();
-
-        $view->addContent('{##activity_loop##}',  $subView);
-        $view->replaceTags();
-
-        return $view;
+        return $activityView;
     }
     
     function getClassSelectionFormView($id) {
@@ -562,7 +728,7 @@ class Activity_Event extends Activity {
             $content = (!empty($env->post('activity')['content'])) ? $env->post('activity')['content'] : $act->description;
             $date = (isset($env->post('activity')['date'])) ? $env->post('activity')['date'] : $act->date;
             $time = (isset($env->post('activity')['time'])) ? $env->post('activity')['time'] : $act->time;
-            $comments_checked = (!empty($env->post('activity')['comments'])) ? $env->post('activity')['comments'] : $act->comments_activated;
+            $comments_checked = (!empty($env->post('activity')['comments'])) ? $env->post('activity')['comments'] : $act->comments_enabled;
         }
         
         $view->addContent('{##activity_title##}' , $title);
@@ -575,21 +741,14 @@ class Activity_Event extends Activity {
         return $view;
     }
     
-    function getActivityDetailsView($id) {
-        $act = $this->getActivity($id);
-
-        $identity = new Identity();
-        $event_owner = $identity->getIdentityById($act->userid, 0);
-        $profile = new Profile();
-        $event_owner_profile = $profile->getProfileUrlById($act->userid);
-
-        $event_type = $act->event_type;
+    function getActivitySignupsView($event_id) {
+        $act = $this->getActivity($event_id);
 
         $signups_checked = $act->signups_activated;
-        $signed_up_users = '';
-        if ($signups_checked) {
-            $signed_up_users = $this->getSignupsByEventId($id);
+        if ($signups_checked == '1') {
+            $signed_up_users = $this->getSignupsByEventId($event_id);
             if (is_array($signed_up_users)) {
+                $identity = new Identity();
                 foreach ($signed_up_users as $key => $user_id) {
                     $signed_up_users[$key] = $identity->getIdentityById($user_id, 0);
                 }
@@ -597,18 +756,15 @@ class Activity_Event extends Activity {
             } else {
                 $signed_up_users = 'No signups so far! Be the first!';
             }
+            $view = new View();
+            $view->setTmpl($view->loadFile('/views/activity/event/activity_event_signups_view.php'), array(
+                '{##signups##}' => $signed_up_users,
+            ));
+
+            $view->replaceTags();
+            return $view;
         }
-        
-        $view = new View();
-        $view->setTmpl($view->loadFile('/views/activity/event/activity_event_details_view.php'), array(
-            '{##activity_type##}' => $event_type,
-            '{##activity_owner##}' => $event_owner,
-            '{##activity_owner_profile_url##}' => $event_owner_profile,
-            '{##signups##}' => $signed_up_users,
-        ));
-        
-        $view->replaceTags();
-        return $view;
+        return false;
     }
     
     function getSignupForm($activity_id) {
@@ -702,91 +858,10 @@ class Activity_Event extends Activity {
         return false;
     }
     
-    function saveSignups($activity_id) {
-        $db = db::getInstance();
-        $env = Env::getInstance();
-
-        $signups_min = isset($env->post('activity')['signups_min']) ? '1' : '0';
-        $signups_max = isset($env->post('activity')['signups_max']) ? '1' : '0';
-        $signups_min_val = !empty($env->post('activity')['signups_min_val']) ? $env->post('activity')['signups_min_val'] : '0';
-        $signups_max_val = !empty($env->post('activity')['signups_max_val']) ? $env->post('activity')['signups_max_val'] : '0';
-        $keep_signups_open = isset($env->post('activity')['keep_signups_open']) ? '1' : '0';
-        $class_registration = isset($env->post('activity')['class_registration']) ? '1' : '0';
-        $selectable_roles = isset($env->post('activity')['selectable_roles']) ? '1' : '0';
-
-        $sql = "SELECT * FROM activity_events_signups WHERE event_id = '$activity_id';";
-        $db->query($sql);
-        if ($db->affected_rows == 0) {
-            $sql = "INSERT INTO activity_events_signups (event_id, minimal_signups_activated, minimal_signups, maximal_signups_activated, maximal_signups, signup_open_beyond_maximal, class_registration_enabled, roles_registration_enabled, preference_selection_enabled) VALUES ('$activity_id', '$signups_min', '$signups_min_val', '$signups_max', '$signups_max_val', '$keep_signups_open', '$class_registration', '$selectable_roles', '0');";
-        } else {
-            $sql = "UPDATE activity_events_signups
-                        SET 
-                            minimal_signups_activated = '$signups_min',
-                            minimal_signups = '$signups_min_val',
-                            maximal_signups_activated = '$signups_max',
-                            maximal_signups = '$signups_max_val',
-                            signup_open_beyond_maximal = '$keep_signups_open',
-                            class_registration_enabled = '$class_registration',
-                            roles_registration_enabled = '$selectable_roles',
-                            preference_selection_enabled = '0'
-                        WHERE event_id = '$activity_id';";
-        }
-        if ($db->query($sql)) {
-            return true;
-        }
-        return false;
-    }
-    
-    function deleteSignupsRolesByEventId($event_id) {
-        $db = db::getInstance();
-        $sql = "DELETE FROM activity_events_signups_roles WHERE event_id = '$event_id';";
-        $query = $db->query($sql);
-        if ($query !== false) {
-            return true;
-        }
-        return false;
-    }
-
-    function saveSignupsRoles($activity_id) {
-        $db = db::getInstance();
-        $env = Env::getInstance();
-
-        $signups_roles = isset($env->post('activity')['roles']) ? $env->post('activity')['roles'] : false;
-        
-        $this->deleteSignupsRolesByEventId($activity_id);
-
-        $error = false;
-        foreach ($signups_roles as $role) {
-            $sql = "INSERT INTO activity_events_signups_roles (role_id, event_id, name) VALUES ('$role', '$activity_id', '');";
-            echo $sql;
-            if ($db->query($sql) !== true) {
-                $error = true;
-            }
-        }
-
-        if ($error === false) {
-            return true;
-        }
-        return false;
-    }
-    
-    function getSignupsByUserId($user_id) {
-        $db = db::getInstance();
-        $sql = "SELECT * FROM activity_events_signups_user WHERE user_id = '$user_id';";
-        $query = $db->query($sql);
-        if ($query !== false AND $query->num_rows >= 1) {
-            while ($result_row = $query->fetch_object()) {
-                $signups[] = $this->getActivity($result_row->event_id);
-            }
-            return $signups;
-        }
-        return false;
-    }
-
     function getSignupsByUserIdView($user_id) {
         $signups = $this->getSignupsByUserId($user_id);
         $view = new View();
-        $view->setTmpl($view->loadFile('/views/activity/event/activity_signups_view.php'));
+        $view->setTmpl($view->loadFile('/views/activity/event/activity_signup_schedule_view.php'));
         if (is_array($signups)) {
             $signups_loop = NULL;
             foreach ($signups as $signup) {
@@ -804,21 +879,6 @@ class Activity_Event extends Activity {
         }
         $view->replaceTags();
         return $view;
-    }
-    
-    function getUpcomingActivities() {
-        $db = db::getInstance();
-        $sql = "SELECT * FROM activity_events WHERE date >= DATE(NOW()) ORDER BY date;";
-        $query = $db->query($sql);
-
-         if ($query !== false AND $query->num_rows >= 1) {
-            while ($result_row = $query->fetch_object()) {
-                $signups[] = $this->getActivity($result_row->activity_id);
-            }
-
-            return $signups;
-        }
-        return false;
     }
     
     function getUpcomingActivitiesView() {
@@ -846,84 +906,6 @@ class Activity_Event extends Activity {
         return $view;
     }
     
-    function saveActivity($id = NULL) {
-        $db = db::getInstance();
-        $env = Env::getInstance();
-
-        $title = $env->post('activity')['title'];
-        $event_type = $env->post('activity')['event_type'];
-        $description = $env->post('activity')['content'];
-        $time = $env->post('activity')['time'];
-        $date = $env->post('activity')['date'];
-
-        $allow_comments = isset($env->post('activity')['comments']) ? '1' : '0';
-        $allow_signups = isset($env->post('activity')['signups']) ? '1' : '0';
-
-        if ($id === NULL) {
-            $activity_id = $this->save($type = '2');
-            $sql = "INSERT INTO activity_events (activity_id, event_type, title, description, date, time, calendar_activated, schedule_activated, comments_activated, signups_activated, template_activated) VALUES ($activity_id, '$event_type', '$title', '$description', '$date', '$time', '0', '0', '$allow_comments', '$allow_signups', '0');";
-            $query = $db->query($sql);
-            if ($query !== false) {
-                if ($this->saveSignups($activity_id) !== false AND $this->saveSignupsRoles($activity_id) !== false) {
-                    $env->clearPost('activity');
-                    return true;
-                }
-            }
-        } else {
-            $login = new Login();
-
-            $userid = $login->currentUserID();
-            $actid = $this->getActivity($id)->userid;
-
-            if ($userid != $actid) {
-                return false;
-            }
-
-            $sql = "UPDATE activity_events SET
-                            title = '$title',
-                            event_type = '$event_type',
-                            description = '$description',
-                            time = '$time',
-                            date = '$date',
-                            comments_activated = '$allow_comments',
-                            signups_activated = '$allow_signups'
-                        WHERE activity_id = '$id';";
-
-            $query = $db->query($sql);
-
-            if ($db->affected_rows > 0 OR $query !== false) {
-                if ($this->saveSignups($id) !== false AND $this->saveSignupsRoles($id) !== false) {
-                    $env->clearPost('activity');
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    
-    function deleteActivity($activity_id) {
-        $db = db::getInstance();
-        $env = Env::getInstance();
-        $login = new Login();
-
-        $userid = $login->currentUserID();
-        $actid = $this->getActivity($activity_id)->userid;
-        if ($userid != $actid) {
-            return false;
-        }
-
-        $sql = "UPDATE activities SET deleted = '1' WHERE id = '$activity_id';";
-        $query = $db->query($sql);
-        if ($query !== false) {
-            $env->clearPost('activity');
-            if (isset($env::$hooks['delete_event_hook'])) {
-                $env::$hooks['delete_event_hook']($activity_id);
-            }
-            return true;
-        }
-        return false;
-    }
 }
 
 $activity_event = new Activity_Event();

@@ -237,20 +237,22 @@ article.activity img {
     clear: both;
 }
 
-article.comment section.comment_details,
-article.activity section.activity_details {
+article.comment .comment_details,
+article.activity .activity_details {
     height: 40px;
     line-height: 20px;
 }
 
 article.activity section.details {}
 
+article.activity .details h1,
 article.activity section.details > a {
-    display: inline-block;
+    display: block;
     font-size: 1.25em;
     line-height: 1.5em;
     margin: 0; padding: 0.5em 0 0.25em 0;
 }
+
 
 article.activity section.details section.signups,
 article.activity section.details time {
@@ -262,12 +264,12 @@ article.activity section.details section.signups {
     float: right;
 }
 
-article.activity section.content {
+article.activity .content {
     clear: both;
     margin: 0 0.5em;
 }
 
-article.activity section.content .more {
+article.activity .content .more {
     float: right;
     clear: both;
 }

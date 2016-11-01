@@ -1,6 +1,5 @@
 <?php
 class Activity {
-    
      // start controller (i guess)
     function initEnv() {
         Toro::addRoute(["/activities" => "Activity"]);
@@ -21,7 +20,8 @@ class Activity {
         
         $interval_sql = (is_numeric($interval)) ? "HAVING create_time >= DATE_SUB(CURDATE(), INTERVAL $interval DAY)" : '';
         
-        $sql = "SELECT activities.id, activities.userid, activities.create_time AS timestamp, from_unixtime(activities.create_time) AS create_time, activities.type AS type, activity_types.name AS type_name, activity_types.description AS type_description,
+        $sql = "SELECT activities.deleted as deleted, activities.id, activities.userid, activities.create_time AS timestamp, activities.type AS type, activity_types.name AS type_name, activity_types.description AS type_description,
+                    from_unixtime(activities.create_time) AS create_time,
                     (SELECT concat(ae.date, ' ', ae.time) AS timestamp
                         FROM activity_events ae
                         WHERE ae.activity_id = activities.id
@@ -50,10 +50,10 @@ class Activity {
             return false;
         }
         $db = db::getInstance();
-        $sql = "SELECT activities.deleted as deleted, activities.id, activities.userid, from_unixtime(activities.create_time) AS create_time, activities.type AS type, activity_types.name AS type_name, activity_types.description AS type_description
+        $sql = "SELECT activities.deleted as deleted, activities.id, activities.userid, from_unixtime(activities.create_time) AS create_time, activities.type AS type, activity_types.name AS type_name, activity_types.description AS type_description, activities.comments_enabled AS comments_enabled
                     FROM activities
                     INNER JOIN activity_types
-                    ON activities.type = activity_types.id
+                        ON activities.type = activity_types.id
                     WHERE activities.id = $id
                     ORDER BY activities.create_time DESC LIMIT 1;";
         $query = $db->query($sql);
@@ -67,7 +67,14 @@ class Activity {
     
     function getActivityCountByType($type = 0) {
         $db = db::getInstance();
-        $sql = "SELECT (SELECT count(*) AS count FROM activities WHERE type = $type) AS count_all, count(*) AS count FROM activities WHERE type = $type AND from_unixtime(create_time) >= DATE_SUB(CURDATE(), INTERVAL 10 DAY);";
+        $sql = "SELECT
+                    (SELECT count(*) AS count FROM activities WHERE type = $type) AS count_all,
+                    count(*) AS count
+                    FROM activities
+                    WHERE
+                        type = $type
+                    AND
+                        from_unixtime(create_time) >= DATE_SUB(CURDATE(), INTERVAL 10 DAY);";
         $query = $db->query($sql);
         
         if ($query !== false AND $query->num_rows == 1) {
@@ -77,18 +84,30 @@ class Activity {
         return false;
     }
     
-    function save($type = '1') {
+    function save($type = '1', $comments_enabled = '0') {
         $db = db::getInstance();
         $login = new Login();
         
         $userid = $login->currentUserID();
         $uxtime = time();
         
-        $sql = "INSERT INTO activities (id, userid, create_time, type) VALUES ('NULL', '$userid', '$uxtime', '$type');";
+        $sql = "INSERT INTO activities (id, userid, create_time, type, comments_enabled) VALUES ('NULL', '$userid', '$uxtime', '$type', '$comments_enabled');";
         $query = $db->query($sql);
         
         if ($query !== false) {
             return $db->insert_id;
+        }
+        return false;
+    }
+    
+    function commentsEnabled($activity_id) {
+        $db = db::getInstance();
+        $sql = "SELECT comments_enabled FROM activities WHERE id = '$activity_id';";
+        $query = $db->query($sql);
+        if ($query !== false AND $query->num_rows >= 1) {
+            $result_row = $query->fetch_object();
+            $result = ($result_row->comments_enabled == '1') ? true : false;
+            return $result;
         }
         return false;
     }

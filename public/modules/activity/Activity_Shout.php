@@ -105,11 +105,10 @@ class Activity_Shout extends Activity {
     
     function getActivity($id) {
         $db = db::getInstance();
-        $sql = "SELECT activity_shouts.comments_activated as comments_activated, activity_shouts.content AS content, activities.userid AS userid
-                    FROM activity_shouts
-                    INNER JOIN activities
-                    ON activities.id = activity_shouts.activity_id
-                    WHERE activity_shouts.activity_id = '$id'
+        $sql = "SELECT a.comments_enabled AS comments_enabled, ash.content AS content, a.userid AS userid
+                    FROM activity_shouts ash
+                    INNER JOIN activities a ON a.id = ash.activity_id
+                    WHERE ash.activity_id = '$id'
                     LIMIT 1;";
         $query = $db->query($sql);
 
@@ -168,7 +167,7 @@ class Activity_Shout extends Activity {
 
         $activity_event = $this->getActivity($act->id);
         $content = Parsedown::instance()->text($activity_event->content);
-        if (isset($activity_event->comments_activated) AND $activity_event->comments_activated == '1') {
+        if (isset($activity_event->comments_enabled) AND $activity_event->comments_enabled == '1') {
             $allow_comments = TRUE;
         } else {
             $allow_comments = FALSE;
@@ -257,7 +256,7 @@ class Activity_Shout extends Activity {
         $act = $this->getActivity($id);
         $content = (isset($env->post('activity')['content'])) ? $env->post('activity')['content'] : $act->content;
         
-        $comments_checked = (isset($env->post('activity')['comments'])) ? $env->post('activity')['comments'] : $act->comments_activated;
+        $comments_checked = (isset($env->post('activity')['comments'])) ? $env->post('activity')['comments'] : $act->comments_enabled;
         $comments_checked = ($comments_checked == '1') ? 'checked="' . $comments_checked . '"' : '';
 
         $view = new View();
@@ -315,13 +314,13 @@ class Activity_Shout extends Activity {
         $env = Env::getInstance();
         
         // save activity meta data
-        $activity_id = $this->save($type = '1'); // 1=shout
+        $allow_comments = isset($env->post('activity')['comments']) ? '1' : '0';
+        $activity_id = $this->save($type = '1', $allow_comments); // 1=shout
 
         // save 'shout' specific data
         $content = $env->post('activity')['content'];
-        $allow_comments = isset($env->post('activity')['comments']) ? '1' : '0';
 
-        $sql = "INSERT INTO activity_shouts (activity_id, content, comments_activated) VALUES ('$activity_id', '$content', '$allow_comments');";
+        $sql = "INSERT INTO activity_shouts (activity_id, content) VALUES ('$activity_id', '$content');";
         $query = $db->query($sql);
         if ($query !== false) {
             $env->clearPost('activity');
@@ -330,24 +329,27 @@ class Activity_Shout extends Activity {
         return false;
     }
     
-    function updateActivity($id) {
+    function updateActivity($shout_id) {
         $db = db::getInstance();
         $env = Env::getInstance();
         $login = new Login();
 
         $userid = $login->currentUserID();
-        $actid = $this->getActivity($id)->userid;
+        $actid = $this->getActivity($shout_id)->userid;
         if ($userid != $actid) {
             return false;
         }
         
         $content = $env->post('activity')['content'];
         $allow_comments = isset($env->post('activity')['comments']) ? '1' : '0';
-        
+        $sql = "UPDATE activities SET
+                            comments_enabled= '$allow_comments'
+                        WHERE id = '$shout_id';";
+        $query = $db->query($sql);
+
         $sql = "UPDATE activity_shouts SET
-                        content = '$content',
-                        comments_activated = '$allow_comments'
-                    WHERE activity_id = '$id';";
+                        content = '$content'
+                    WHERE activity_id = '$shout_id';";
         
         $query = $db->query($sql);
         if ($query !== false) {
@@ -357,22 +359,22 @@ class Activity_Shout extends Activity {
         return false;
     }
     
-    function deleteActivity($activity_id) {
+    function deleteActivity($shout_id) {
         $db = db::getInstance();
         $env = Env::getInstance();
         $login = new Login();
 
         $userid = $login->currentUserID();
-        $actid = $this->getActivity($activity_id)->userid;
+        $actid = $this->getActivity($shout_id)->userid;
         if ($userid != $actid) {
             return false;
         }
-        $sql = "UPDATE activities SET deleted = '1' WHERE id = '$activity_id';";
+        $sql = "UPDATE activities SET deleted = '1' WHERE id = '$shout_id';";
         $query = $db->query($sql);
         if ($query !== false) {
             $env->clearPost('activity');
             if (isset($env::$hooks['delete_event_hook'])) {
-                $env::$hooks['delete_event_hook']($activity_id);
+                $env::$hooks['delete_event_hook']($shout_id);
             }
             return true;
         }
