@@ -306,13 +306,11 @@ class Comment {
                 $subView->addContent('{##avatar##}', $identity->getAvatarByUserId($act->userid));
                 
                 $login = new Login();
-                if ($login->isLoggedIn()) {
+                if ($login->isLoggedIn() AND $login->currentUserID() === $act->userid) {
                     $memberView = new View();
                     $memberView->setTmpl($view->getSubTemplate('{##comment_logged_in##}'));
-                    if ($login->currentUserID() === $act->userid) {
-                        $memberView->addContent('{##edit_link##}', View::linkFab('/comment/activity/update/' . $act->comment_id, 'edit'));
-                        $memberView->addContent('{##delete_link##}', View::linkFab('/comment/activity/delete/' . $act->comment_id, 'delete'));
-                    }
+                    $memberView->addContent('{##edit_link##}', View::linkFab('/comment/activity/update/' . $act->comment_id, 'edit'));
+                    $memberView->addContent('{##delete_link##}', View::linkFab('/comment/activity/delete/' . $act->comment_id, 'delete'));
                     $memberView->replaceTags();
                     $subView->addContent('{##comment_logged_in##}',  $memberView);
                 }
