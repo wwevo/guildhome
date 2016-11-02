@@ -1,16 +1,4 @@
 <?php
-
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
-/**
- * Description of Profile
- *
- * @author Christian Voigt <chris at notjustfor.me>
- */
 class Settings {
     
     function initEnv() {
@@ -27,15 +15,7 @@ class Settings {
 
         if ($login->isLoggedIn()) {
             if (isset($env->post('setting_' . $key)['submit'])) {
-                // is it a file?
-                if (isset($_FILES['setting_' . $key]) AND is_array($_FILES['setting_' . $key])) {
-                    if ($this->validateSetting($key) AND ($file = $this->uploadAvatar($key, $_FILES['setting_' . $key])) !== false) {
-                        $this->updateSetting($key, '/' . $file);
-                        header("Location: " .  $env->post('target_url'));
-                    } else {
-                        header("Location: " .  $env->post('target_url'));
-                    }
-                } elseif ($this->validateSetting($key) AND $this->updateSetting($key)) {
+                if ($this->validateSetting($key) AND $this->updateSetting($key)) {
                     header("Location: " .  $env->post('target_url'));
                 } else {
                     header("Location: " .  $env->post('target_url'));
@@ -44,32 +24,6 @@ class Settings {
         }        
     }
     
-    function uploadAvatar($key, $files) {
-        $login = new Login();
-        $current_identity = $login->currentUsername();
-        
-        $image = new Bulletproof\Image($files);
-        $image->setName($this->createSlug($current_identity))->setLocation("avatar");
-        
-        if (is_object($image)){
-            $upload = $image->upload();
-            if ($upload->getError() === false) {
-                Bulletproof\resize(
-                    $upload->getFullPath(), 
-                    $upload->getMime(),
-                    $upload->getWidth(),
-                    $upload->getHeight(),
-                    200,
-                    200,
-                    TRUE
-                );
-                return $image->getFullPath();
-            } else {
-                return false;
-            }
-        }        
-    }
-
     function validateSetting($key) {
         $validation = Validation::getInstance();
         $env = Env::getInstance();
@@ -85,7 +39,6 @@ class Settings {
         }
 
         if (isset($validation::$validation_rules[$key])) {
-
             $valid = $validation::$validation_rules[$key]($value);
             if ($valid === false) {
                 $msg->add('setting_' . $key . '_validation', 'Validation failed');
@@ -155,7 +108,6 @@ class Settings {
 
         if ($db->query($sql) === true) {
             $env->clearPost('setting_' . $key);
-//            echo "yay: " . $sql;
             return true;
         }
         return false;
@@ -184,8 +136,8 @@ class Settings {
         $view->replaceTags();
         return $view;
     }
-    
-    function getUploadImageForm($key, $target_url = '') {
+
+    function getUpdateDateForm($key, $target_url = '') {
         $env = Env::getInstance();
         $msg = Msg::getInstance();
  
@@ -196,61 +148,17 @@ class Settings {
         }
 
         $view = new View();
-        $view->setTmpl($view->loadFile('/views/settings/upload_image_form.php'), array(
+        $view->setTmpl($view->loadFile('/views/settings/update_date_form.php'), array(
             '{##form_action##}' => '/setting/' . $key,
             '{##target_url##}' => $target_url,
             '{##setting_key##}' => $key,
             '{##setting_value##}' => $setting_value,
             '{##update_setting_validation##}' => $msg->fetch('setting_' . $key .'_validation'),
-            '{##setting_submit_text##}' => 'upload',
+            '{##setting_submit_text##}' => 'update',
             '{##setting_cancel_text##}' => 'reset',
         ));
         $view->replaceTags();
         return $view;
-    }
-    
-    function getTimezonePickerForm($target_url = '') {
-        $env = Env::getInstance();
-        $view = new View();
-        $view->setTmpl($view->loadFile('/views/settings/timezone_picker_form.php'), array(
-            '{##form_action##}' => '/setting/timezone',
-            '{##target_url##}' => $target_url,
-            '{##timezone_submit_text##}' => 'pick',
-        ));
-        
-        if (($timezone = $this->getSettingByKey('timezone')) === false) {
-            $option_selected = '';
-        }
-
-        $options_list = '';
-        foreach ($env->generateTimezoneList() as $option_value => $option_text) {
-            $subView = new View();
-            $subView->setTmpl($view->getSubTemplate('{##timezone_select_option##}'));
-            $subView->addContent('{##option_value##}', $option_value);
-            $subView->addContent('{##option_text##}', $option_text);
-            if ($timezone == $option_value) {
-                $subView->addContent('{##option_selected##}', ' selected="selected"');
-            }
-            $subView->replaceTags();
-            $options_list .= $subView;
-        }
-        $view->addContent('{##timezone_select_option##}', $options_list);
-        
-        $view->replaceTags();
-        return $view;
-        
-    }
-    
-    function createSlug($str) {
-	if ($str !== mb_convert_encoding(mb_convert_encoding($str, 'UTF-32', 'UTF-8'), 'UTF-8', 'UTF-32')) {
-            $str = mb_convert_encoding($str, 'UTF-8', mb_detect_encoding($str));
-        }
-        $str = htmlentities($str, ENT_NOQUOTES, 'UTF-8');
-        $str = preg_replace('`&([a-z]{1,2})(acute|uml|circ|grave|ring|cedil|slash|tilde|caron|lig);`i', '\\1', $str);
-        $str = html_entity_decode($str, ENT_NOQUOTES, 'UTF-8');
-        $str = preg_replace(array('`[^a-z0-9]`i','`[-]+`'), '-', $str);
-        $str = strtolower(trim($str, '-'));
-        return $str;
     }
     
 }
