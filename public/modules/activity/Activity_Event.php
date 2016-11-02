@@ -360,34 +360,6 @@ class Activity_Event extends Activity {
         return false;
     }
     
-    function getSignupsByUserId($user_id) {
-        $db = db::getInstance();
-        $sql = "SELECT * FROM activity_events_signups_user WHERE user_id = '$user_id';";
-        $query = $db->query($sql);
-        if ($query !== false AND $query->num_rows >= 1) {
-            while ($result_row = $query->fetch_object()) {
-                $signups[] = $this->getActivity($result_row->event_id);
-            }
-            return $signups;
-        }
-        return false;
-    }
-
-    function getUpcomingActivities() {
-        $db = db::getInstance();
-        $sql = "SELECT * FROM activity_events WHERE date >= DATE(NOW()) ORDER BY date;";
-        $query = $db->query($sql);
-
-         if ($query !== false AND $query->num_rows >= 1) {
-            while ($result_row = $query->fetch_object()) {
-                $signups[] = $this->getActivity($result_row->activity_id);
-            }
-
-            return $signups;
-        }
-        return false;
-    }
-    
     function saveActivity($event_id = NULL) {
         $db = db::getInstance();
         $env = Env::getInstance();
@@ -844,52 +816,6 @@ class Activity_Event extends Activity {
         return $view;
     }
 
-    function getSignupsByUserIdView($user_id) {
-        $signups = $this->getSignupsByUserId($user_id);
-        $view = new View();
-        $view->setTmpl($view->loadFile('/views/activity/event/activity_signup_schedule_view.php'));
-        if (is_array($signups)) {
-            $signups_loop = NULL;
-            foreach ($signups as $signup) {
-                $subView = new View();
-                $subView->setTmpl($view->getSubTemplate('{##signups_loop##}'));
-                $subView->addContent('{##activity_title##}', $signup->title);
-                $subView->addContent('{##activity_details_link##}', '/activity/event/details/' . $signup->activity_id);
-                $subView->addContent('{##activity_details_link_text##}', 'Event details');
-                $subView->addContent('{##activity_event_date##}', $signup->date);
-                $subView->addContent('{##activity_event_time##}', $signup->time);
-                $subView->replaceTags();
-                $signups_loop .= $subView;
-            }
-            $view->addContent('{##signups_loop##}',  $signups_loop);
-        }
-        $view->replaceTags();
-        return $view;
-    }
-    
-    function getUpcomingActivitiesView() {
-        $view = new View();
-        $view->setTmpl($view->loadFile('/views/activity/event/scheduled_activities.php'));
-        $act = $this->getUpcomingActivities();
-        if (false !== $act && is_array($act)) {
-            $activity_loop = NULL;
-            foreach ($act as $activity) {
-                $date = new DateTime($activity->date . ' ' . $activity->time);
-                $subView = new View();
-                $subView->setTmpl($view->getSubTemplate('{##activity_loop##}'));
-                $subView->addContent('{##activity_title##}', $activity->title);
-                $subView->addContent('{##activity_details_link##}', '/activity/event/details/' . $activity->activity_id);
-                $subView->addContent('{##activity_details_link_text##}', 'Event details');
-                $subView->addContent('{##activity_event_date##}', $date->format('Y-m-d'));
-                $subView->addContent('{##activity_event_time##}', $date->format('H:i'));
-                $subView->replaceTags();
-                $activity_loop .= $subView;
-            }
-            $view->addContent('{##activity_loop##}',  $activity_loop);
-        }
-        $view->replaceTags();
-        return $view;
-    }
 }
 // end view
 $activity_event = new Activity_Event();

@@ -96,18 +96,14 @@ class Profile {
                 if ($user->id == $login->currentUserID()) { // it's-a-me!
                     $subView->addContent('{##email##}', $user->email);
                     $settings = new Settings();
-                    $view->addContent('{##main##}', '<hr />');
-                    $view->addContent('{##main##}', '<h3>Development stuff</h3>');
-                    $view->addContent('{##main##}', '<hr />');
 
-                    $gw2api = new gw2api();
-                    if ($gw2api->hasApiData('characters')) {
-                        $view->addContent('{##main##}', $gw2api->getNextBirthdaysView());
+                    $gw2api_widgets = new gw2api_Widgets();
+                    if (gw2api::hasApiData('characters')) {
+                        $view->addContent('{##main##}', $gw2api_widgets->getNextBirthdaysView());
                     }
 
-                    $activity_event = new Activity_Event();
-                    $view->addContent('{##main##}', '<h4>Event History</h4>');
-                    $view->addContent('{##main##}', $activity_event->getSignupsByUserIdView($login->currentUserID()));
+                    $activity_event_widgets = new Activity_Event_Widgets();
+                    $view->addContent('{##main##}', $activity_event_widgets->getSignupsByUserIdView($login->currentUserID()));
                 }
                 $subView->replaceTags();
                 $view->addContent('{##profile_badge##}', $subView);

@@ -65,9 +65,9 @@ $page->addContent('{##nav##}', $menu->getMenu('site'));
 $page->addContent('{##user_nav##}', $menu->getMenu('user'));
 $page->addContent('{##user_nav##}', $menu->getMenu('operator'));
 
-$activity_event = new Activity_Event();
+$activity_event_widgets = new Activity_Event_Widgets();
 $page->addContent('{##widgets##}', '<hr />');
-$page->addContent('{##widgets##}', $activity_event->getUpcomingActivitiesView());
+$page->addContent('{##widgets##}', $activity_event_widgets->getUpcomingActivitiesView());
 
 $page->addContent('{##footer##}', '<p>created by the community: for the community</p>');
 $page->addContent('{##footer##}', '<p>');
