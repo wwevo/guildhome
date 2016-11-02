@@ -245,22 +245,28 @@ article.activity .activity_details {
 
 article.activity section.details {}
 
-article.activity .details h1,
-article.activity section.details > a {
+article.activity .details h2,
+article.activity .details > a {
     display: block;
-    font-size: 1.25em;
+    font-size: 1.125em;
     line-height: 1.5em;
     margin: 0; padding: 0.5em 0 0.25em 0;
 }
 
 
-article.activity section.details section.signups,
-article.activity section.details time {
+article.activity .details .signups,
+article.activity .details time {
     font-weight: 600;
     font-size: 90%;
 }
 
-article.activity section.details section.signups {
+article.activity .details .signup_form h3,
+article.activity .details .description h3,
+article.activity .details .signups h3 {
+    display: none;
+}
+
+article.activity .details .signups {
     float: right;
 }
 
@@ -269,26 +275,32 @@ article.activity .content {
     margin: 0 0.5em;
 }
 
+article.activity > h2,
+article.activity.actionmsg .content h2,
+article.activity.shout .content h2 {
+    display: none;
+}
+
 article.activity .content .more {
     float: right;
     clear: both;
 }
 
-article.comment section.logged_in,
-article.comment section.not_logged_in,
-article.activity section.logged_in,
-article.activity section.not_logged_in {
+article.comment .logged_in,
+article.comment .not_logged_in,
+article.activity .logged_in,
+article.activity .not_logged_in {
     height: 20px;
     padding: 0.25em;
 }
 
-article.comment section.logged_in,
-article.activity section.logged_in {
+article.comment .logged_in,
+article.activity .logged_in {
     text-align: right;
 }
 
-article.comment section.not_logged_in,
-article.activity section.not_logged_in {
+article.comment .not_logged_in,
+article.activity .not_logged_in {
     float: left;
     text-align: left;
 }

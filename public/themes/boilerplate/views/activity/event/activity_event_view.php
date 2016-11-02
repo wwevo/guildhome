@@ -1,6 +1,7 @@
 {##activity_message##}
 {##activity_loop##}
 <article class="activity{##css##}">
+    <h2>Activity Event</h2>
     <header class="activity_details">
         <img src="{##avatar##}" width="40" height="40" alt="avatar of user {##activity_identity##}" />
         on {##activity_published##},<br />
@@ -8,16 +9,19 @@
     </header>
     <section class="content clearfix">
         <section class="details">
-            <h1>{##details_link##}<a href="{##details_link_url##}">{##details_link_text##}</a>{/##details_link##}</h1>
+            <h2>{##details_link##}<a href="{##details_link_url##}">{##details_link_text##}</a>{/##details_link##}</h2>
             <time datetime="{##activity_event_datetime##}">Date: {##activity_event_date##}</time>
             <section class="signups clearfix">
+                <h3>Signups</h3>
                 <span title="{##activity_signups_list##}">{##activity_signups##}</span>
                 {##activity_detailed_signups_list##}
             </section>
             <section class="description clearfix">
+                <h3>Description</h3>
                 {##activity_content##}{##link_more##}<a href="{##link_more_url##}" class="more">{##link_more_text##}</a>{/##link_more##}
             </section>
             <section class="signup_form clearfix">
+                <h3>Signup now</h3>
                 {##activity_signup_form##}
             </section>
         </section>
