@@ -10,3 +10,8 @@ If you think that you are able to contribute in any meaningful way, please
 don't hesitate to contact me :)
 
 There's lots of work to be done. Let's do this!
+
+## How to get started
+### Requirements
+- MySQL Database, Webserver with PHP - easiest way to get that it downloading XAMPP
+
