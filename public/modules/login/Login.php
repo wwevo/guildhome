@@ -53,10 +53,22 @@ class Login {
     public function post() {
         $env = Env::getInstance();
         if (isset($env->post('login')['submit'])) {
-            if ($this->dologinWithPostData() === true) {
-                header("Location: /activities");
+            if ($this->dologinWithPostData() !== false) {
+                $setting = new Settings();
+                $date = new DateTime();
+                if ($setting->getSettingByKey('last_login', $this->currentUserID())) {
+                    $setting->updateSetting('last_login', $date->getTimestamp());
+                    header("Location: /activities");
+                } else {
+                    $profile = new Profile();
+                    $settings_url = $profile->getProfileUrlById($this->currentUserID()) . '/settings';
+                    $setting->updateSetting('last_login', $date->getTimestamp());
+                    header("Location: $settings_url");
+                }
+                exit;
             } else {
                 header("Location: /login");
+                exit;
             }
         }
         

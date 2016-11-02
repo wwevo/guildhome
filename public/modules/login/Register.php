@@ -30,7 +30,7 @@ class Register {
         $env = Env::getInstance();
         
         if (isset($env->post('register')['submit'])) {
-            if ($this->registerNewUser() == TRUE) {
+            if ($this->registerNewUser() !== false) {
                 header("Location: /login");
             } else {
                 header("Location: /register");
@@ -114,7 +114,7 @@ class Register {
                     if (isset($env::$hooks['new_user_hook'])) {
                         $env::$hooks['new_user_hook']($db->insert_id);
                     }
-                    return true; // user creation complete
+                    return $db->insert_id; // user creation complete
                 } else {
                     $msg->add('register_general_validation', "Something unexpected happened during Database operations. No user has been created.");
                     return false;
