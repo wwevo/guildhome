@@ -15,10 +15,11 @@ class Activity {
     }
     // end controller    
     // start model (i suppose)
-    function getActivities($interval = NULL) {
+    function getActivities($interval = NULL, $type = NULL) {
         $db = db::getInstance();
         
-        $interval_sql = (is_numeric($interval)) ? "HAVING create_time >= DATE_SUB(CURDATE(), INTERVAL $interval DAY)" : '';
+        $interval_sql = (is_numeric($interval)) ? "HAVING create_time >= DATE_SUB(CURDATE(), INTERVAL $interval DAY)" : "";
+        $type_sql = (is_numeric($type)) ? " AND activities.type = $type" : "";
         
         $sql = "SELECT activities.deleted as deleted, activities.id, activities.userid, activities.create_time AS timestamp, activities.type AS type, activity_types.name AS type_name, activity_types.description AS type_description,
                     from_unixtime(activities.create_time) AS create_time,
@@ -31,7 +32,7 @@ class Activity {
                     FROM activities
                     INNER JOIN activity_types
                         ON activities.type = activity_types.id
-                    WHERE activities.deleted = 0
+                    WHERE activities.deleted = 0 $type_sql
                     $interval_sql
                     ORDER BY event_date IS NULL, event_date ASC, activities.create_time DESC";
         $query = $db->query($sql);
@@ -190,11 +191,11 @@ class Activity {
         $view = new View();
         $view->setTmpl($view->loadFile('/views/core/one_tag.php'));
         
-        $activities = ($type === NULL) ? $this->getActivities(10) : $this->getActivities();
+        $activities = ($type === NULL) ? $this->getActivities(10) : $this->getActivities(NULL, $type);
         if (false !== $activities) {
             $d_var = getdate($activities[0]->timestamp);
             $activity_loop = '';
-            if (!isset($activities[0]->event_date)) {
+            if ($activities[0]->event_date == NULL) {
                 $activity_loop .= '<header class="day_header"><h3>' . $d_var["weekday"] . '</h3>, <time datetime="'.date('c', $activities[0]->timestamp).'">' . $d_var["month"] . ' '. $d_var["mday"] . '</time></header>';
             }
             $activity_loop .= '<ul class="day_wrapper">';
@@ -202,14 +203,10 @@ class Activity {
             $last_type = $activities[0]->type;
             $last_day = $activities[0]->event_day;
             foreach ($activities as $act) {
-                if ($type !== NULL AND $act->type !== $type) {
-                    continue;
-                }
-                
                 if ($last_day != $act->event_day) {
                     $activity_loop .= '</ul></li></ul>';
                     $d_var = getdate($act->timestamp);
-                    if (!isset($act->event_date)) {
+                    if ($act->event_date == NULL) {
                         $activity_loop .= '<header class="day_header"><h3>' . $d_var["weekday"] . '</h3>, <time datetime="'.date('c', $act->timestamp).'">' . $d_var["month"] . ' '. $d_var["mday"] . '</time></header>';
                     }
                     $activity_loop .= '<ul class="day_wrapper">';
