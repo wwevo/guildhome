@@ -26,13 +26,14 @@ function toggle(div){
             Time: <input type="time" name="activity[time]" placeholder="Time" value="{##activity_time##}" /> {##activity_date_validation##}<br />
             <input type="checkbox" {##activity_comments_checked##} name="activity[comments]" value="1" /> Allow comments for this event<br />
         </fieldset>
-        {##signups_form##}
-        {##class_selection_form##}
+        {##activity_general_validation##}
         <fieldset>
             <legend>Post itttt!</legend>
             <input type="submit" name="activity[submit]" value="{##submit_text##}" />
-            <input type="submit" name="activity[preview]" value="{##preview_text##}" />
+            <input type="submit" name="activity[preview]" value="{##preview_text##}" /><br />
+            <span>You can set advanced options like Signups and Role/Class selection after a initial save. This is a necessary evil at the moment, thank you for your understanding.</span>
         </fieldset>
-        {##activity_general_validation##}
     </form>
+    {##signups_form##}
+    {##class_selection_form##}
 </section>

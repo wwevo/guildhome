@@ -16,7 +16,7 @@ class Activity_Event_Widgets {
 
     function getUpcomingActivities() {
         $db = db::getInstance();
-        $sql = "SELECT * FROM activity_events WHERE date >= DATE(NOW()) ORDER BY date;";
+        $sql = "SELECT * FROM activity_events ae LEFT JOIN activities a ON ae.activity_id = a.id WHERE a.deleted = 0 AND date >= DATE(NOW()) ORDER BY date;";
         $query = $db->query($sql);
 
         if ($query !== false AND $query->num_rows >= 1) {

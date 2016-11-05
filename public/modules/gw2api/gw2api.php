@@ -30,11 +30,24 @@ class gw2api {
         $settings = new Settings();
 
         $page->setContent('{##main##}', '<h2>Guild Wars 2 API Access</h2>');
-        $api_key = $settings->getSettingByKey('api_key');
         if ($login->isLoggedIn()) {
+            $api_key = $settings->getSettingByKey('api_key');
             $page->addContent('{##main##}', $settings->getUpdateSettingForm('api_key', '/gw2api'));
             if ($api_key !== false) {
                 $page->addContent('{##main##}', $this->getApiKeyScopeView());
+
+                if ($login->isOperator()) {
+                    if ($api_key !== false) {
+                        $permissions = $this->getApiKeyScope();
+                        if (is_array($permissions) AND in_array('guilds', $permissions)) {
+                            $page->addContent('{##main##}', $settings->getUpdateSettingForm('main_guild_id', '/gw2api'));
+                            $page->addContent('{##main##}', $this->getUpdateRosterForm());
+                        }
+                    } else {
+                        $page->addContent('{##main##}', 'No Api key found');
+                    }
+                }
+                
                 $page->addContent('{##main##}', $this->getImportForm());
                 if ($this->hasApiData()) {
                     $page->addContent('{##main##}', $this->getImportAccountnameForm());
@@ -46,16 +59,6 @@ class gw2api {
             }
         } else {
             header("Location: /activities");
-        }
-        if ($login->isOperator()) {
-            if ($api_key !== false) {
-                $permissions = $this->getApiKeyScope();
-                if (is_array($permissions) AND in_array('guilds', $permissions)) {
-                    $page->addContent('{##main##}', $this->getUpdateRosterForm());
-                }
-            } else {
-                $page->addContent('{##main##}', 'No Api key found');
-            }
         }
     }
     
@@ -84,7 +87,7 @@ class gw2api {
     function post($slug = '') {
         $login = new Login();
         $env = Env::getInstance();
-
+        
         if ($login->isLoggedIn()) {
             if (isset($env->post('gw2api_import_accountname')['submit'])) {
                 if ($slug == 'import_accountname') {
@@ -117,6 +120,7 @@ class gw2api {
         $error = 0;
         
         $api_tokeninfo = $this->gw2apiRequest('/v2/tokeninfo', $key);
+
         if (!isset($api_tokeninfo['permissions']) OR !is_array($api_tokeninfo['permissions'])) {
             $msg->add('setting_api_key_validation', 'Not a valid API-Key?');
             $error = 1;
@@ -154,6 +158,7 @@ class gw2api {
         foreach ($api_permissions as $permission) {
             ${'api_' . $permission} =  $this->gw2apiRequest('/v2/' . $permission, $gw2apikey);
         }
+        
         if (isset($api_characters) AND is_array($api_characters)) {
             foreach ($api_characters as $key => $value) {
                 $characters[$key] = $this->gw2apiRequest('/v2/characters/' . rawurlencode($value), $gw2apikey);
@@ -277,16 +282,6 @@ class gw2api {
         return $view;
     }
 
-    function getImportedDataDumpView() {
-        $settings = new Settings();
-
-        $view = new View();
-        $view->setTmpl($view->loadFile('/views/gw2api/show_imported_data.php'));
-        $view->addContent('{##data##}', "<pre>" . print_r(json_decode($settings->getSettingByKey('gw2apidata'), true), true) . "</pre>");
-        $view->replaceTags();
-        return $view;
-    }
-    
     function getApiKeyScope() {
         $settings = new Settings();
         $api_key = $settings->getSettingByKey('api_key');
@@ -303,7 +298,7 @@ class gw2api {
     
     function getApiKeyScopeView() {
         $scope = $this->getApiKeyScope();
-        if (FALSE !== $scope) {
+        if (false !== $scope) {
             $view = new View();
             $view->setTmpl($view->loadFile('/views/gw2api/api_key_scope_view.php'));
             $all_permissions = null;
@@ -330,7 +325,8 @@ class gw2api {
     
     function extractRosterFromDump() {
         $settings = new Settings();
-        $roster = json_decode($settings->getSettingByKey('gw2apidata'), true)['guilds'][0]['roster'];
+        $roster = json_decode($settings->getSettingByKey('gw2apidata'), true);
+        $roster = $roster['guilds'][0]['roster'];
         foreach ($roster as $member) {
             $account = $member['name'];
             $rank =  $member['rank'];
@@ -354,8 +350,6 @@ class gw2api {
     function getRankUsageFromRoster() {
         $db = db::getInstance();
 
-        //$sql = "SELECT guild_rank, COUNT(*) as rank_count FROM api_roster GROUP BY guild_rank;";
-        
         $sql = "SELECT guild_rank, COUNT(*) as rank_count FROM api_roster GROUP BY guild_rank ORDER BY FIELD(guild_rank, 'Member', 'Chieftain', 'Officer', 'Leader') DESC, rank_count;";     
 
         $query = $db->query($sql);
@@ -539,47 +533,54 @@ class gw2api {
         return false;
     }
 
-    function gw2apiRequest($request, $api_key = ""){
-            // Check API Key against pattern
-            if($api_key != ""){
-                $pattern="/^[A-Z0-9]{8}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{20}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{12}$/";
-                if(!preg_match($pattern, $api_key)) {
-                    return false;
-                }
-            }
-
-            $url = parse_url('https://api.guildwars2.com'.$request);
-            // open the socket
-            if(!$fp = @fsockopen('ssl://'.$url['host'], 443, $errno, $errstr, 5)) {
+    function gw2apiRequest($request, $api_key = "") {
+        $log = Logger::getInstance();
+        
+        if ($api_key != "") {
+            $pattern = "/^[A-Z0-9]{8}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{20}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{12}$/";
+            if (!preg_match($pattern, $api_key)) {
                 return false;
             }
-            // prepare the request header...
-            $nl = "\r\n";
-            $header = 'GET '.$url['path'].(isset($url['query']) ? '?'.$url['query'] : '').' HTTP/1.1'.$nl.'Host: '.$url['host'].$nl;
-            $header .= !empty($api_key) ? 'Authorization: Bearer '.$api_key.$nl : '';
-            $header .= 'Connection: Close'.$nl.$nl;
+        }
 
-            // ...and send it.
-            fwrite($fp, $header);
-            stream_set_timeout($fp, 5);
-            // receive the response
-            $response = '';
-            do {
-                if(strlen($in = fread($fp, 1024)) == 0){
-                    break;
-                }
-                $response.= $in;
-            } while(true);
-            // now the nasty stuff... explode the response at the newlines
-            $response = explode($nl, $response);
-            // you may want some advanced error handling over here, too
-            if(isset($response[0]) && $response[0] == 'HTTP/1.1 200 OK'){
-                // the response is non chunked, so we can assume the data is contained in the last line
-                $response = json_decode($response[count($response)-1], true);
-                return $response;
-            }
+        $url = parse_url('https://api.guildwars2.com' . $request);
+        if (!$fp = @fsockopen('ssl://' . $url['host'], 443, $errno, $errstr, 5)) {
+            $log::lwrite("$errstr ($errno)");
             return false;
+        }
+
+        $nl = "\r\n";
+        $query = (isset($url['query']) ? '?' . $url['query'] : '');
+        
+        $header = 'GET ' . $url['path'] . $query . ' HTTP/1.1' . $nl;
+        $header .= 'Host: ' . $url['host'] . $nl;
+        $header .= !empty($api_key) ? 'Authorization: Bearer ' . $api_key . $nl : '';
+        $header .= 'Connection: Close' . $nl . $nl;
+
+        fwrite($fp, $header);
+        stream_set_timeout($fp, 5);
+
+        $response = '';
+        $eof = false;
+        do {
+            $in = fread($fp, 1024 * 8);
+            if (strlen($in) == 0) {
+                $eof = true;
+            } else {
+                $response .= $in;
+            }
+        } while ($eof === false);
+
+//        $log::lwrite($response . $nl);
+        $response_lines = explode($nl, $response);
+        if (isset($response_lines[0]) && $response_lines[0] == 'HTTP/1.1 200 OK') {
+            // gw2 api sends their actual api-data in the last line
+            $api_response = json_decode($response_lines[count($response_lines) - 1], true);
+            return $api_response;
+        }
+        return false;
     }
+
 }
 $gw2api = new gw2api();
 $gw2api->initEnv();

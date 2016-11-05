@@ -73,7 +73,7 @@ class Activity {
                     count(*) AS count
                     FROM activities
                     WHERE
-                        type = $type
+                        deleted = 0 AND type = $type
                     AND
                         from_unixtime(create_time) >= DATE_SUB(CURDATE(), INTERVAL 10 DAY);";
         $query = $db->query($sql);
@@ -163,20 +163,20 @@ class Activity {
         }
         $view->addContent('{##data##}', '</li>');
 
-        if ($active == 'poll') {
-            $view->addContent('{##data##}', '<li class="active">');
-        } else {
-            $view->addContent('{##data##}', '<li>');
-        }
-        $view->addContent('{##data##}', '<div class="count">');
-        $count = $this->getActivityCountByType('3');
-        $view->addContent('{##data##}', '<a href="/activities/polls">' . $count->count . '</a>');
-        $view->addContent('{##data##}', '</div>');
-        $view->addContent('{##data##}', '<div class="title"><a href="/activities/polls">Polls</a> (' . $count->count_all . ')</div>');
-        if ($login->isLoggedIn() AND $login->isOperator()) {
-            $view->addContent('{##data##}', '<div class="action"><a href="/activity/poll/new">+</a></div>');
-        }
-        $view->addContent('{##data##}', '</li>');
+//        if ($active == 'poll') {
+//            $view->addContent('{##data##}', '<li class="active">');
+//        } else {
+//            $view->addContent('{##data##}', '<li>');
+//        }
+//        $view->addContent('{##data##}', '<div class="count">');
+//        $count = $this->getActivityCountByType('3');
+//        $view->addContent('{##data##}', '<a href="/activities/polls">' . $count->count . '</a>');
+//        $view->addContent('{##data##}', '</div>');
+//        $view->addContent('{##data##}', '<div class="title"><a href="/activities/polls">Polls</a> (' . $count->count_all . ')</div>');
+//        if ($login->isLoggedIn() AND $login->isOperator()) {
+//            $view->addContent('{##data##}', '<div class="action"><a href="/activity/poll/new">+</a></div>');
+//        }
+//        $view->addContent('{##data##}', '</li>');
         $view->addContent('{##data##}', '</ul>');
         $view->addContent('{##data##}', '</nav>');
         $view->replaceTags();
