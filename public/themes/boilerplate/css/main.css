@@ -52,9 +52,6 @@ textarea {
     padding: 0.2em 0;
 }
 
-table td {
-    vertical-align: top;
-}
 
 /* ===== Initializr Styles ==================================================
    Author: Jonathan Verrecchia - verekia.com/initializr/responsive-template
@@ -497,15 +494,6 @@ nav.activities li:hover div.action:hover {
     font-size: 1.25em;
 }
 
-/* Start of "Micro clearfix" */
-
-    .clearfix { zoom: 1; }
-    .clearfix:before,
-    .clearfix:after { content: ""; display: table; }
-    .clearfix:after { clear: both; }
-
-/* End of "Micro clearfix" */
-
 aside a {
     text-decoration: none;
 }
@@ -514,70 +502,45 @@ aside a:hover {
     text-decoration: underline;
 }
 
-.page table {
-    background-color: #fff;
-}
-
-.widget table td,
-.module table td,
-.page table td {
-    padding: 0.5em;
-}
-
-.page table,
 .widget table,
 .module table {
     width: 100%;
 }
 
-.page table tr th,
 .widget table tr th,
 .module table tr th {
-    padding: 0.5em;
     color: #ffffff;
     background-color: #EDA73E;
 }
 
-.page table tr:nth-child(1n),
-.widget table tr:nth-child(1n),
-.module table tr:nth-child(1n) {
-    background-color: #fff8e7;
-}
-
-.page table tr:nth-child(2n),
 .widget table tr:nth-child(2n),
 .module table tr:nth-child(2n) {
     color: #EA6C12;
     background-color: #ffffff;
 }
 
-.page table td a,
 .widget table td a,
 .module table td a {
     color: black;
     text-decoration: none;
 }
 
-.page table td a:hover,
 .widget table td a:hover,
 .module table td a:hover {
     text-decoration: underline;
 }
 
-.page table tr:nth-child(2n) td a,
 .widget table tr:nth-child(2n) td a,
 .module table tr:nth-child(2n) td a {
     color: #EA6C12;
     background-color: white;
 }
 
-.page table td.center,
 .widget table td.center,
 .module table td.center {
     text-align:center;
 }
 
-.page table td.right,
 .widget table td.right,
 .module table td.right {
     text-align: right;
@@ -618,16 +581,12 @@ aside section.widget time {
     float: right;
 }
 
-
-/* ==========================================================================
-   Media Queries
-   ========================================================================== */
+.clearfix { zoom: 1; }
+.clearfix:before,
+.clearfix:after { content: ""; display: table; }
+.clearfix:after { clear: both; }
 
 @media only screen and (min-width: 480px) {
-
-/* ====================
-    INTERMEDIATE: Menu
-   ==================== */
 
     .header-container nav a {
         float: left;
@@ -645,10 +604,6 @@ aside section.widget time {
         margin-right: 0;
     }
 
-/* ========================
-    INTERMEDIATE: IE Fixes
-   ======================== */
-
     .header-container nav ul li {
         display: inline;
     }
@@ -660,20 +615,12 @@ aside section.widget time {
 
 @media only screen and (min-width: 768px) {
 
-/* ====================
-    WIDE: CSS3 Effects
-   ==================== */
-
     .header-container,
     .main aside {
         -webkit-box-shadow: 0 5px 10px #aaa;
            -moz-box-shadow: 0 5px 10px #aaa;
                 box-shadow: 0 5px 10px #aaa;
     }
-
-/* ============
-    WIDE: Menu
-   ============ */
 
     .title {
         float: left;
@@ -683,10 +630,6 @@ aside section.widget time {
         float: right;
         width: 38%;
     }
-
-/* ============
-    WIDE: Main
-   ============ */
 
     .main > article {
         float: left;
@@ -701,69 +644,14 @@ aside section.widget time {
 
 @media only screen and (min-width: 1140px) {
 
-/* ===============
-    Maximal Width
-   =============== */
-
     .wrapper {
-        width: 1026px; /* 1140px - 10% for margins */
+        width: 1026px;
         margin: 0 auto;
     }
 }
 
-/* ==========================================================================
-   Helper classes
-   ========================================================================== */
-
-.hidden {
-    display: none !important;
-    visibility: hidden;
-}
-
-.visuallyhidden {
-    border: 0;
-    clip: rect(0 0 0 0);
-    height: 1px;
-    margin: -1px;
-    overflow: hidden;
-    padding: 0;
-    position: absolute;
-    width: 1px;
-}
-
-.visuallyhidden.focusable:active,
-.visuallyhidden.focusable:focus {
-    clip: auto;
-    height: auto;
-    margin: 0;
-    overflow: visible;
-    position: static;
-    width: auto;
-}
-
-.invisible {
-    visibility: hidden;
-}
-
-.clearfix:before,
-.clearfix:after {
-    content: " ";
-    display: table;
-}
-
-.clearfix:after {
-    clear: both;
-}
-
-.clearfix {
-    *zoom: 1;
-}
-
-/* ==========================================================================
-   Print styles
-   ========================================================================== */
-
 @media print {
+    
     *,
     *:before,
     *:after {
