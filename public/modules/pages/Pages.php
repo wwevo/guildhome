@@ -109,7 +109,7 @@ class Pages {
 
         $view = new View();
         $view->setTmpl($view->loadFile('/views/page/page_view.php'));
-        $view->addContent('{##page_content##}', Parsedown::instance()->text($page_data->content));
+        $view->addContent('{##page_content##}', Parsedown::instance()->setBreaksEnabled(true)->text($page_data->content));
 
         $login = new Login();
         if ($login->isOperator()) {
@@ -130,7 +130,7 @@ class Pages {
 
         $view = new View();
         $view->setTmpl($view->loadFile('/views/page/page_view.php'));
-        $view->addContent('{##page_content##}', Parsedown::instance()->text($page_content));
+        $view->addContent('{##page_content##}', Parsedown::instance()->setBreaksEnabled(true)->text($page_content));
         $view->replaceTags();
 
         return $view;
@@ -138,7 +138,8 @@ class Pages {
     
     function getPageBySlugFormView($slug) {
         $page_data = $this->getPageBySlug($slug);
-        $page_content = $page_data->content;
+        $page_content = str_replace("\n\r", "&#13;", $page_data->content);
+
         $msg = Msg::getInstance();
         
         $view = new View();

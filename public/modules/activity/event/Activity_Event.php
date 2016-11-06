@@ -410,6 +410,7 @@ class Activity_Event extends Activity {
         }
         
         $view->addContent('{##activity_title##}' , $title);
+        $content = str_replace("\n\r", "&#13;", $content);
         $view->addContent('{##activity_content##}' , $content);
         $view->addContent('{##activity_date##}' , $date);
         $view->addContent('{##activity_time##}' , $time);

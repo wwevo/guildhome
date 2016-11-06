@@ -283,10 +283,13 @@ class Activity_Shout extends Activity {
             }
         }
 
+        $content = $env->post('activity')['content'];
+        $content = str_replace("\n\r", "&#13;", $content);
+               
         $view = new View();
         $view->setTmpl($view->loadFile('/views/activity/shout/activity_shout_form.php'), array(
             '{##form_action##}' => '/activity/shout/new',
-            '{##activity_content##}' => $env->post('activity')['content'],
+            '{##activity_content##}' => $content,
             '{##activity_content_validation##}' => $msg->fetch('activity_shout_content_validation'),
             '{##activity_comments_checked##}' => $comments_checked,
             '{##preview_text##}' => 'Preview',
@@ -302,7 +305,8 @@ class Activity_Shout extends Activity {
 
         $act = $this->getActivity($id);
         $content = (isset($env->post('activity')['content'])) ? $env->post('activity')['content'] : $act->content;
-        
+        $content = str_replace("\n\r", "&#13;", $content);
+
         $comments_checked = (isset($env->post('activity')['comments'])) ? $env->post('activity')['comments'] : $act->comments_enabled;
         $comments_checked = ($comments_checked == '1') ? 'checked="' . $comments_checked . '"' : '';
 

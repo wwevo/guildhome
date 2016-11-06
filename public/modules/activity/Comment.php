@@ -330,7 +330,8 @@ class Comment {
         $activity = new Activity();
         $act = $activity->getActivityById($activity_id);
         $content = (!empty($env->post('comment')['content'])) ? $env->post('comment')['content'] : '';
-                
+        $content = str_replace("\n\r", "&#13;", $content);
+
         $view = new View();
         if ($act->deleted != '1' AND $act->deleted != '1') {
             $view->setTmpl($view->loadFile('/views/activity/comment/comment_form.php'), array(
@@ -356,6 +357,7 @@ class Comment {
         $activity = new Activity();
         $act = $activity->getActivityById($comment->activity_id);
         $content = (!empty($env->post('comment')['content'])) ? $env->post('comment')['content'] : $comment->content;
+        $content = str_replace("\n\r", "&#13;", $content);
 
         $view = new View();
         if ($act->deleted != '1' AND $act->deleted != '1') {
