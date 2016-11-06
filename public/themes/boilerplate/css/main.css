@@ -52,6 +52,9 @@ textarea {
     padding: 0.2em 0;
 }
 
+table td {
+    vertical-align: top;
+}
 
 /* ===== Initializr Styles ==================================================
    Author: Jonathan Verrecchia - verekia.com/initializr/responsive-template
@@ -511,45 +514,70 @@ aside a:hover {
     text-decoration: underline;
 }
 
+.page table {
+    background-color: #fff;
+}
+
+.widget table td,
+.module table td,
+.page table td {
+    padding: 0.5em;
+}
+
+.page table,
 .widget table,
 .module table {
     width: 100%;
 }
 
+.page table tr th,
 .widget table tr th,
 .module table tr th {
+    padding: 0.5em;
     color: #ffffff;
     background-color: #EDA73E;
 }
 
+.page table tr:nth-child(1n),
+.widget table tr:nth-child(1n),
+.module table tr:nth-child(1n) {
+    background-color: #fff8e7;
+}
+
+.page table tr:nth-child(2n),
 .widget table tr:nth-child(2n),
 .module table tr:nth-child(2n) {
     color: #EA6C12;
     background-color: #ffffff;
 }
 
+.page table td a,
 .widget table td a,
 .module table td a {
     color: black;
     text-decoration: none;
 }
 
+.page table td a:hover,
 .widget table td a:hover,
 .module table td a:hover {
     text-decoration: underline;
 }
 
+.page table tr:nth-child(2n) td a,
 .widget table tr:nth-child(2n) td a,
 .module table tr:nth-child(2n) td a {
     color: #EA6C12;
     background-color: white;
 }
 
+.page table td.center,
 .widget table td.center,
 .module table td.center {
     text-align:center;
 }
 
+.page table td.right,
 .widget table td.right,
 .module table td.right {
     text-align: right;
