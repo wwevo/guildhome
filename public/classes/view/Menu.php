@@ -21,7 +21,7 @@ class Menu {
                     $menu .= '  <li><a href="/">Home</a></li>';
                     $menu .= '  <li><a href="/activities">Activities</a></li>';
                     $menu .= '  <li><a href="/profiles">Members</a></li>';
-                    $menu .= '  <li><a href="/about">About EoL</a></li>';
+                    $menu .= '  <li><a href="/pages/view/about">About EoL</a></li>';
                     $menu .= '</ul>';
                 break;
             case 'user':

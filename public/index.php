@@ -71,9 +71,9 @@ $page->addContent('{##widgets##}', $activity_event_widgets->getUpcomingActivitie
 
 $page->addContent('{##footer##}', '<p>created by the community: for the community</p>');
 $page->addContent('{##footer##}', '<p>');
-$page->addContent('{##footer##}', View::linkFab('/impressum', 'imprint (german)'));
+$page->addContent('{##footer##}', View::linkFab('/pages/view/impressum', 'imprint (german)'));
 $page->addContent('{##footer##}', ' | ');
-$page->addContent('{##footer##}', View::linkFab('/datenschutz', 'online-privacy (german)'));
+$page->addContent('{##footer##}', View::linkFab('/pages/view/datenschutz', 'online-privacy (german)'));
 $page->addContent('{##footer##}', '</p>');
 
 /*

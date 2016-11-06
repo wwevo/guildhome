@@ -20,6 +20,9 @@ class Activity_Event extends Activity {
                 $page->addContent('{##main##}', $this->getAllActivitiesView('2')); // 2 = event 
                 break;
             case 'details' :
+                if ($event_id === NULL OR !is_numeric($event_id)) {
+                    break;
+                }
                 $page->addContent('{##main##}', '<h2>Event details</h2>');
                 $page->addContent('{##main##}', $this->getActivityView($event_id));
                 $act = new Activity();
@@ -42,8 +45,8 @@ class Activity_Event extends Activity {
                 }
                 break;
             case 'update' :
-                if (!$login->isLoggedIn()) {
-                    return false;
+                if (!$login->isLoggedIn() AND $event_id === NULL OR !is_numeric($event_id)) {
+                    break;
                 }
                 $page->addContent('{##main##}', '<h2>Update event</h2>');
                 $page->addContent('{##main##}', $this->getActivityForm($event_id));
@@ -52,7 +55,7 @@ class Activity_Event extends Activity {
                 }
                 break;
             case 'delete' :
-                if (!$login->isLoggedIn()) {
+                if (!$login->isLoggedIn() AND $event_id === NULL OR !is_numeric($event_id)) {
                     return false;
                 }
                 $page->addContent('{##main##}', '<h2>Delete event</h2>');
