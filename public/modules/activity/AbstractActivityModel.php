@@ -25,7 +25,7 @@ abstract class AbstractActivityModel {
 	 *        	can be null for create case
 	 * @return bool true if saving was successful, false otherwise
 	 */
-	public function saveActivity(int $activity_id): bool {
+	public function saveActivity(int $activity_id) {
 		$db = db::getInstance ();
 		$login = new Login ();
 
@@ -44,7 +44,7 @@ abstract class AbstractActivityModel {
 	 *
 	 * @param unknown $id
 	 */
-	protected abstract function saveActivityTypeDetails(int $activity_id): bool;
+	protected abstract function saveActivityTypeDetails(int $activity_id);
 
 	/**
 	 * Deletes the activity for given id from database.
@@ -52,7 +52,7 @@ abstract class AbstractActivityModel {
 	 * @param int $id
 	 * @return bool true if delete was successful, false otherwise
 	 */
-	public function deleteActivity(int $activity_id): bool {
+	public function deleteActivity(int $activity_id) {
 		$db = db::getInstance ();
 		$env = Env::getInstance ();
 		$login = new Login ();

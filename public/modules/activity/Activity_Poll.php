@@ -21,12 +21,13 @@ class Activity_Poll extends Activity {
         Env::registerHook('poll', array(new Activity_Poll(), 'getActivityView'));
     }
 
-    function get($alpha = '', $id = NULL) {
+    function get($action = '', $id = NULL) {
         $login = new Login();
         $page = Page::getInstance();
-        $page->addContent('{##main##}', parent::activityMenu());
-
-        switch ($alpha) {
+        $page->addContent('{##main##}', parent::activityMenu('poll'));
+        return;
+        
+        switch ($action) {
             default :
                 $page->addContent('{##main##}', '<h2>All polls</h2>');
                 $page->addContent('{##main##}', $this->getAllActivitiesView('3')); // 3 = poll 
@@ -60,22 +61,30 @@ class Activity_Poll extends Activity {
         }
     }
 
-    function post($alpha, $id = NULL) {
+    function post($action, $id = NULL) {
         $env = Env::getInstance();
         $login = new Login();
         if (!$login->isLoggedIn()) {
-            return false;
+            header("Location: /activities/polls");
+            exit;
         }
-        switch ($alpha) {
-            case 'signup' :
-            case 'signout' :
-                    $this->toggleSignup($login->currentUserID(), $id);
+        return;
+        
+        switch ($action) {
+            case 'vote' :
+                if ($this->vote($login->currentUserID(), $id)) {
+                    header("Location: /activities/poll/" . $id . "/results");
+                    exit;
+                } else {
                     header("Location: /activities/polls");
+                    exit;
+                }
                 break;
             case 'new' :
                 if ($this->validateActivity() === true) {
                     if ($this->saveActivity() === true) {
                         header("Location: /activities/polls");
+                        exit;
                     }
                 } else {
                     $this->get('new', $id);
@@ -85,6 +94,7 @@ class Activity_Poll extends Activity {
                 if ($this->validateActivity() === true) {
                     if ($this->updateActivity($id) === true) {
                         header("Location: /activities/polls");
+                        exit;
                     }
                 } else {
                     $this->get('update', $id);
@@ -95,43 +105,34 @@ class Activity_Poll extends Activity {
                     if ($env->post('activity')['submit'] === 'delete') {
                         if ($this->deleteActivity($id) === true) {
                             header("Location: /activities/polls");
+                            exit;
                         }
                     }
                     if ($env->post('activity')['submit'] === 'cancel') {
                         header("Location: /activities/polls");
+                        exit;
                     }
                 }
                 break;
         }
     }
     
-    function toggleSignup($user_id, $event_id) {
+    function vote($user_id, $poll_id) {
         $db = db::getInstance();
-        $sql = "SELECT * FROM activity_polls_signups_user WHERE user_id = '$user_id' AND event_id = '$event_id';";
+        $env = Env::getInstance();
+        $sql = "SELECT * FROM activity_polls_signups_user WHERE user_id = '$user_id' AND event_id = '$poll_id';";
         $query = $db->query($sql);
         if ($query !== false AND $query->num_rows >= 1) {
-            $sql = "DELETE FROM activity_polls_signups_user 
-                        WHERE user_id = '$user_id' AND event_id = '$event_id';";
-            $query = $db->query($sql);        
+            return false; // has already voted
         } else {
-            $sql = "INSERT INTO activity_polls_signups_user (event_id, user_id, registration_id, preferred) VALUES ('$event_id', '$user_id', '', '0');";
+            $option_id = $env->post['activity']['option'];
+            $sql = "INSERT INTO activity_polls_signups_user (activity_id, user_id, option_id) VALUES ('$poll_id', '$user_id', '$option_id');";
             $query = $db->query($sql);        
-        }
-
-        if ($query !== false) {
-            return true;
+            if ($query !== false) {
+                return true;
+            }
         }
         return false;
-    }
-    
-    function getSignupCountByEventId($event_id) {
-        $db = db::getInstance();
-        $sql = "SELECT * FROM activity_polls_signups_user WHERE event_id = '$event_id';";
-        $query = $db->query($sql);
-        if ($query !== false AND $query->num_rows >= 1) {
-            return $query->num_rows;
-        }
-        return '0';
     }
     
     function getSignupsByEventId($event_id) {
@@ -150,18 +151,7 @@ class Activity_Poll extends Activity {
     function getActivity($id) {
         $db = db::getInstance();
 
-        $sql = "SELECT ap.activity_id AS activity_id, ap.title AS title, ap.description AS description, ap.date AS date, ap.time AS time, ap.comments_activated AS comments_activated, 
-                    ap.signups_activated AS signups_activated,
-                    
-                    a.userid AS userid,
-                    
-                    aes.event_id, aes.minimal_signups_activated AS minimal_signups_activated, aes.minimal_signups AS minimal_signups
-                    
-                    FROM activity_polls ap
-
-                    LEFT JOIN activities a ON ap.activity_id = a.id 
-                    LEFT JOIN activity_events_signups aes ON ap.activity_id = aes.event_id
-                    WHERE ap.activity_id = '$id';";
+        $sql = "";
         
         $query = $db->query($sql);
 
@@ -173,11 +163,11 @@ class Activity_Poll extends Activity {
         return false;
     }
 
-    function getActivityView($act = NULL, $view = NULL, $compact = NULL) {
+    function getActivityView($act = NULL, $compact = NULL) {
         $act = $this->getActivityById($act);
 
         $view = new View();
-        $view->setTmpl($view->loadFile('/views/activity/list_all_activities.php'));
+        $view->setTmpl($view->loadFile('/views/activity/poll/activity_poll_view'));
 
         $subView = new View();
         $subView->setTmpl($view->getSubTemplate('{##activity_loop##}'));
@@ -279,7 +269,7 @@ class Activity_Poll extends Activity {
         $comments_checked = (!empty($env->post('activity')['comments']) AND $env->post('activity')['comments'] !== NULL) ? 'checked="checked"' : '';
         $signups_min_checked = (!empty($env->post('activity')['signups_min']) AND $env->post('activity')['signups_min'] !== NULL) ? 'checked="checked"' : '';
         $view = new View();
-        $view->setTmpl($view->loadFile('/views/activity/poll/new_activity_poll_form.php'), array(
+        $view->setTmpl($view->loadFile('/views/activity/poll/activity_poll_form.php'), array(
             '{##form_action##}' => '/activity/poll/new',
             '{##activity_title##}' => $env->post('activity')['title'],
             '{##activity_title_validation##}' => $msg->fetch('activity_event_title_validation'),
@@ -319,7 +309,7 @@ class Activity_Poll extends Activity {
         $signups_min_checked = ($signups_min_checked === '1') ? 'checked="' . $signups_min_checked . '"' : '';
 
         $view = new View();
-        $view->setTmpl($view->loadFile('/views/activity/poll/update_activity_poll_form.php'), array(
+        $view->setTmpl($view->loadFile('/views/activity/poll/activity_poll_form.php'), array(
             '{##form_action##}' => '/activity/poll/update/' . $id,
             '{##activity_title##}' => $title,
             '{##activity_title_validation##}' => $msg->fetch('activity_event_title_validation'),
@@ -341,7 +331,6 @@ class Activity_Poll extends Activity {
     }
     
     function getActivityDetailsView($id) {
-
         $act = $this->getActivity($id);
 
         $identity = new Identity();
@@ -544,9 +533,8 @@ class Activity_Poll extends Activity {
         $env = Env::getInstance();
 
         // save activity meta data
-        $this->save($type = 3); // 3=poll
+        $activity_id = $this->save($type = '3'); // 3=poll
         // save 'event' specific data
-        $activity_id = $db->insert_id;
         
         $title = $env->post('activity')['title'];
         $description = $env->post('activity')['content'];

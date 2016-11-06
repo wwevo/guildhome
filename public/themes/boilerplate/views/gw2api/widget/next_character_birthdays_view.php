@@ -1,6 +1,6 @@
-<section class="module">
-    <h3>Upcoming birthdays</h3>
-    {##warning##}
+<section class="widget">
+    {##widget_title##}<h3>{##widget_title_text##}</h3>{/##widget_title##}
+    {##widget_warning##}
     <table class="gw2api account_characters">
         <tr>
             <th>Name</th>

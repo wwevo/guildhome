@@ -47,7 +47,7 @@ class Identity {
         return '/themes/eol/images/guild_avatar.png';
     }
     
-    function getIdentityById($user_id, $identity) {
+    function getIdentityById($user_id, $identity = 0) {
         $settings = new Settings();
         $profile = new Profile();
 

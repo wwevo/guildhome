@@ -1,3 +1,4 @@
+{##comment_message##}
 {##comment_loop##}
 <article class="comment">
     <section class="comment_details">
@@ -10,8 +11,8 @@
     </section>
     {##comment_logged_in##}
     <section class="logged_in">
-        <a href="{##edit_link##}">{##edit_link_text##}</a>
-        <a href="{##delete_link##}">{##delete_link_text##}</a>
+        {##edit_link##}<a href="{##edit_link_url##}">{##edit_link_text##}</a>{/##edit_link##} |
+        {##delete_link##}<a href="{##delete_link_url##}">{##delete_link_text##}</a>{/##delete_link##}
     </section>
     {/##comment_logged_in##}
 </article>

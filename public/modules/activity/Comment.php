@@ -1,52 +1,42 @@
 <?php
-
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
-/**
- * Description of activity
- *
- * @author ecv
- */
 class Comment {
-    
+    // start controller
     function initEnv() {
         Toro::addRoute(["/comment/:alpha/:alpha" => "Comment"]);
         Toro::addRoute(["/comment/:alpha/:alpha/:alpha" => "Comment"]);
     }
     
-    function get($type = 'activity', $action = 'view', $id = '') {       
+    function get($type = 'activity', $action = 'view', $activity_id = '') {       
         $login = new Login();
 
-        $activity = new Activity();
+        $act = new Activity();
         $page = Page::getInstance();
-        $page->setContent('{##main##}', $activity->activityMenu());
+        $page->setContent('{##main##}', $act->activityMenu($type));
         switch ($type) {
             case 'activity' :
                 switch ($action) {
                     default:
-                        $act = new Activity();
                         $page->addContent('{##main##}', '<h2>Comments</h2>');
-                        $page->addContent('{##main##}', $act->getActivityView($id));
-                        if ($login->isLoggedIn()) {
-                            $page->addContent('{##main##}', $this->getNewCommentForm($id));
+                        $page->addContent('{##main##}', $act->getActivityView($activity_id));
+                        if ($login->isLoggedIn() AND $act->commentsEnabled($activity_id)) {
+                            $page->addContent('{##main##}', $this->getNewCommentForm($activity_id));
                         }
-                        $page->addContent('{##main##}', $this->getAllCommentsView($id));
+                        if ($act->commentsEnabled($activity_id)) {
+                            $page->addContent('{##main##}', $this->getAllCommentsView($activity_id));
+                        }
                         break;
-                    case 'update' :
+                    case 'update' : /* $activity_id this is now the comment_id, NOT the activity_id, hence the call to getParent */
                         $page->addContent('{##main##}', '<h2>Update comment</h2>');
-                        $this->getParent($id);
-                        if ($login->isLoggedIn()) {
-                            $page->addContent('{##main##}', $this->getEditCommentForm($id));
+                        $parent = $this->getParent($activity_id);
+                        if ($login->isLoggedIn() AND $act->commentsEnabled($parent['id'])) {
+                            $page->addContent('{##main##}', $this->getEditCommentForm($activity_id));
                         }
                         break;
                     case 'delete' :
                         $page->addContent('{##main##}', '<h2>Delete comment</h2>');
-                        if ($login->isLoggedIn()) {
-                            $page->addContent('{##main##}', $this->getDeleteCommentForm($id));
+                        $parent = $this->getParent($activity_id);
+                        if ($login->isLoggedIn() AND $act->commentsEnabled($parent['id'])) {
+                            $page->addContent('{##main##}', $this->getDeleteCommentForm($activity_id));
                         }
                         break;
                 }
@@ -97,7 +87,8 @@ class Comment {
         }
         
     }
-    
+    // end controller    
+    // start model
     function getParent($comment_id) {
         $db = db::getInstance();
         $sql = "SELECT activity_id FROM comment_mapping WHERE comment_id = $comment_id;";
@@ -184,7 +175,6 @@ class Comment {
         }
         return false;
     }
-
     
     function saveComment($activity_id) {
         $db = db::getInstance();
@@ -208,22 +198,6 @@ class Comment {
         return false;
     }
 
-    
-    function getDeleteCommentForm($id) {
-        $cmt = $this->getComment($id);
-        $content = $cmt->content;
-        
-        $view = new View();
-        $view->setTmpl($view->loadFile('/views/activity/delete_comment_form.php'), array(
-            '{##form_action##}' => '/comment/activity/delete/' . $id,
-            '{##comment_content##}' => $content,
-            '{##submit_text##}' => "delete",
-            '{##cancel_text##}' => "cancel",
-        ));
-        $view->replaceTags();
-        return $view;
-    }
-    
     function deleteComment($id) {
         $db = db::getInstance();
         $env = Env::getInstance();
@@ -290,7 +264,23 @@ class Comment {
         return '0';
 
     }
-
+    // end model
+    // start view
+    function getDeleteCommentForm($id) {
+        $cmt = $this->getComment($id);
+        $content = $cmt->content;
+        
+        $view = new View();
+        $view->setTmpl($view->loadFile('/views/activity/comment/delete_comment_form.php'), array(
+            '{##form_action##}' => '/comment/activity/delete/' . $id,
+            '{##comment_content##}' => $content,
+            '{##submit_text##}' => "delete",
+            '{##cancel_text##}' => "cancel",
+        ));
+        $view->replaceTags();
+        return $view;
+    }
+    
     /*
      * Being a patchwork funtion at the moment, a lot of stuff is Jerry-Rigged here
      * A lot of stuff has to be worked out to be viable for public release
@@ -299,7 +289,7 @@ class Comment {
      */
     function getAllCommentsView($activity_id) {
         $view = new View();
-        $view->setTmpl($view->loadFile('/views/activity/list_all_comments.php'));
+        $view->setTmpl($view->loadFile('/views/activity/comment/list_all_comments.php'));
         $comments = $this->getComments($activity_id);
         if (false !== $comments) {
             $comment_loop = NULL;
@@ -316,16 +306,11 @@ class Comment {
                 $subView->addContent('{##avatar##}', $identity->getAvatarByUserId($act->userid));
                 
                 $login = new Login();
-                $comment_count = 0;
-                if ($login->isLoggedIn()) {
+                if ($login->isLoggedIn() AND $login->currentUserID() === $act->userid) {
                     $memberView = new View();
                     $memberView->setTmpl($view->getSubTemplate('{##comment_logged_in##}'));
-                    if ($login->currentUserID() === $act->userid) {
-                        $memberView->addContent('{##edit_link##}', '/comment/activity/update/' . $act->comment_id);
-                        $memberView->addContent('{##edit_link_text##}', 'update');
-                        $memberView->addContent('{##delete_link##}', '/comment/activity/delete/' . $act->comment_id);
-                        $memberView->addContent('{##delete_link_text##}', 'delete');
-                    }
+                    $memberView->addContent('{##edit_link##}', View::linkFab('/comment/activity/update/' . $act->comment_id, 'edit'));
+                    $memberView->addContent('{##delete_link##}', View::linkFab('/comment/activity/delete/' . $act->comment_id, 'delete'));
                     $memberView->replaceTags();
                     $subView->addContent('{##comment_logged_in##}',  $memberView);
                 }
@@ -344,48 +329,51 @@ class Comment {
 
         $activity = new Activity();
         $act = $activity->getActivityById($activity_id);
-
+        $content = (!empty($env->post('comment')['content'])) ? $env->post('comment')['content'] : '';
+                
         $view = new View();
-        if ($act->deleted == '1') {
-            $view->setTmpl($view->loadFile('/views/core/one_tag.php'));
-            $view->setContent('{##data##}', 'No commenting on deleted content :)');
-        } else {
-            $view->setTmpl($view->loadFile('/views/activity/new_comment_form.php'), array(
+        if ($act->deleted != '1' AND $act->deleted != '1') {
+            $view->setTmpl($view->loadFile('/views/activity/comment/comment_form.php'), array(
                 '{##form_action##}' => '/comment/activity/new/' . $activity_id,
-                '{##comment_content##}' => $env->post('comment')['content'],
+                '{##comment_content##}' => $content,
                 '{##comment_content_validation##}' => $msg->fetch('comment_content_validation'),
+                '{##comment_message##}' => "what's on your mind?",
                 '{##submit_text##}' => 'Say it loud',
             ));
+        } else {
+            $view->setTmpl($view->loadFile('/views/core/one_tag.php'));
+            $view->setContent('{##data##}', 'No commenting on deleted content :)');
         }
         $view->replaceTags();
         return $view;
     }
 
-    function getEditCommentForm($id) {
+    function getEditCommentForm($activity_id) {
         $env = Env::getInstance();
         $msg = Msg::getInstance();
         
-        $comment =  $this->getComment($id);
+        $comment =  $this->getComment($activity_id);
         $activity = new Activity();
         $act = $activity->getActivityById($comment->activity_id);
         $content = (!empty($env->post('comment')['content'])) ? $env->post('comment')['content'] : $comment->content;
 
         $view = new View();
-        if ($act->deleted == '1') {
-            $view->setTmpl($view->loadFile('/views/core/one_tag.php'));
-            $view->setContent('{##data##}', 'No commenting-editing on deleted content :)');
-        } else {
-            $view->setTmpl($view->loadFile('/views/activity/edit_comment_form.php'), array(
-                '{##form_action##}' => '/comment/activity/update/' . $id,
+        if ($act->deleted != '1' AND $act->deleted != '1') {
+            $view->setTmpl($view->loadFile('/views/activity/comment/comment_form.php'), array(
+                '{##form_action##}' => '/comment/activity/update/' . $activity_id,
                 '{##comment_content##}' => $content,
                 '{##comment_content_validation##}' => $msg->fetch('comment_content_validation'),
+                '{##comment_message##}' => "make sure you get it right this time",
                 '{##submit_text##}' => 'Revised and ready!',
             ));
+        } else {
+            $view->setTmpl($view->loadFile('/views/core/one_tag.php'));
+            $view->setContent('{##data##}', 'No commenting-editing on deleted content :)');
         }
         $view->replaceTags();
         return $view;
     }
-
+    // end view
 }
 $comment = new Comment();
 $comment->initEnv();

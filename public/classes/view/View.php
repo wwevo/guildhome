@@ -107,8 +107,6 @@ class View {
          * */
         $this->tmpl = preg_replace("~\{##(\w+)##\}~", "", $this->tmpl);
         $this->tmpl = preg_replace("~\{\##(\w+)##\}~", "", $this->tmpl);
-        //$this->tmpl = preg_replace("|{##.*##}|", "", $this->tmpl, 1);
-        //$this->tmpl = preg_replace("|{/##.*##}|", "", $this->tmpl);
     }
     
     function getSubTemplate($tag) {
@@ -128,6 +126,22 @@ class View {
     
     function __toString() {
         return $this->show();
+    }
+    
+    static function linkFab($url, $text, $css = NULL) {
+        $link_view = new self;
+        $link_view->setTmpl($link_view->loadFile('/views/core/link.php'));
+        $link_view->addContent('{##link_url##}', $url);
+        if ($css !== NULL) {
+            $css_view = new self;
+            $css_view->setTmpl($link_view->getSubTemplate('{##css##}'));
+            $css_view->addContent('{##class##}', $css);
+            $css_view->replaceTags();
+            $link_view->addContent('{##css##}', $css_view);
+        }
+        $link_view->addContent('{##link_text##}', $text);
+        $link_view->replaceTags();
+        return $link_view;
     }
 
 }

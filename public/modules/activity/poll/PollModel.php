@@ -18,7 +18,7 @@ class PollModel extends AbstractActivityModel {
 		}
 		return false;
 	}
-	protected function saveActivityTypeDetails(int $activity_id): bool {
+	protected function saveActivityTypeDetails(int $activity_id) {
 		$db = db::getInstance ();
 		$env = Env::getInstance ();
 
