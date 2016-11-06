@@ -38,12 +38,13 @@ class Pages {
                 }
                 $page->setContent('{##main##}', '<h2>Update Page</h2>');
                 $page->addContent('{##main##}', $this->getPageBySlugFormView($slug));
-//                if (isset($env->post('page')['preview'])) {
-//                    $page->addContent('{##main##}', $this->getPagePreview());
-//                }
+                if (isset($env->post('page')['preview'])) {
+                    $page->addContent('{##main##}', $this->getPagePreview());
+                }
                 break;
         }
     }
+    
     function post($action, $slug = NULL) {
         $env = Env::getInstance();
         $login = new Login();
@@ -120,6 +121,18 @@ class Pages {
         }
         $view->replaceTags();
         
+        return $view;
+    }
+    
+    function getPagePreview() {
+        $env = Env::getInstance();
+        $page_content = $env->post('page')['content'];
+
+        $view = new View();
+        $view->setTmpl($view->loadFile('/views/page/page_view.php'));
+        $view->addContent('{##page_content##}', Parsedown::instance()->text($page_content));
+        $view->replaceTags();
+
         return $view;
     }
     
