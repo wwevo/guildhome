@@ -1,4 +1,5 @@
 <?php
+
 class Activity_Shout extends Activity {
     // start controller
     function initEnv() {
@@ -34,7 +35,7 @@ class Activity_Shout extends Activity {
                     return false;
                 }
                 $page->addContent('{##main##}', '<h2>Update shout</h2>');
-                $page->addContent('{##main##}', $this->getUpdateActivityForm($id));
+                $page->addContent('{##main##}', $this->getActivityForm($id));
                 if (isset($env->post('activity')['preview'])) {
                     $page->addContent('{##main##}', $this->getActivityPreview());
                 }
@@ -109,15 +110,15 @@ class Activity_Shout extends Activity {
         }
         return false;
     }
+
     function saveActivity() {
         $db = db::getInstance();
         $env = Env::getInstance();
         
         // save activity meta data
         $allow_comments = isset($env->post('activity')['comments']) ? '1' : '0';
-        $activity_id = $this->save($type = '1', $allow_comments); // 1=shout
+        $activity_id = $this->save($type = '1', $allow_comments);
 
-        // save 'shout' specific data
         $content = $env->post('activity')['content'];
 
         $sql = "INSERT INTO activity_shouts (activity_id, content) VALUES ('$activity_id', '$content');";
@@ -269,57 +270,52 @@ class Activity_Shout extends Activity {
         return $view;
     }
     
-    function getActivityForm() {
+    function getActivityForm($id = NULL) {
         $env = Env::getInstance();
         $msg = Msg::getInstance();
 
-        if ($env->post('activity') === FALSE) { // check comments by default
-            $comments_checked = 'checked="checked"';
-        } else {
-            if (!empty($env->post('activity')['comments']) AND is_string($env->post('activity')['comments']) === TRUE) {
+        if ($id === NULL) {
+            if ($env->post('activity') === FALSE) { // check comments by default
                 $comments_checked = 'checked="checked"';
             } else {
-                $comments_checked = '';
+                if (!empty($env->post('activity')['comments']) AND is_string($env->post('activity')['comments']) === TRUE) {
+                    $comments_checked = 'checked="checked"';
+                } else {
+                    $comments_checked = '';
+                }
             }
+
+            $content = $env->post('activity')['content'];
+            $content = str_replace("\n\r", "&#13;", $content);
+
+            $view = new View();
+            $view->setTmpl($view->loadFile('/views/activity/shout/activity_shout_form.php'), array(
+                '{##form_action##}' => '/activity/shout/new',
+                '{##activity_content##}' => $content,
+                '{##activity_content_validation##}' => $msg->fetch('activity_shout_content_validation'),
+                '{##activity_comments_checked##}' => $comments_checked,
+                '{##preview_text##}' => 'Preview',
+                '{##submit_text##}' => 'Say it loud',
+            ));
+        } else {
+            $act = $this->getActivity($id);
+            $content = (isset($env->post('activity')['content'])) ? $env->post('activity')['content'] : $act->content;
+            $content = str_replace("\n\r", "&#13;", $content);
+
+            $comments_checked = (isset($env->post('activity')['comments'])) ? $env->post('activity')['comments'] : $act->comments_enabled;
+            $comments_checked = ($comments_checked == '1') ? 'checked="' . $comments_checked . '"' : '';
+
+            $view = new View();
+            $view->setTmpl($view->loadFile('/views/activity/shout/activity_shout_form.php'), array(
+                '{##form_action##}' => '/activity/shout/update/' . $id,
+                '{##activity_content##}' => $content,
+                '{##activity_content_validation##}' => $msg->fetch('activity_shout_content_validation'),
+                '{##activity_comments_checked##}' => $comments_checked,
+                '{##preview_text##}' => 'Preview',
+                '{##draft_text##}' => 'Save as draft',
+                '{##submit_text##}' => "i'm sure now!",
+            ));
         }
-
-        $content = $env->post('activity')['content'];
-        $content = str_replace("\n\r", "&#13;", $content);
-               
-        $view = new View();
-        $view->setTmpl($view->loadFile('/views/activity/shout/activity_shout_form.php'), array(
-            '{##form_action##}' => '/activity/shout/new',
-            '{##activity_content##}' => $content,
-            '{##activity_content_validation##}' => $msg->fetch('activity_shout_content_validation'),
-            '{##activity_comments_checked##}' => $comments_checked,
-            '{##preview_text##}' => 'Preview',
-            '{##submit_text##}' => 'Say it loud',
-        ));
-        $view->replaceTags();
-        return $view;
-    }
-    
-    function getUpdateActivityForm($id) {
-        $env = Env::getInstance();
-        $msg = Msg::getInstance();
-
-        $act = $this->getActivity($id);
-        $content = (isset($env->post('activity')['content'])) ? $env->post('activity')['content'] : $act->content;
-        $content = str_replace("\n\r", "&#13;", $content);
-
-        $comments_checked = (isset($env->post('activity')['comments'])) ? $env->post('activity')['comments'] : $act->comments_enabled;
-        $comments_checked = ($comments_checked == '1') ? 'checked="' . $comments_checked . '"' : '';
-
-        $view = new View();
-        $view->setTmpl($view->loadFile('/views/activity/shout/activity_shout_form.php'), array(
-            '{##form_action##}' => '/activity/shout/update/' . $id,
-            '{##activity_content##}' => $content,
-            '{##activity_content_validation##}' => $msg->fetch('activity_shout_content_validation'),
-            '{##activity_comments_checked##}' => $comments_checked,
-            '{##preview_text##}' => 'Preview',
-            '{##draft_text##}' => 'Save as draft',
-            '{##submit_text##}' => "i'm sure now!",
-        ));
         $view->replaceTags();
         return $view;
     }
@@ -363,3 +359,4 @@ class Activity_Shout extends Activity {
 }
 $activity_shout = new Activity_Shout();
 $activity_shout->initEnv();
+unset($activity_shout);

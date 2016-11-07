@@ -1,16 +1,5 @@
 <?php
 
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
-/**
- * Description of Profile
- *
- * @author Christian Voigt <chris at notjustfor.me>
- */
 class Profile {
     
     function initEnv() {
@@ -49,8 +38,9 @@ class Profile {
                     $view->addContent('{##main##}', $settings->getUpdateSettingForm('display_name', '/profile/' . $user->username . '/settings'));
                     $view->addContent('{##main##}', "<h4>When's your birthday?</h4>");
                     $view->addContent('{##main##}', $settings->getUpdateDateForm('birthday', '/profile/' . $user->username . '/settings'));
+                    $login_password = new Login_Password();
                     $view->addContent('{##main##}', '<h4>Change Password</h4>');
-                    $view->addContent('{##main##}', $login->getChangePasswordView());
+                    $view->addContent('{##main##}', $login_password->getChangePasswordView());
                     $view->addContent('{##main##}', '<p>you will be redirected after pressing the button!</p>');
                     $view->addContent('{##main##}', '<h4>Avatar</h4>');
                     $view->addContent('{##main##}', '<p>use any image url, only direct links will work...</p>');
@@ -235,3 +225,4 @@ class Profile {
 }
 $profile = new Profile();
 $profile->initEnv();
+unset($profile);

@@ -1,4 +1,5 @@
 <?php
+
 class Comment {
     // start controller
     function initEnv() {
@@ -379,3 +380,4 @@ class Comment {
 }
 $comment = new Comment();
 $comment->initEnv();
+unset($comment);

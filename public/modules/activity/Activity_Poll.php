@@ -1,16 +1,5 @@
 <?php
 
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
-/**
- * Description of Activity_Poll
- *
- * @author Christian Voigt <chris at notjustfor.me>
- */
 class Activity_Poll extends Activity {
 
     function initEnv() {
@@ -624,6 +613,6 @@ class Activity_Poll extends Activity {
         return false;
     }
 }
-
 $activity_poll = new Activity_Poll();
 $activity_poll->initEnv();
+unset($activity_poll);

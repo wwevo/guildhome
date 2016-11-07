@@ -1,21 +1,7 @@
 <?php
 
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
-/**
- * Description of Register
- *
- * @author Christian Voigt <chris at notjustfor.me>
- */
 class Register {
-    /**
-     * @var object The database connection
-     */
-    
+
     public function initEnv() {
         Toro::addRoute(["/register" => 'Register']);
     }
@@ -162,3 +148,4 @@ class Register {
 }
 $register = new Register();
 $register->initEnv();
+unset($register);

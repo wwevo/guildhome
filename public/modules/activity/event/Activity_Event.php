@@ -1,4 +1,5 @@
 <?php
+
 class Activity_Event extends Activity {
     // start controller
     function initEnv() {
@@ -443,3 +444,4 @@ class Activity_Event extends Activity {
 // end view
 $activity_event = new Activity_Event();
 $activity_event->initEnv();
+unset($activity_event);

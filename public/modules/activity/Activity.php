@@ -1,4 +1,5 @@
 <?php
+
 class Activity {
     // start controller (i guess)
     function initEnv() {
@@ -256,3 +257,4 @@ class Activity {
 }
 $activity = new Activity();
 $activity->initEnv();
+unset($activity);

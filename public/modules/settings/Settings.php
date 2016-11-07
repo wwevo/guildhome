@@ -1,4 +1,5 @@
 <?php
+
 class Settings {
     
     function initEnv() {
@@ -164,3 +165,4 @@ class Settings {
 }
 $settings = new Settings();
 $settings->initEnv();
+unset($settings);

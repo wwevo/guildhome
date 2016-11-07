@@ -1,4 +1,5 @@
 <?php
+
 class Activity_Event_Widgets {
     function getSignupsByUserId($user_id) {
         $db = db::getInstance();

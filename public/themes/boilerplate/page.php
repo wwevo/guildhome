@@ -27,7 +27,7 @@
             </header>
         </div>
         <div class="main-container">
-            <div class="main wrapper clearfix">
+            <div class="wrapper main clearfix">
                 <article>
                     {##main##}
                 </article>

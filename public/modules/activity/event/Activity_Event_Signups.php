@@ -1,4 +1,5 @@
 <?php
+
 class Activity_Event_Signups {
     // start controller
     function initEnv() {
@@ -235,3 +236,4 @@ class Activity_Event_Signups {
 }
 $activity_event_signups = new Activity_Event_Signups();
 $activity_event_signups->initEnv();
+unset($activity_event_signups);

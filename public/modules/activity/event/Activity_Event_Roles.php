@@ -193,3 +193,4 @@ class Activity_Event_Roles {
 }
 $activity_event_roles = new Activity_Event_Roles();
 $activity_event_roles->initEnv();
+unset($activity_event_roles);
