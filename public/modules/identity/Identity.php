@@ -37,6 +37,3 @@ class Identity {
     }
     
 }
-$identity = new Identity();
-$identity->initEnv();
-unset($identity);
