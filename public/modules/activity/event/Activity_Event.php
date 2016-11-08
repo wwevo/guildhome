@@ -59,7 +59,7 @@ class Activity_Event extends Activity {
                 if (!$login->isLoggedIn() AND $event_id === NULL OR !is_numeric($event_id)) {
                     return false;
                 }
-                $page->addContent('{##main##}', '<h2>Delete event</h2>');
+                $page->addContent('{##main##}', '<h2>Delete event</h2>' . $event_id);
                 $page->addContent('{##main##}', $this->getDeleteActivityForm($event_id));
                 break;
         }
@@ -74,16 +74,16 @@ class Activity_Event extends Activity {
         switch ($action) {
             case 'new' :
                 if ($this->validateActivity() === true AND !isset($env->post('activity')['preview'])) {
-                    if ($event_id = $this->saveActivity() === true) {
+                    if (($event_id = $this->saveActivity()) !== false) {
                         header("Location: /activity/event/update/$event_id");
                         exit;
                     }
                 }
-                $this->get('update', $id);
+                $this->get('new');
                 break;
             case 'update' :
                 if ($this->validateActivity() === true AND !isset($env->post('activity')['preview'])) {
-                    if ($this->saveActivity($id) === true) {
+                    if ($this->saveActivity($id) !== false) {
                         header("Location: /activity/event/update/$id");
                         exit;
                     }
@@ -92,7 +92,8 @@ class Activity_Event extends Activity {
                 break;
             case 'delete' :
                 if (isset($env->post('activity')['submit']) AND $env->post('activity')['submit'] == 'delete') {
-                    if ($this->deleteActivity($id) === true) {
+                    if ($this->deleteActivity($id) !== false) {
+                        $env->clearPost('activity');
                         header("Location: /activities/events");
                         exit;
                     }
@@ -109,7 +110,26 @@ class Activity_Event extends Activity {
     function getActivity($id) {
         $db = db::getInstance();
 
-        $sql = "SELECT ae.activity_id AS activity_id, ae.title AS title, ae.description AS description, ae.date AS date, ae.time AS time, a.comments_enabled AS comments_enabled, ae.signups_activated AS signups_activated, a.userid AS userid, aes.event_id AS eventid, aes.minimal_signups_activated AS minimal_signups_activated, aes.minimal_signups AS minimal_signups, aes.maximal_signups_activated AS maximal_signups_activated, aes.maximal_signups AS maximal_signups, aes.signup_open_beyond_maximal AS signup_open_beyond_maximal, aes.class_registration_enabled AS class_registration_enabled,aes.roles_registration_enabled, aes.preference_selection_enabled AS preference_selection_enabled, aet.name AS event_type,
+        $sql = "SELECT
+                    a.comments_enabled AS comments_enabled,
+                    a.userid AS userid,
+                    a.type AS activity_type,
+                    ae.activity_id AS activity_id,
+                    ae.title AS title,
+                    ae.description AS description,
+                    ae.date AS date,
+                    ae.time AS time,
+                    ae.signups_activated AS signups_activated,
+                    aes.event_id AS eventid,
+                    aes.minimal_signups_activated AS minimal_signups_activated,
+                    aes.minimal_signups AS minimal_signups,
+                    aes.maximal_signups_activated AS maximal_signups_activated,
+                    aes.maximal_signups AS maximal_signups,
+                    aes.signup_open_beyond_maximal AS signup_open_beyond_maximal,
+                    aes.class_registration_enabled AS class_registration_enabled,
+                    aes.roles_registration_enabled,
+                    aes.preference_selection_enabled AS preference_selection_enabled,
+                    aet.name AS event_type,
                     IF(
                         DATE_ADD(concat(ae.date, ' ', ae.time), INTERVAL 2 HOUR) >= NOW()
                     AND
@@ -153,15 +173,15 @@ class Activity_Event extends Activity {
             $sql = "INSERT INTO activity_events(activity_id, event_type, title, description, date, time) VALUES ($activity_id, '$event_type', '$title', '$description', '$date', '$time');";
             $query = $db->query($sql);
             if ($query !== false) {
-                return $db->insert_id;
+                return $activity_id;
             }
         } else {
             $login = new Login();
 
             $userid = $login->currentUserID();
-            $actid = $this->getActivity($event_id)->userid;
+            $act = $this->getActivity($event_id);
 
-            if ($userid != $actid) {
+            if ($userid != $act->userid) {
                 return false;
             }
 
@@ -201,13 +221,13 @@ class Activity_Event extends Activity {
         $login = new Login();
 
         $userid = $login->currentUserID();
-        $actid = $this->getActivity($activity_id)->userid;
-        if ($userid != $actid) {
+        $act = $this->getActivity($activity_id);
+        if ($userid != $act->userid) {
             return false;
         }
 
         $sql = "UPDATE activities SET deleted = '1' WHERE id = '$activity_id';";
-
+        
         $query = $db->query($sql);
         if ($query !== false) {
             $env->clearPost('activity');
@@ -284,7 +304,13 @@ class Activity_Event extends Activity {
         $loopView = new View();
         $loopView->setTmpl($activityView->getSubTemplate('{##activity_loop##}'));
 
+        $act = $this->getActivity($event_id);
         $act_meta = parent::getActivityById($event_id);
+        
+        if ($act === false OR $act->activity_type != '2') {
+            return false;
+        }
+
         if (isset($act_meta->create_time)) {
             $loopView->addContent('{##activity_published##}', $act_meta->create_time);
         }
@@ -292,7 +318,6 @@ class Activity_Event extends Activity {
             $loopView->addContent('{##activity_type##}',  $act_meta->type_description);
         }
 
-        $act = $this->getActivity($event_id);
         if ($act->featured === 'true') {
             $loopView->addContent('{##css##}', ' pulled_to_top');
         }
