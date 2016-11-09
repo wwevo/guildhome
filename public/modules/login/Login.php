@@ -6,12 +6,6 @@ class Login {
         Toro::addRoute(["/logout" => 'Login']);
     }
     
-    public function get() {
-        $page = Page::getInstance();
-        $page->setContent('{##main##}', '<h2>Login</h2>');
-        $page->addContent('{##main##}', $this->getCombinedLoginView());
-    }
-    
     public function post() {
         $env = Env::getInstance();
         if (isset($env->post('login')['submit'])) {
