@@ -17,7 +17,7 @@ class Register {
         
         if (isset($env->post('register')['submit'])) {
             if ($this->registerNewUser() !== false) {
-                header("Location: /login");
+                header("Location: /activities");
             } else {
                 header("Location: /register");
             }

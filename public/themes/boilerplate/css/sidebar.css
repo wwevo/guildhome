@@ -16,7 +16,9 @@
 }
 
 /* combo login-form in sidebar */
-.main-container aside ul li form {}
+.main-container aside ul li form {
+    position: relative;
+}
 
 .main-container aside ul li form label {
     width: 100%;
@@ -59,4 +61,10 @@ input[type="submit"]::-moz-focus-inner {
 
 input#logout_submit[type="submit"]:hover {
     text-decoration: underline;
+}
+
+.main-container aside ul li form a {
+    position: absolute;
+    right: 0; bottom: 0;
+    margin: 0 0 -0.4em 0; padding: 0;
 }
