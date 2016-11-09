@@ -11,7 +11,6 @@ require_once('activity/Activity.php');
 require_once('activity/Comment.php');
 require_once('activity/Activity_Shout.php');
 require_once('activity/event/Activity_Event.php');
-// require_once('activity/event/Activity_Event_Roles.php');
 require_once('activity/event/Activity_Event_Signups.php');
 require_once('activity/event/Activity_Event_Widgets.php');
 require_once('activity/Activity_Poll.php');
