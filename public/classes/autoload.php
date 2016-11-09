@@ -1,6 +1,6 @@
 <?php 
 require_once('log/Logger.php'); // logging stuff
-require_once('toro/Toro.php'); // url requests
+require_once('../../toroPhp/src/Toro.php'); // url requests
 require_once('parsedown/Parsedown.php'); // format that text!
 require_once('view/View.php'); // template based output-containers
 // static container for the page-template
