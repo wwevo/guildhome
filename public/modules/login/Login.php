@@ -8,7 +8,6 @@ class Login {
     
     public function get() {
         $page = Page::getInstance();
-        
         $page->setContent('{##main##}', '<h2>Login</h2>');
         $page->addContent('{##main##}', $this->getCombinedLoginView());
     }
@@ -21,8 +20,12 @@ class Login {
                 $date = new DateTime();
                 if ($setting->getSettingByKey('last_login', $this->currentUserID())) {
                     $setting->updateSetting('last_login', $date->getTimestamp());
+                    if (null !== $env->post('target_url')) {
+                        header("Location: " .  $env->post('target_url'));
+                        exit;
+                    }
                     header("Location: /activities");
-                } else {
+                } else { // first_time log-in
                     $profile = new Profile();
                     $settings_url = $profile->getProfileUrlById($this->currentUserID()) . '/settings';
                     $setting->updateSetting('last_login', $date->getTimestamp());
@@ -37,7 +40,12 @@ class Login {
         
         if (isset($env->post('logout')['submit'])) {
             $this->doLogout();
+            if (null !== $env->post('target_url')) {
+                header("Location: " .  $env->post('target_url'));
+                exit;
+            }
             header("Location: /");
+            exit;
         }
     }
     // end controller
@@ -150,7 +158,7 @@ class Login {
     }
     // end model
     // view controller
-    public function getLoginView() {
+    public function getLoginView($target_url = null) {
         $env = Env::getInstance();
         $msg = Msg::getInstance();
 
@@ -170,11 +178,14 @@ class Login {
             '{##reset_password_link##}' => '/login/reset_password',
             '{##reset_password_link_text##}' => 'lost your password?',
         ));
+        if ($target_url !== null) {
+            $view->addContent('{##target_url##}', $target_url);
+        }
         $view->replaceTags();
         return $view;
     }
     
-    public function getLogoutView() {
+    public function getLogoutView($target_url = null) {
         $logout_link_text = ($this->isLoggedIn()) ? $_SESSION['evo']['username'] : 'Guest';
         $view = new View();
         $view->setTmpl($view->loadFile('/views/core/login/logout_form.php'), array(
@@ -182,16 +193,19 @@ class Login {
             '{##logout_link##}' => '/logout',
             '{##logout_link_text##}' => 'Logout ' . $logout_link_text,
         ));
+        if ($target_url !== null) {
+            $view->addContent('{##target_url##}', $target_url);
+        }
         $view->replaceTags();
         return $view;
         
     }
 
-    public function getCombinedLoginView() {
+    public function getCombinedLoginView($target_url = null) {
         if ($this->isLoggedIn() == true) {
-            $view = $this->getLogoutView();
+            $view = $this->getLogoutView($target_url);
         } else {
-            $view = $this->getLoginView();
+            $view = $this->getLoginView($target_url);
         }
         return $view;
     }

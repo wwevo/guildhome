@@ -15,7 +15,9 @@ class Menu {
                 break;
             case 'user':
                     $menu  = '<ul class="user-menu">';
+                    $menu .= '  <li>' . $login->getCombinedLoginView(Env::getCurrentURL()) . '</li>';
                     if ($login->isLoggedIn()) {
+                        $menu .= '<hr />';
                         $menu .= '  <li><a href="/profile/' . $login->currentUsername() . '">Profile</a>';
                         $menu .= '  <ul>';
                         $menu .= '      <li><a href="/profile/' . $login->currentUsername() . '/settings">Settings</a></li>';
@@ -25,10 +27,7 @@ class Menu {
                         }
                         $menu .= '  </ul>';
                         $menu .= '  </li>';
-                        $menu .= '  <li><a href="/logout">Logout</a></li>';
-                    } else {
-                        $menu .= '  <li><a href="/register">Register</a></li>';
-                        $menu .= '  <li><a href="/login">Login</a></li>';
+
                     }
                     $menu .= '</ul>';
                 break;

@@ -111,20 +111,6 @@ body {
     background: #EDA73E;
 }
 
-aside {
-    background: #ffffff;
-    color: #EA6C12;
-}
-
-aside ul {
-    padding: 0;
-    list-style-type: none;
-}
-
-aside ul li {
-    clear: both;
-}
-
 .title {
     color: white;
 }
