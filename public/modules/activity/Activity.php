@@ -4,38 +4,76 @@ class Activity {
     // start controller (i guess)
     function initEnv() {
         Toro::addRoute(["/activities" => "Activity"]);
+        Toro::addRoute(["/activities/:number" => "Activity"]);
     }
     
-    function get() {
+    function get($offset = 0) {
         $env = Env::getInstance();
         $env->clearPost('activity');
+
+        $this->setOffset($offset);
+        $this->setBaseURL('/activities/');
 
         $page = Page::getInstance();
         $page->setContent('{##main##}', $this->activityMenu('activity'));
         $page->addContent('{##main##}', $this->getAllActivitiesView());
+        $page->addContent('{##main##}', $this->pagination());
     }
     // end controller    
     // start model (i suppose)
+    private $limit = 20;
+    private $offset = 0;
+    function setOffset($offset) {
+        $this->offset = $offset;
+    }
+    
+    function getOffset() {
+        return $this->offset;
+    }
+    private $baseURL = '';
+    function setBaseURL($url) {
+        $this->baseURL = $url;
+    }
+
+    function getBaseURL() {
+        return $this->baseURL;
+    }
+    
     function getActivities($interval = NULL, $type = NULL) {
         $db = db::getInstance();
         
         $interval_sql = (is_numeric($interval)) ? "HAVING create_time >= DATE_SUB(CURDATE(), INTERVAL $interval DAY)" : "";
         $type_sql = (is_numeric($type)) ? " AND activities.type = $type" : "";
-        
-        $sql = "SELECT activities.deleted as deleted, activities.id, activities.userid, activities.create_time AS timestamp, activities.type AS type, activity_types.name AS type_name, activity_types.description AS type_description,
+        $limit = $this->limit;
+        $offset = $this->getOffset();
+        $offset_sql = (is_numeric($offset) AND $offset != 0)
+            ? "LIMIT $limit OFFSET $offset"
+            : "LIMIT $limit";
+        $sql = "SELECT
+                    activities.id,
+                    activities.userid,
+                    activities.create_time AS timestamp,
+                    activities.comments_enabled AS comments_enabled,
+                    activities.deleted as deleted,
+                    activities.type AS type,
+                    activity_types.name AS type_name,
+                    activity_types.description AS type_description,
                     from_unixtime(activities.create_time) AS create_time,
                     (SELECT concat(ae.date, ' ', ae.time) AS timestamp
                         FROM activity_events ae
                         WHERE ae.activity_id = activities.id
                         HAVING DATE_ADD(timestamp,INTERVAL 2 HOUR) >= NOW() AND timestamp <= DATE_ADD(NOW(),INTERVAL 48 HOUR)
                     ) AS event_date,
-                    DAY(from_unixtime(activities.create_time)) as event_day
+                    DAY (from_unixtime(activities.create_time)) as event_day
                     FROM activities
                     INNER JOIN activity_types
                         ON activities.type = activity_types.id
-                    WHERE activities.deleted = 0 $type_sql
+                    WHERE activities.deleted = 0
+                    $type_sql
                     $interval_sql
-                    ORDER BY event_date IS NULL, event_date ASC, activities.create_time DESC";
+                    ORDER BY event_date IS NULL, event_date ASC, activities.create_time DESC
+                    $offset_sql
+                ";
         $query = $db->query($sql);
 
         if ($query !== false AND $query->num_rows >= 1) {
@@ -52,12 +90,27 @@ class Activity {
             return false;
         }
         $db = db::getInstance();
-        $sql = "SELECT activities.deleted as deleted, activities.id, activities.userid, from_unixtime(activities.create_time) AS create_time, activities.type AS type, activity_types.name AS type_name, activity_types.description AS type_description, activities.comments_enabled AS comments_enabled
+        $sql = "SELECT
+                    activities.id,
+                    activities.userid,
+                    activities.create_time AS timestamp,
+                    activities.comments_enabled AS comments_enabled,
+                    activities.deleted as deleted,
+                    activities.type AS type,
+                    activity_types.name AS type_name,
+                    activity_types.description AS type_description,
+                    from_unixtime(activities.create_time) AS create_time,
+                    (SELECT concat(ae.date, ' ', ae.time) AS timestamp
+                        FROM activity_events ae
+                        WHERE ae.activity_id = activities.id
+                        HAVING DATE_ADD(timestamp,INTERVAL 2 HOUR) >= NOW() AND timestamp <= DATE_ADD(NOW(),INTERVAL 48 HOUR)
+                    ) AS event_date,
+                    DAY (from_unixtime(activities.create_time)) as event_day
                     FROM activities
                     INNER JOIN activity_types
                         ON activities.type = activity_types.id
                     WHERE activities.id = $id
-                    ORDER BY activities.create_time DESC LIMIT 1;";
+                    LIMIT 1;";
         $query = $db->query($sql);
         
         if ($query !== false AND $query->num_rows == 1) {
@@ -70,7 +123,14 @@ class Activity {
     function getActivityCountByType($type = 0) {
         $db = db::getInstance();
         $sql = "SELECT
-                    (SELECT count(*) AS count FROM activities WHERE type = $type) AS count_all,
+                    (SELECT
+                        count(*) AS count
+                        FROM activities
+                        WHERE
+                            type = $type
+                        AND
+                            deleted = 0
+                    ) AS count_all,
                     count(*) AS count
                     FROM activities
                     WHERE
@@ -184,6 +244,15 @@ class Activity {
         return $view;
     }
 
+    function pagination() {
+        $view = new View();
+        $view->setTmpl($view->loadFile('/views/core/one_tag.php'));
+        $view->addContent('{##data##}', View::linkFab($this->getBaseURL() . ($this->getOffset() - $this->limit), 'prev'));
+        $view->addContent('{##data##}', ' | ');
+        $view->addContent('{##data##}', View::linkFab($this->getBaseURL() . ($this->getOffset() + $this->limit), 'next'));
+        $view->replaceTags();
+        return $view;
+    }
     /*
      * being a patchwork funtion at the moment, a lot of stuff is jerry-rigged here
      * to-do: make this template based, make it human readable again ^^
@@ -255,6 +324,6 @@ class Activity {
     }
     // end view
 }
-$activity = new Activity();
-$activity->initEnv();
-unset($activity);
+$init_env = new Activity();
+$init_env->initEnv();
+unset($init_env);

@@ -4,6 +4,7 @@ class Activity_Event extends Activity {
     // start controller
     function initEnv() {
         Toro::addRoute(["/activities/events" => "Activity_Event"]);
+        Toro::addRoute(["/activities/events/:number" => "Activity_Event"]);
         Toro::addRoute(["/activity/event/:alpha/:number" => "Activity_Event"]);
         Toro::addRoute(["/activity/event/:alpha" => "Activity_Event"]);
         
@@ -18,7 +19,11 @@ class Activity_Event extends Activity {
         switch ($action) {
             default :
                 $env->clearPost('activity');
+                $this->setOffset($action);
+                $this->setbaseURL('/activities/events/');
+
                 $page->addContent('{##main##}', $this->getAllActivitiesView('2')); // 2 = event 
+                $page->addContent('{##main##}', $this->pagination());
                 break;
             case 'details' :
                 if ($event_id === NULL OR !is_numeric($event_id)) {

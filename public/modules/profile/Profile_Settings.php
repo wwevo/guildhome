@@ -85,6 +85,6 @@ class Profile_Settings extends Profile {
     }
    
 }
-$profile_settings = new Profile_Settings();
-$profile_settings->initEnv();
-unset($profile_settings);
+$init_env = new Profile_Settings();
+$init_env->initEnv();
+unset($init_env);

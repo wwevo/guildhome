@@ -142,6 +142,6 @@ class Profile {
     }
 
 }
-$profile = new Profile();
-$profile->initEnv();
-unset($profile);
+$init_env = new Profile();
+$init_env->initEnv();
+unset($init_env);
