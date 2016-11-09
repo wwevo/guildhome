@@ -92,8 +92,6 @@ body {
   transform: translateY(4px);
 }
 
-
-
 .header-container {
     border-bottom: 20px solid #EA6C12;
 }
@@ -545,6 +543,12 @@ span[type="validation"] {
     display: block;
     clear: both;
     background-color: #ffcccc;
+}
+
+span[type="success"] {
+    display: block;
+    clear: both;
+    background-color: #ccffcc;
 }
 
 section.widget ul {

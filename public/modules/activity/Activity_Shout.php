@@ -63,9 +63,9 @@ class Activity_Shout extends Activity {
         switch ($alpha) {
             case 'new' :
                 if ($this->validateActivity() === true AND !isset($env->post('activity')['preview'])) {
-                    if ($this->saveActivity() === true) {
-                        header("Location: /activities/shouts");
-                        exit;
+                    if (($shout_id = $this->saveActivity()) !== false) {
+                        $this->get('update', $shout_id);
+                        break;
                     }
                 }
                 unset($env->post('activity')['preview']);
@@ -74,8 +74,8 @@ class Activity_Shout extends Activity {
             case 'update' :
                 if ($this->validateActivity() === true AND !isset($env->post('activity')['preview'])) {
                     if ($this->updateActivity($id) === true) {
-                        header("Location: /activities/shouts");
-                        exit;
+                        $this->get('update', $id);
+                        break;
                     }
                 }
                 unset($env->post('activity')['preview']);
@@ -129,7 +129,9 @@ class Activity_Shout extends Activity {
         $query = $db->query($sql);
         if ($query !== false) {
             $env->clearPost('activity');
-            return true;
+            $msg = Msg::getInstance();
+            $msg->add('activity_shout_content_saved', 'Activity saved!');
+            return $activity_id;
         }
         return false;
     }
@@ -140,8 +142,8 @@ class Activity_Shout extends Activity {
         $login = new Login();
 
         $userid = $login->currentUserID();
-        $actid = $this->getActivity($shout_id)->userid;
-        if ($userid != $actid) {
+        $act = $this->getActivity($shout_id);
+        if ($userid != $act->userid) {
             return false;
         }
         
@@ -159,7 +161,9 @@ class Activity_Shout extends Activity {
         $query = $db->query($sql);
         if ($query !== false) {
             $env->clearPost('activity');
-            return true;
+            $msg = Msg::getInstance();
+            $msg->add('activity_shout_content_saved', 'Activity updated!');
+            return $shout_id;
         }
         return false;
     }
@@ -297,6 +301,7 @@ class Activity_Shout extends Activity {
                 '{##form_action##}' => '/activity/shout/new',
                 '{##activity_content##}' => $content,
                 '{##activity_content_validation##}' => $msg->fetch('activity_shout_content_validation'),
+                '{##activity_shout_content_saved##}' => $msg->fetch('activity_shout_content_saved', 'success'),
                 '{##activity_comments_checked##}' => $comments_checked,
                 '{##preview_text##}' => 'Preview',
                 '{##submit_text##}' => 'Say it loud',
@@ -314,6 +319,7 @@ class Activity_Shout extends Activity {
                 '{##form_action##}' => '/activity/shout/update/' . $id,
                 '{##activity_content##}' => $content,
                 '{##activity_content_validation##}' => $msg->fetch('activity_shout_content_validation'),
+                '{##activity_shout_content_saved##}' => $msg->fetch('activity_shout_content_saved', 'success'),
                 '{##activity_comments_checked##}' => $comments_checked,
                 '{##preview_text##}' => 'Preview',
                 '{##draft_text##}' => 'Save as draft',
@@ -325,7 +331,6 @@ class Activity_Shout extends Activity {
     }
     
     function getDeleteActivityForm($id = NULL) {
-
         if ($id !== NULL) {
             $act = $this->getActivity($id);
             $content = $act->content;

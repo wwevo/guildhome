@@ -21,7 +21,7 @@ class Msg {
         $_SESSION['evo']['flash_messages'] = $inst->messages;
     }
     
-    public static function fetch($key) {
+    public static function fetch($key, $type = 'validation') {
         if (isset($_SESSION['evo']['flash_messages'])) {
             $inst = self::getInstance();
             $inst->messages = $_SESSION['evo']['flash_messages'];
@@ -33,7 +33,7 @@ class Msg {
             unset($_SESSION['evo']['flash_messages'][$key]);
 
             if (!empty($output)) {
-                return '<span type="validation">'.$output.'</span>';
+                return '<span type="' . $type . '">'.$output.'</span>';
             }
         }
         return false;

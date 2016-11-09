@@ -178,6 +178,9 @@ class Activity_Event extends Activity {
             $sql = "INSERT INTO activity_events(activity_id, event_type, title, description, date, time) VALUES ($activity_id, '$event_type', '$title', '$description', '$date', '$time');";
             $query = $db->query($sql);
             if ($query !== false) {
+                $msg = Msg::getInstance();
+                $msg->add('activity_event_content_saved', 'Activity saved!');
+
                 return $activity_id;
             }
         } else {
@@ -205,6 +208,8 @@ class Activity_Event extends Activity {
             $query = $db->query($sql);
 
             if ($db->affected_rows > 0 OR $query !== false) {
+                $msg = Msg::getInstance();
+                $msg->add('activity_event_content_saved', 'Activity updated!');
                 return $event_id;
             }
         }
@@ -402,6 +407,7 @@ class Activity_Event extends Activity {
         $view->setTmpl($view->loadFile('/views/activity/event/activity_event_form.php'), array(
             '{##preview_text##}' => 'Preview',
             '{##draft_text##}' => 'Save as draft',
+            '{##activity_event_content_saved##}' => $msg->fetch('activity_event_content_saved', 'success'),
             '{##activity_title_validation##}' => $msg->fetch('activity_event_title_validation'),
             '{##activity_content_validation##}' => $msg->fetch('activity_event_content_validation'),
             '{##activity_date_validation##}' => $msg->fetch('activity_event_date_validation'),

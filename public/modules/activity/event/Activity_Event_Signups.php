@@ -181,6 +181,8 @@ class Activity_Event_Signups {
                         WHERE event_id = '$activity_id';";
         }
         if ($db->query($sql)) {
+            $msg = Msg::getInstance();
+            $msg->add('activity_event_content_saved', 'Signups updated!');
             return true;
         }
         return false;

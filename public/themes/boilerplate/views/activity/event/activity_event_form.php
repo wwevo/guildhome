@@ -10,6 +10,7 @@ function toggle(div){
 <section class="form">
     <p>Together we are strong!</p>
     <form method="post" action="{##form_action##}">
+        {##activity_event_content_saved##}
         <fieldset>
             <legend>General event settings</legend>
             <input type="text" name="activity[title]" placeholder="{##activity_title_text##}" value="{##activity_title##}" /> {##activity_title_validation##}<br />
