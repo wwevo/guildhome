@@ -203,7 +203,7 @@ class Activity_Poll extends Activity {
         }
 
         if ($allow_comments === TRUE) {
-            $comment = new Comment();
+            $comment = new Activity_Comment();
             $comment_count = $comment->getCommentCount($act->id);
 
             $visitorView = new View();

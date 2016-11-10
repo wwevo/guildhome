@@ -1,42 +1,49 @@
 <?php
 
-class Comment {
+class Activity_Comment {
     // start controller
     function initEnv() {
-        Toro::addRoute(["/comment/:alpha/:alpha" => "Comment"]);
-        Toro::addRoute(["/comment/:alpha/:alpha/:alpha" => "Comment"]);
+        Toro::addRoute(["/comment/:alpha/:alpha" => "Activity_Comment"]);
+        Toro::addRoute(["/comment/:alpha/:alpha/:alpha" => "Activity_Comment"]);
     }
     
     function get($type = 'activity', $action = 'view', $activity_id = '') {       
+        $env = Env::getInstance();
         $login = new Login();
 
-        $act = new Activity();
+        $act = $this;
         $page = Page::getInstance();
-        $page->setContent('{##main##}', $act->activityMenu($type));
+        $menu = new Menu();
+        $page->setContent('{##main##}', $menu->activityMenu($type));
         switch ($type) {
             case 'activity' :
                 switch ($action) {
                     default:
                         $page->addContent('{##main##}', '<h2>Comments</h2>');
-                        $page->addContent('{##main##}', $act->getActivityView($activity_id));
-                        if ($login->isLoggedIn() AND $act->commentsEnabled($activity_id)) {
+                        $act = Activity::getActivityById($activity_id);
+                        if (isset($env::$hooks[$act->type_name])) {
+                            $activity_view = $env::$hooks[$act->type_name]($act->id, false);
+                        }
+                        
+                        $page->addContent('{##main##}', $activity_view);
+                        if ($login->isLoggedIn() AND Activity::commentsEnabled($activity_id)) {
                             $page->addContent('{##main##}', $this->getNewCommentForm($activity_id));
                         }
-                        if ($act->commentsEnabled($activity_id)) {
+                        if (Activity::commentsEnabled($activity_id)) {
                             $page->addContent('{##main##}', $this->getAllCommentsView($activity_id));
                         }
                         break;
                     case 'update' : /* $activity_id this is now the comment_id, NOT the activity_id, hence the call to getParent */
                         $page->addContent('{##main##}', '<h2>Update comment</h2>');
                         $parent = $this->getParent($activity_id);
-                        if ($login->isLoggedIn() AND $act->commentsEnabled($parent['id'])) {
+                        if ($login->isLoggedIn() AND Activity::commentsEnabled($parent['id'])) {
                             $page->addContent('{##main##}', $this->getEditCommentForm($activity_id));
                         }
                         break;
                     case 'delete' :
                         $page->addContent('{##main##}', '<h2>Delete comment</h2>');
                         $parent = $this->getParent($activity_id);
-                        if ($login->isLoggedIn() AND $act->commentsEnabled($parent['id'])) {
+                        if ($login->isLoggedIn() AND Activity::commentsEnabled($parent['id'])) {
                             $page->addContent('{##main##}', $this->getDeleteCommentForm($activity_id));
                         }
                         break;
@@ -328,8 +335,8 @@ class Comment {
         $env = Env::getInstance();
         $msg = Msg::getInstance();
 
-        $activity = new Activity();
-        $act = $activity->getActivityById($activity_id);
+        $activity = $this;
+        $act = Activity::getActivityById($activity_id);
         $content = (!empty($env->post('comment')['content'])) ? $env->post('comment')['content'] : '';
         $content = str_replace("\n\r", "&#13;", $content);
 
@@ -355,8 +362,8 @@ class Comment {
         $msg = Msg::getInstance();
         
         $comment =  $this->getComment($activity_id);
-        $activity = new Activity();
-        $act = $activity->getActivityById($comment->activity_id);
+        $activity = $this;
+        $act = Activity::getActivityById($comment->activity_id);
         $content = (!empty($env->post('comment')['content'])) ? $env->post('comment')['content'] : $comment->content;
         $content = str_replace("\n\r", "&#13;", $content);
 
@@ -378,6 +385,6 @@ class Comment {
     }
     // end view
 }
-$comment = new Comment();
+$comment = new Activity_Comment();
 $comment->initEnv();
 unset($comment);

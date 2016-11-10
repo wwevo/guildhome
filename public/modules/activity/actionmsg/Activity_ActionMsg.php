@@ -13,7 +13,7 @@ class Activity_ActionMsg extends Activity {
         Env::registerHook('actionmessage', array(new Activity_ActionMsg(), 'getActivityView'));
     }
     
-    function getActivityById($id = NULL) {
+    static function getActivityById($id = NULL) {
         $db = db::getInstance();
         $sql = "SELECT activity_actionmsg.*, from_unixtime(activities.create_time, '%Y-%m-%d') AS create_date,
                     from_unixtime(activities.create_time, '%H:%i') AS create_time
@@ -34,7 +34,7 @@ class Activity_ActionMsg extends Activity {
         
     }
     
-    function getActivityView($id = NULL, $compact = NULL) {
+    public function getActivityView($id = NULL, $compact = NULL) {
         $view = new View();
         $view->setTmpl($view->loadFile('/views/activity/actionmsg/activity_actionmsg_view.php'));
 
@@ -50,68 +50,91 @@ class Activity_ActionMsg extends Activity {
 
         return $view;    
     }
+    private $message = '';
+    function setMessage($message) {
+        $this->message = $message;
+        return $this;
+    }
+    function getMessage() {
+        return $this->message;
+    }
+    private $related_activity = null;
+    function setRelatedActivityID($activity_id) {
+        $this->related_activity = $activity_id;
+        return $this;
+    }
+    function getRelatedActivityID() {
+        return $this->related_activity;
+    }
 
     function saveCommentAction($activity_id = NULL) {
-        $db = db::getInstance();
-
-        $actionmsg_id = $this->save($type = '4'); // save metadata as action messages are activities
-        
-        $activity = parent::getActivityById($activity_id);
-        $actionmsg = parent::getActivityById($actionmsg_id);
+        $login = new Login();
+        $user_id = $login->currentUserID();
         $identity = new Identity();
         $profile = new Profile();
-        $message  = '<a href="' . $profile->getProfileUrlById($actionmsg->userid) . '">' . $identity->getIdentityById($actionmsg->userid) . '</a>';
+
+        $activity = parent::getActivityById($activity_id);
+
+        $message  = '<a href="' . $profile->getProfileUrlById($user_id) . '">' . $identity->getIdentityById($user_id) . '</a>';
         $message .= ' commented on ' . $activity->type_description;
-                
-        $sql = "INSERT INTO activity_actionmsg (activity_id, message, related_activity_id) VALUES ('$actionmsg_id', '$message', '$activity_id');";
-        $db->query($sql);        
+        $this->setMessage($message)->setRelatedActivityID($activity_id)->saveActivity('actionmessage'); // save metadata as action messages are activities
     }
 
     function deleteEventAction($activity_id = NULL) {
-        $db = db::getInstance();
-
-        $actionmsg_id = $this->save($type = '4'); // save metadata as action messages are activities
-        
-        $activity = parent::getActivityById($activity_id);
-        $actionmsg = parent::getActivityById($actionmsg_id);
+        $login = new Login();
+        $user_id = $login->currentUserID();
         $identity = new Identity();
         $profile = new Profile();
-        $message  = '<a href="' . $profile->getProfileUrlById($actionmsg->userid) . '">' . $identity->getIdentityById($actionmsg->userid) . '</a>';
+
+        $activity = parent::getActivityById($activity_id);
+
+        $message  = '<a href="' . $profile->getProfileUrlById($user_id) . '">' . $identity->getIdentityById($user_id) . '</a>';
         $message .= ' deleted ' . $activity->type_description;
-                
-        $sql = "INSERT INTO activity_actionmsg (activity_id, message, related_activity_id) VALUES ('$actionmsg_id', '$message', '$activity_id');";
-        $db->query($sql);        
+    
+        $this->setMessage($message)->setRelatedActivityID($activity_id)->saveActivity('actionmessage'); // save metadata as action messages are activities
     }
 
     function toggleEventSignupAction($activity_id = NULL, $signup = FALSE) {
-        $db = db::getInstance();
-
-        $actionmsg_id = $this->save($type = '4'); // save metadata as action messages are activities
-        
-        $activity = parent::getActivityById($activity_id);
-        $actionmsg = parent::getActivityById($actionmsg_id);
+        $login = new Login();
+        $user_id = $login->currentUserID();
         $identity = new Identity();
         $profile = new Profile();
-        $message  = '<a href="' . $profile->getProfileUrlById($actionmsg->userid) . '">' . $identity->getIdentityById($actionmsg->userid) . '</a>';
+
+        $activity = parent::getActivityById($activity_id);
+
+        $message  = '<a href="' . $profile->getProfileUrlById($user_id) . '">' . $identity->getIdentityById($user_id) . '</a>';
         if ($signup === TRUE) {
             $message .= ' signed up for ' . $activity->type_description;
         } else {
             $message .= ' signed out from ' . $activity->type_description;
         }
-                
-        $sql = "INSERT INTO activity_actionmsg (activity_id, message, related_activity_id) VALUES ('$actionmsg_id', '$message', '$activity_id');";
-        $db->query($sql);        
+        $this->setMessage($message)->setRelatedActivityID($activity_id)->saveActivity('actionmessage'); // save metadata as action messages are activities
     }
 
-
     function saveNewUserAction($user_id = NULL) {
-        $db = db::getInstance();
-        $actionmsg_id = $this->save($type = '4'); // save metadata as action messages are activities
         $identity = new Identity();
-        $message = $identity->getIdentityById($user_id, 0) . ' created an account';
-
-        $sql = "INSERT INTO activity_actionmsg (activity_id, message) VALUES ('$actionmsg_id', '$message');";
+        $profile = new Profile();
+        
+        $message = '<a href="' . $profile->getProfileUrlById($user_id) . '">' . $identity->getIdentityById($user_id, 0) . '</a>' . ' created an account';
+        $this->setMessage($message)->saveActivity('actionmessage'); // save metadata as action messages are activities
+    }
+    
+    function saveActivityTypeDetails($activity_id) {
+        $db = db::getInstance();
+        $related_activity_id = $this->getRelatedActivityID();
+        $message = $this->getMessage();
+        $sql = "INSERT INTO activity_actionmsg (activity_id, message, related_activity_id) VALUES ($activity_id, '$message', $related_activity_id);";
         $db->query($sql);        
+
+        return $this;
+    }
+    
+    function updateActivityTypeDetails($activity_id) {
+        return $this;
+    }
+
+    function validateActivityTypeDetails() {
+        return true;
     }
     
 }

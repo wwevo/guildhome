@@ -1,6 +1,6 @@
 <?php
 
-class Activity_Stream extends Activity {
+class Activity_Stream extends Pagination {
     // start controller (i guess)
     function initEnv() {
         Toro::addRoute(["/activities" => "Activity_Stream"]);
@@ -12,16 +12,16 @@ class Activity_Stream extends Activity {
     function get($alpha = 0, $offset = 0) {
         $env = Env::getInstance();
         $env->clearPost('activity');
-
+        $menu = new Menu();
         if (is_numeric($alpha)) {
             $page = Page::getInstance();
-            $page->setContent('{##main##}', $this->activityMenu('activity'));
+            $page->setContent('{##main##}', $menu->activityMenu('activity'));
             $page->addContent('{##main##}', $this->getAllActivitiesView());
             $page->addContent('{##main##}', $this->setPagination($offset, "/activities/")->paginationView());
         } elseif (is_string($alpha)) {
             $page = Page::getInstance();
-            $page->setContent('{##main##}', $this->activityMenu($alpha));
-            $type_id = $this->getActivityTypeIDByName($alpha);
+            $page->setContent('{##main##}', $menu->activityMenu($alpha));
+            $type_id = Activity::getActivityTypeIDByName($alpha);
             $page->addContent('{##main##}', $this->getAllActivitiesView($type_id));
             $page->addContent('{##main##}', $this->setPagination($offset, "/activities/$alpha/")->paginationView());
         }
@@ -74,44 +74,6 @@ class Activity_Stream extends Activity {
         }
         return false;
     }
-
-    function getActivityCountByType($type = 0) {
-        $db = db::getInstance();
-        $sql = "SELECT
-                    (SELECT
-                        count(*) AS count
-                        FROM activities
-                        WHERE
-                            type = $type
-                        AND
-                            deleted = 0
-                    ) AS count_all,
-                    count(*) AS count
-                    FROM activities
-                    WHERE
-                        deleted = 0 AND type = $type
-                    AND
-                        from_unixtime(create_time) >= DATE_SUB(CURDATE(), INTERVAL 10 DAY);";
-        $query = $db->query($sql);
-        
-        if ($query !== false AND $query->num_rows == 1) {
-            $count = $query->fetch_object();
-            return $count;
-        }
-        return false;
-    }
-    
-    function commentsEnabled($activity_id) {
-        $db = db::getInstance();
-        $sql = "SELECT comments_enabled FROM activities WHERE id = '$activity_id';";
-        $query = $db->query($sql);
-        if ($query !== false AND $query->num_rows >= 1) {
-            $result_row = $query->fetch_object();
-            $result = ($result_row->comments_enabled == '1') ? true : false;
-            return $result;
-        }
-        return false;
-    }
     // end model
     // start view (i'd say)
     /*
@@ -119,6 +81,7 @@ class Activity_Stream extends Activity {
      * to-do: make this template based, make it human readable again ^^
      */   
     function getAllActivitiesView($type = NULL) {
+        $env = Env::getInstance();
         $view = new View();
         $view->setTmpl($view->loadFile('/views/core/one_tag.php'));
         
@@ -151,9 +114,10 @@ class Activity_Stream extends Activity {
                     $last_type = $act->type;
                 }
 
-                $subView = $this->getActivityView($act->id, $compact = TRUE);
-                $activity_loop .= '<li>' . $subView . '</li>';
-
+                if (isset($env::$hooks[$act->type_name])) {
+                    $subView = $env::$hooks[$act->type_name]($act->id, true);
+                    $activity_loop .= '<li>' . $subView . '</li>';
+                }
             }
             $activity_loop .= '</ul></li>';
             $activity_loop .= '</ul>';

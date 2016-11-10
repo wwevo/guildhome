@@ -13,7 +13,8 @@ class Activity_Event extends Activity {
         $env = Env::getInstance();
         $login = new Login();
         $page = Page::getInstance();
-        $page->addContent('{##main##}', parent::activityMenu('event', $compact = true));
+        $menu = new Menu();
+        $page->addContent('{##main##}', $menu->activityMenu('event', $compact = true));
         switch ($action) {
             case 'details' :
                 if ($event_id === NULL OR !is_numeric($event_id)) {
@@ -21,8 +22,8 @@ class Activity_Event extends Activity {
                 }
                 $page->addContent('{##main##}', '<h2>Event details</h2>');
                 $page->addContent('{##main##}', $this->getActivityView($event_id));
-                $act = new Activity();
-                $comments = new Comment();
+                $act = $this;
+                $comments = new Activity_Comment();
                 if ($login->isLoggedIn() AND $act->commentsEnabled($event_id)) {
                     $page->addContent('{##main##}', $comments->getNewCommentForm($event_id));
                 }
@@ -60,7 +61,7 @@ class Activity_Event extends Activity {
         }
     }
 
-    function post($action, $id = NULL) {
+    function post($action, $event_id = NULL) {
         $env = Env::getInstance();
         $login = new Login();
         if (!$login->isLoggedIn()) {
@@ -68,28 +69,25 @@ class Activity_Event extends Activity {
         }
         switch ($action) {
             case 'new' :
-                if ($this->validateActivity() === true AND !isset($env->post('activity')['preview'])) {
-                    if (($event_id = $this->saveActivity()) !== false) {
-                        header("Location: /activity/event/update/$event_id");
-                        exit;
-                    }
+                if (isset($env->post('activity')['preview'])) {
+                    unset($env->post('activity')['preview']);
+                } elseif (($event_id = $this->saveActivity('event')) !== false) {
+                    $this->get('update', $event_id);
+                    break;
                 }
-                unset($env->post('activity')['preview']);
-                $this->get('new');
+                $this->get('new', $event_id);    
                 break;
             case 'update' :
-                if ($this->validateActivity() === true AND !isset($env->post('activity')['preview'])) {
-                    if ($this->saveActivity($id) !== false) {
-                        header("Location: /activity/event/update/$id");
-                        exit;
-                    }
+                if (isset($env->post('activity')['preview'])) {
+                    unset($env->post('activity')['preview']);
+                } else {
+                    $this->updateActivity($event_id);
                 }
-                unset($env->post('activity')['preview']);
-                $this->get('update', $id);
+                $this->get('update', $event_id);
                 break;
             case 'delete' :
                 if (isset($env->post('activity')['submit']) AND $env->post('activity')['submit'] == 'delete') {
-                    if ($this->deleteActivity($id) !== false) {
+                    if ($this->deleteActivity($event_id) !== false) {
                         $env->clearPost('activity');
                         header("Location: /activities/events");
                         exit;
@@ -149,7 +147,25 @@ class Activity_Event extends Activity {
         return false;
     }
 
-    function saveActivity($event_id = NULL) { // : event_id : false
+    function saveActivityTypeDetails($event_id) { // : event_id : false
+        $db = db::getInstance();
+        $env = Env::getInstance();
+        $title = $env->post('activity')['title'];
+        $description = $env->post('activity')['content'];
+        $time = $env->post('activity')['time'];
+        $date = $env->post('activity')['date'];
+        $sql = "INSERT INTO activity_events(activity_id, title, description, date, time) VALUES ($event_id, '$title', '$description', '$date', '$time');";
+        $query = $db->query($sql);
+        if ($query !== false) {
+            $msg = Msg::getInstance();
+            $msg->add('activity_event_content_saved', 'Activity saved!');
+
+            return $event_id;
+        }
+        return false;
+    }
+
+    function updateActivityTypeDetails($event_id) { // : event_id : false
         $db = db::getInstance();
         $env = Env::getInstance();
         $title = $env->post('activity')['title'];
@@ -157,46 +173,27 @@ class Activity_Event extends Activity {
         $time = $env->post('activity')['time'];
         $date = $env->post('activity')['date'];
 
-        $allow_comments = isset($env->post('activity')['comments']) ? '1' : '0';
+        $login = new Login();
 
-        if ($event_id === NULL) {
-            $activity_id = $this->save($type = '2', $allow_comments);
-            $sql = "INSERT INTO activity_events(activity_id, title, description, date, time) VALUES ($activity_id, '$title', '$description', '$date', '$time');";
-            $query = $db->query($sql);
-            if ($query !== false) {
-                $msg = Msg::getInstance();
-                $msg->add('activity_event_content_saved', 'Activity saved!');
+        $userid = $login->currentUserID();
+        $act = $this->getActivity($event_id);
 
-                return $activity_id;
-            }
-        } else {
-            $login = new Login();
+        if ($userid != $act->userid) {
+            return false;
+        }
 
-            $userid = $login->currentUserID();
-            $act = $this->getActivity($event_id);
+        $sql = "UPDATE activity_events SET
+                        title = '$title',
+                        description = '$description',
+                        time = '$time',
+                        date = '$date'
+                    WHERE activity_id = '$event_id';";
+        $query = $db->query($sql);
 
-            if ($userid != $act->userid) {
-                return false;
-            }
-
-            $sql = "UPDATE activities SET
-                            comments_enabled= '$allow_comments'
-                        WHERE id = '$event_id';";
-            $query = $db->query($sql);
-
-            $sql = "UPDATE activity_events SET
-                            title = '$title',
-                            description = '$description',
-                            time = '$time',
-                            date = '$date'
-                        WHERE activity_id = '$event_id';";
-            $query = $db->query($sql);
-
-            if ($db->affected_rows > 0 OR $query !== false) {
-                $msg = Msg::getInstance();
-                $msg->add('activity_event_content_saved', 'Activity updated!');
-                return $event_id;
-            }
+        if ($db->affected_rows > 0 OR $query !== false) {
+            $msg = Msg::getInstance();
+            $msg->add('activity_event_content_saved', 'Activity updated!');
+            return $event_id;
         }
         return false;
     }
@@ -210,31 +207,7 @@ class Activity_Event extends Activity {
         return true;
     }
     
-    function deleteActivity($activity_id) {
-        $db = db::getInstance();
-        $env = Env::getInstance();
-        $login = new Login();
-
-        $userid = $login->currentUserID();
-        $act = $this->getActivity($activity_id);
-        if ($userid != $act->userid) {
-            return false;
-        }
-
-        $sql = "UPDATE activities SET deleted = '1' WHERE id = '$activity_id';";
-        
-        $query = $db->query($sql);
-        if ($query !== false) {
-            $env->clearPost('activity');
-            if (isset($env::$hooks['delete_event_hook'])) {
-                $env::$hooks['delete_event_hook']($activity_id);
-            }
-            return true;
-        }
-        return false;
-    }
-
-    function validateActivity() {
+    function validateActivityTypeDetails() {
         $msg = Msg::getInstance();
         $env = Env::getInstance();
 
@@ -291,7 +264,7 @@ class Activity_Event extends Activity {
         return $view;
     }
     
-    function getActivityView($event_id = NULL, $compact = NULL) {
+    public function getActivityView($event_id = NULL, $compact = NULL) {
         $env = Env::getInstance();
         $activityView = new View();
         $activityView->setTmpl($activityView->loadFile('/views/activity/event/activity_event_view.php'));
@@ -353,7 +326,7 @@ class Activity_Event extends Activity {
         }
 
         if (isset($act->comments_enabled) AND $act->comments_enabled == '1') {
-            $comment = new Comment();
+            $comment = new Activity_Comment();
             $comment_count = $comment->getCommentCount($event_id);
             $visitorView = new View();
             $visitorView->setTmpl($loopView->getSubTemplate('{##activity_not_logged_in##}'));

@@ -1,8 +1,9 @@
 <?php
 
-class Activity extends Pagination {
+abstract class Activity extends Pagination {
     // start model (i suppose)
-    function getActivityById($id = NULL) {
+    
+    static function getActivityById($id = NULL) {
         if ($id === NULL) {
             return false;
         }
@@ -37,7 +38,7 @@ class Activity extends Pagination {
         return false;
     }
     
-    function getActivityCountByType($type = 0) {
+    static function getActivityCountByType($type = 0) {
         $db = db::getInstance();
         $sql = "SELECT
                     (SELECT
@@ -62,7 +63,8 @@ class Activity extends Pagination {
         }
         return false;
     }
-    function getActivityTypeIDByName($activity_type_name = null) {
+    
+    public static function getActivityTypeIDByName($activity_type_name = null) {
         if ($activity_type_name === NULL) {
             return false;
         }
@@ -87,23 +89,71 @@ class Activity extends Pagination {
         return false;
     }
     
-    function save($type = '1', $comments_enabled = '0') {
+    public function saveActivity($type_name) {
+        if (!$this->validateActivity()) {
+            return false;
+        }
+        $env = Env::getInstance();
         $db = db::getInstance();
         $login = new Login();
-        
+        $type_id = $this->getActivityTypeIDByName($type_name);
+
         $userid = $login->currentUserID();
         $uxtime = time();
+        $allow_comments = isset($env->post('activity')['comments']) ? '1' : '0';
         
-        $sql = "INSERT INTO activities (id, userid, create_time, type, comments_enabled) VALUES ('NULL', '$userid', '$uxtime', '$type', '$comments_enabled');";
+        $sql = "INSERT INTO activities (id, userid, create_time, type, comments_enabled) VALUES ('NULL', '$userid', '$uxtime', '$type_id', '$allow_comments');";
         $query = $db->query($sql);
         
         if ($query !== false) {
-            return $db->insert_id;
+            $activity_id = $db->insert_id;
+            $this->saveActivityTypeDetails($activity_id);
+            return $activity_id;
         }
         return false;
     }
-    
-    function commentsEnabled($activity_id) {
+    protected abstract function saveActivityTypeDetails($activity_id);
+
+    public function updateActivity(int $activity_id) {
+        $db = db::getInstance();
+        $env = Env::getInstance();
+        $allow_comments = isset($env->post('activity')['comments']) ? '1' : '0';
+
+        $sql = "UPDATE activities SET
+                    comments_enabled= '$allow_comments'
+                WHERE id = '$activity_id';";
+        $query = $db->query($sql);
+        if ($query !== false) {
+            $this->updateActivityTypeDetails($activity_id);
+            return $activity_id;
+        }
+        return false;
+    }
+    public function deleteActivity($activity_id) {
+        $db = db::getInstance();
+        $env = Env::getInstance();
+        $login = new Login();
+
+        $userid = $login->currentUserID();
+        $actid = $this->getActivity($activity_id)->userid;
+        if ($userid != $actid) {
+            return false;
+        }
+        $sql = "UPDATE activities SET deleted = '1' WHERE id = '$activity_id';";
+        $query = $db->query($sql);
+        if ($query !== false) {
+            $env->clearPost('activity');
+            if (isset($env::$hooks['delete_event_hook'])) {
+                $env::$hooks['delete_event_hook']($activity_id);
+            }
+            return true;
+        }
+        return false;
+    }
+
+    protected abstract function updateActivityTypeDetails($activity_id);
+
+    public static function commentsEnabled($activity_id) {
         $db = db::getInstance();
         $sql = "SELECT comments_enabled FROM activities WHERE id = '$activity_id';";
         $query = $db->query($sql);
@@ -121,92 +171,11 @@ class Activity extends Pagination {
      * register it's output-view in the env-class and we will look for that here.
      * feel free to come up with something nicer
      */
-    function getActivityView($act_id = NULL, $compact = NULL) {
-        $env = Env::getInstance();
-        $act = $this->getActivityById($act_id);
-        
-        $type_name = (isset($act->type_name)) ? $act->type_name : NULL;
-
-        if (isset($env::$hooks[$type_name])) {
-            $event_data = $env::$hooks[$type_name]($act_id, $compact);
-            return $event_data;
-        } else {
-            // you can place a fallback here, at least the activity meta-data
-            // should be available
-        }
-        return false;
+    protected abstract function getActivityView($act_id = NULL, $compact = NULL);
+    
+    public function validateActivity() {
+        return $this->validateActivityTypeDetails();
     }
-    /*
-     * just a mockup, this should one day be converted to a real menu-handling
-     * class thingy
-     */
-    function activityMenu($active = NULL, $compact = false) {
-        $view = new View();
-        $view->setTmpl($view->loadFile('/views/core/one_tag.php'));
-
-        $login = new Login();
-        $view->addContent('{##data##}', '<nav class="activities clearfix">');
-        if ($active == NULL) {
-            $view->addContent('{##data##}', '<div class="header active">');
-        } else {
-            $view->addContent('{##data##}', '<div class="header">');
-        }
-        $view->addContent('{##data##}', '<h2><a href="/activities">Activity Stream (last 10 days)</a></h2>');
-        $view->addContent('{##data##}', '</div>');
-        if ($compact === true) {
-            $view->addContent('{##data##}', '<ul class="activity_menu compact">');
-        } else {
-            $view->addContent('{##data##}', '<ul class="activity_menu">');
-        }
-
-        if ($active == 'shouts' OR $active == 'shout') {
-            $view->addContent('{##data##}', '<li class="active">');
-        } else {
-            $view->addContent('{##data##}', '<li>');
-        }
-        $view->addContent('{##data##}', '<div class="count">');
-        $count = $this->getActivityCountByType('1');
-        $view->addContent('{##data##}', '<a href="/activities/shouts">' . $count->count . '</a>');
-        $view->addContent('{##data##}', '</div>');
-        $view->addContent('{##data##}', '<div class="title"><a href="/activities/shouts">Shouts</a> (' . $count->count_all . ')</div>');
-        if ($login->isLoggedIn()) {
-            $view->addContent('{##data##}', '<div class="action"><a href="/activity/shout/new">+</a></div>');
-        }
-        $view->addContent('{##data##}', '</li>');
-        
-        if ($active == 'events' OR $active == 'event') {
-            $view->addContent('{##data##}', '<li class="active">');
-        } else {
-            $view->addContent('{##data##}', '<li>');
-        }
-        $view->addContent('{##data##}', '<div class="count">');
-        $count = $this->getActivityCountByType('2');
-        $view->addContent('{##data##}', '<a href="/activities/events">' . $count->count . '</a>');
-        $view->addContent('{##data##}', '</div>');
-        $view->addContent('{##data##}', '<div class="title"><a href="/activities/events">Events</a> (' . $count->count_all . ')</div>');
-        if ($login->isLoggedIn()) {
-            $view->addContent('{##data##}', '<div class="action"><a href="/activity/event/new">+</a></div>');
-        }
-        $view->addContent('{##data##}', '</li>');
-
-//        if ($active == 'polls' OR $active == 'poll') {
-//            $view->addContent('{##data##}', '<li class="active">');
-//        } else {
-//            $view->addContent('{##data##}', '<li>');
-//        }
-//        $view->addContent('{##data##}', '<div class="count">');
-//        $count = $this->getActivityCountByType('3');
-//        $view->addContent('{##data##}', '<a href="/activities/polls">' . $count->count . '</a>');
-//        $view->addContent('{##data##}', '</div>');
-//        $view->addContent('{##data##}', '<div class="title"><a href="/activities/polls">Polls</a> (' . $count->count_all . ')</div>');
-//        if ($login->isLoggedIn() AND $login->isOperator()) {
-//            $view->addContent('{##data##}', '<div class="action"><a href="/activity/poll/new">+</a></div>');
-//        }
-//        $view->addContent('{##data##}', '</li>');
-        $view->addContent('{##data##}', '</ul>');
-        $view->addContent('{##data##}', '</nav>');
-        $view->replaceTags();
-        return $view;
-    }
+    protected abstract function validateActivityTypeDetails();
     // end view
 }

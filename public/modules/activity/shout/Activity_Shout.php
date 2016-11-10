@@ -13,7 +13,8 @@ class Activity_Shout extends Activity {
         $env = Env::getInstance();
         $login = new Login();
         $page = Page::getInstance();
-        $page->addContent('{##main##}', parent::activityMenu('shout', $compact = true));
+        $menu = new Menu();
+        $page->addContent('{##main##}', $menu->activityMenu('shout', $compact = true));
         switch ($alpha) {
             case 'new' :
                 if (!$login->isLoggedIn()) {
@@ -45,7 +46,7 @@ class Activity_Shout extends Activity {
         }
     }
 
-    function post($alpha, $id = NULL) {
+    function post($alpha, $shout_id = NULL) {
         $env = Env::getInstance();
         $login = new Login();
         if (!$login->isLoggedIn()) {
@@ -53,29 +54,26 @@ class Activity_Shout extends Activity {
         }
         switch ($alpha) {
             case 'new' :
-                if ($this->validateActivity() === true AND !isset($env->post('activity')['preview'])) {
-                    if (($shout_id = $this->saveActivity()) !== false) {
-                        $this->get('update', $shout_id);
-                        break;
-                    }
+                if (isset($env->post('activity')['preview'])) {
+                    unset($env->post('activity')['preview']);
+                } elseif (($shout_id = $this->saveActivity('shout')) !== false) {
+                    $this->get('update', $shout_id);
+                    break;
                 }
-                unset($env->post('activity')['preview']);
-                $this->get('new', $id);
+                $this->get('new', $shout_id);    
                 break;
             case 'update' :
-                if ($this->validateActivity() === true AND !isset($env->post('activity')['preview'])) {
-                    if ($this->updateActivity($id) === true) {
-                        $this->get('update', $id);
-                        break;
-                    }
+                if (isset($env->post('activity')['preview'])) {
+                    unset($env->post('activity')['preview']);
+                } else {
+                    $this->updateActivity($shout_id);
                 }
-                unset($env->post('activity')['preview']);
-                $this->get('update', $id);
+                $this->get('update', $shout_id);
                 break;
             case 'delete' :
                 if (isset($env->post('activity')['submit'])) {
                     if ($env->post('activity')['submit'] === 'delete') {
-                        if ($this->deleteActivity($id) === true) {
+                        if ($this->deleteActivity($shout_id) === true) {
                             header("Location: /activities/shouts");
                         }
                     }
@@ -106,14 +104,11 @@ class Activity_Shout extends Activity {
         return false;
     }
 
-    function saveActivity() {
+    function saveActivityTypeDetails($activity_id) {
         $db = db::getInstance();
         $env = Env::getInstance();
         
         // save activity meta data
-        $allow_comments = isset($env->post('activity')['comments']) ? '1' : '0';
-        $activity_id = $this->save($type = '1', $allow_comments);
-
         $content = $env->post('activity')['content'];
 
         $sql = "INSERT INTO activity_shouts (activity_id, content) VALUES ('$activity_id', '$content');";
@@ -127,7 +122,7 @@ class Activity_Shout extends Activity {
         return false;
     }
     
-    function updateActivity($shout_id) {
+    function updateActivityTypeDetails($shout_id) {
         $db = db::getInstance();
         $env = Env::getInstance();
         $login = new Login();
@@ -155,28 +150,6 @@ class Activity_Shout extends Activity {
             $msg = Msg::getInstance();
             $msg->add('activity_shout_content_saved', 'Activity updated!');
             return $shout_id;
-        }
-        return false;
-    }
-    
-    function deleteActivity($shout_id) {
-        $db = db::getInstance();
-        $env = Env::getInstance();
-        $login = new Login();
-
-        $userid = $login->currentUserID();
-        $actid = $this->getActivity($shout_id)->userid;
-        if ($userid != $actid) {
-            return false;
-        }
-        $sql = "UPDATE activities SET deleted = '1' WHERE id = '$shout_id';";
-        $query = $db->query($sql);
-        if ($query !== false) {
-            $env->clearPost('activity');
-            if (isset($env::$hooks['delete_event_hook'])) {
-                $env::$hooks['delete_event_hook']($shout_id);
-            }
-            return true;
         }
         return false;
     }
@@ -208,7 +181,7 @@ class Activity_Shout extends Activity {
         return $view;
     }
     
-    function getActivityView($activity_id = NULL, $compact = NULL) {
+    public function getActivityView($activity_id = NULL, $compact = NULL) {
         $act = parent::getActivityById($activity_id);
 
         $view = new View();
@@ -242,7 +215,7 @@ class Activity_Shout extends Activity {
         }
 
         if (isset($activity_event->comments_enabled) AND $activity_event->comments_enabled == '1') {
-            $comment = new Comment();
+            $comment = new Activity_Comment();
             $comment_count = $comment->getCommentCount($act->id);
 
             $visitorView = new View();
@@ -340,7 +313,7 @@ class Activity_Shout extends Activity {
         return $view;
     }
     
-    function validateActivity() {
+    function validateActivityTypeDetails() {
         $msg = Msg::getInstance();
         $env = Env::getInstance();
        
