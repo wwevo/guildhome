@@ -10,6 +10,7 @@ class Pagination {
     private $offset = 0;
     function setOffset($offset) {
         $this->offset = $offset;
+        return $this;
     }
    
     function getOffset() {
@@ -19,6 +20,7 @@ class Pagination {
     private $baseURL = '';
     function setBaseURL($url) {
         $this->baseURL = $url;
+        return $this;
     }
 
     function getBaseURL() {
@@ -26,9 +28,7 @@ class Pagination {
     }
     
     function setPagination($offset, $baseURL) {
-        $this->setOffset($offset);
-        $this->setBaseURL($baseURL);
-        return $this;
+        return $this->setOffset($offset)->setBaseURL($baseURL);
     }
 
     function paginationView() {

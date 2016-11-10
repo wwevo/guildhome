@@ -14,15 +14,16 @@ class Activity_Stream extends Pagination {
         $env->clearPost('activity');
         $menu = new Menu();
         if (is_numeric($alpha)) {
+            $offset = $alpha;
             $page = Page::getInstance();
             $page->setContent('{##main##}', $menu->activityMenu('activity'));
-            $page->addContent('{##main##}', $this->getAllActivitiesView());
+            $page->addContent('{##main##}', $this->setOffset($offset)->getAllActivitiesView());
             $page->addContent('{##main##}', $this->setPagination($offset, "/activities/")->paginationView());
         } elseif (is_string($alpha)) {
             $page = Page::getInstance();
             $page->setContent('{##main##}', $menu->activityMenu($alpha));
             $type_id = Activity::getActivityTypeIDByName($alpha);
-            $page->addContent('{##main##}', $this->getAllActivitiesView($type_id));
+            $page->addContent('{##main##}', $this->setOffset($offset)->getAllActivitiesView($type_id));
             $page->addContent('{##main##}', $this->setPagination($offset, "/activities/$alpha/")->paginationView());
         }
         return false;
