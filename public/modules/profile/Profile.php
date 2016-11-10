@@ -62,7 +62,7 @@ class Profile {
                     $view->addContent('{##main##}', $gw2api_widgets->getNextBirthdaysView());
                 }
 
-                $activity_event_widgets = new Activity_Event_Widgets();
+                $activity_event_widgets = new Activity_Event_Signups_Widgets();
                 $view->addContent('{##main##}', $activity_event_widgets->getSignupsByUserIdView($login->currentUserID()));
             }
             $subView->replaceTags();

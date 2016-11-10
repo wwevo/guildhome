@@ -14,13 +14,6 @@ function toggle(div){
         <fieldset>
             <legend>General event settings</legend>
             <input type="text" name="activity[title]" placeholder="{##activity_title_text##}" value="{##activity_title##}" /> {##activity_title_validation##}<br />
-            <select name="activity[event_type]">
-                <option value="1">Missions</option>
-                <option value="2">Raid</option>
-                <option value="3">Fractal</option>
-                <option value="4">PvP</option>
-                <option value="5">Fun</option>
-            </select>
             <textarea id="activity_content" name="activity[content]" placeholder="{##activity_content_text##}">{##activity_content##}</textarea>
             {##activity_content_validation##}<br />
             Date: <input type="date" name="activity[date]" placeholder="Date" value="{##activity_date##}" />
@@ -36,5 +29,5 @@ function toggle(div){
         </fieldset>
     </form>
     {##signups_form##}
-    {##class_selection_form##}
+    {##tags_form##}
 </section>

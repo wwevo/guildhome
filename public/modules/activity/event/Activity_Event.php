@@ -131,10 +131,6 @@ class Activity_Event extends Activity {
                     aes.maximal_signups_activated AS maximal_signups_activated,
                     aes.maximal_signups AS maximal_signups,
                     aes.signup_open_beyond_maximal AS signup_open_beyond_maximal,
-                    aes.class_registration_enabled AS class_registration_enabled,
-                    aes.roles_registration_enabled,
-                    aes.preference_selection_enabled AS preference_selection_enabled,
-                    aet.name AS event_type,
                     IF(
                         DATE_ADD(concat(ae.date, ' ', ae.time), INTERVAL 2 HOUR) >= NOW()
                     AND
@@ -150,7 +146,6 @@ class Activity_Event extends Activity {
                     FROM activity_events ae
                     LEFT JOIN activities a ON ae.activity_id = a.id
                     LEFT JOIN activity_events_signups aes ON ae.activity_id = aes.event_id
-                    LEFT JOIN activity_events_types aet ON ae.event_type = aet.id
                     WHERE activity_id = '$id';";
 
         $query = $db->query($sql);
@@ -166,7 +161,6 @@ class Activity_Event extends Activity {
         $db = db::getInstance();
         $env = Env::getInstance();
         $title = $env->post('activity')['title'];
-        $event_type = $env->post('activity')['event_type'];
         $description = $env->post('activity')['content'];
         $time = $env->post('activity')['time'];
         $date = $env->post('activity')['date'];
@@ -175,7 +169,7 @@ class Activity_Event extends Activity {
 
         if ($event_id === NULL) {
             $activity_id = $this->save($type = '2', $allow_comments);
-            $sql = "INSERT INTO activity_events(activity_id, event_type, title, description, date, time) VALUES ($activity_id, '$event_type', '$title', '$description', '$date', '$time');";
+            $sql = "INSERT INTO activity_events(activity_id, title, description, date, time) VALUES ($activity_id, '$title', '$description', '$date', '$time');";
             $query = $db->query($sql);
             if ($query !== false) {
                 $msg = Msg::getInstance();
@@ -200,7 +194,6 @@ class Activity_Event extends Activity {
 
             $sql = "UPDATE activity_events SET
                             title = '$title',
-                            event_type = '$event_type',
                             description = '$description',
                             time = '$time',
                             date = '$date'
@@ -317,7 +310,7 @@ class Activity_Event extends Activity {
         $act = $this->getActivity($event_id);
         $act_meta = parent::getActivityById($event_id);
         
-        if ($act === false OR $act->activity_type != '2') {
+        if ($act === false OR $act_meta->type != '2') {
             return false;
         }
 
@@ -425,7 +418,7 @@ class Activity_Event extends Activity {
             $comments_checked = (!empty($env->post('activity')['comments']) AND $env->post('activity')['comments'] !== NULL) ? '1' : '';
         } else {
             $view->addContent('{##form_action##}', '/activity/event/update/' . $event_id);
-            $view->addContent('{##submit_text##}' , 'Update');
+            $view->addContent('{##submit_text##}', 'Update');
 
             $act = $this->getActivity($event_id);
 
@@ -435,23 +428,18 @@ class Activity_Event extends Activity {
             $time = (isset($env->post('activity')['time'])) ? $env->post('activity')['time'] : $act->time;
             $comments_checked = (!empty($env->post('activity')['comments'])) ? $env->post('activity')['comments'] : $act->comments_enabled;
 
-            if (isset($env::$hooks['event_roles'])) {
-                $event_data = $env::$hooks['event_roles']($event_id);
-                $view->addContent('{##class_selection_form##}', $event_data);
-            }
-
             if (isset($env::$hooks['event_signups'])) {
                 $event_data = $env::$hooks['event_signups']($event_id);
                 $view->addContent('{##signups_form##}', $event_data);
             }
         }
         
-        $view->addContent('{##activity_title##}' , $title);
+        $view->addContent('{##activity_title##}', $title);
         $content = str_replace("\n\r", "&#13;", $content);
-        $view->addContent('{##activity_content##}' , $content);
-        $view->addContent('{##activity_date##}' , $date);
-        $view->addContent('{##activity_time##}' , $time);
-        $view->addContent('{##activity_comments_checked##}' , ($comments_checked === '1') ? 'checked="checked"' : '');
+        $view->addContent('{##activity_content##}', $content);
+        $view->addContent('{##activity_date##}', $date);
+        $view->addContent('{##activity_time##}', $time);
+        $view->addContent('{##activity_comments_checked##}', ($comments_checked === '1') ? 'checked="checked"' : '');
 
         $view->replaceTags();
         return $view;

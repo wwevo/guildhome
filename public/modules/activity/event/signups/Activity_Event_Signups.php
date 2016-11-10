@@ -51,7 +51,7 @@ class Activity_Event_Signups {
                 $signed_up_users = 'No signups so far! Be the first!';
             }
             $view = new View();
-            $view->setTmpl($view->loadFile('/views/activity/event/activity_event_signups_view.php'), array(
+            $view->setTmpl($view->loadFile('/views/activity/event/signups/activity_event_signups_view.php'), array(
                 '{##signups##}' => $signed_up_users,
             ));
 
@@ -71,7 +71,7 @@ class Activity_Event_Signups {
         }
         
         $view = new View();
-        $view->setTmpl($view->loadFile('/views/activity/event/activity_event_signup_button.php'));        
+        $view->setTmpl($view->loadFile('/views/activity/event/signups/activity_event_signups_button.php'));        
         $view->setContent('{##signup##}', '/activity/event/signups/signup/' . $event_id);
         if ($this->isSignedUp($event_id)) {
             $view->addContent('{##signup_text##}', 'Signout');
@@ -88,7 +88,7 @@ class Activity_Event_Signups {
         $env = Env::getInstance();
         
         $view = new View();
-        $view->setTmpl($view->loadFile('/views/activity/event/activity_signups_form.php'));
+        $view->setTmpl($view->loadFile('/views/activity/event/signups/activity_event_signups_form.php'));
         
         $view->addContent('{##form_action##}', '/activity/event/signups/update/' . $id);
         $activity_event = new Activity_Event();
@@ -168,7 +168,7 @@ class Activity_Event_Signups {
         $sql = "SELECT * FROM activity_events_signups WHERE event_id = '$activity_id';";
         $db->query($sql);
         if ($db->affected_rows == 0) {
-            $sql = "INSERT INTO activity_events_signups (event_id, minimal_signups_activated, minimal_signups, maximal_signups_activated, maximal_signups, signup_open_beyond_maximal, preference_selection_enabled) VALUES ('$activity_id', '$signups_min', '$signups_min_val', '$signups_max', '$signups_max_val', '$keep_signups_open', '0');";
+            $sql = "INSERT INTO activity_events_signups (event_id, minimal_signups_activated, minimal_signups, maximal_signups_activated, maximal_signups, signup_open_beyond_maximal) VALUES ('$activity_id', '$signups_min', '$signups_min_val', '$signups_max', '$signups_max_val', '$keep_signups_open');";
         } else {
             $sql = "UPDATE activity_events_signups
                         SET 
@@ -176,8 +176,7 @@ class Activity_Event_Signups {
                             minimal_signups = '$signups_min_val',
                             maximal_signups_activated = '$signups_max',
                             maximal_signups = '$signups_max_val',
-                            signup_open_beyond_maximal = '$keep_signups_open',
-                            preference_selection_enabled = '0'
+                            signup_open_beyond_maximal = '$keep_signups_open'
                         WHERE event_id = '$activity_id';";
         }
         if ($db->query($sql)) {
@@ -199,7 +198,7 @@ class Activity_Event_Signups {
             $query = $db->query($sql);        
         } else {
             $signup = TRUE;
-            $sql = "INSERT INTO activity_events_signups_user (event_id, user_id, registration_id, preferred) VALUES ('$event_id', '$user_id', '', '0');";
+            $sql = "INSERT INTO activity_events_signups_user (event_id, user_id) VALUES ('$event_id', '$user_id');";
             $query = $db->query($sql);        
         }
 
