@@ -14,7 +14,7 @@ require_once('activity/Activity_Stream.php');
 require_once('activity/event/widgets/Activity_Event_Widgets.php');
 require_once('activity/event/signups/Activity_Event_Signups.php');
 require_once('activity/event/signups/widgets/Activity_Event_Signups_Widgets.php');
-// require_once('activity/poll/Activity_Poll.php');
+require_once('activity/example/Activity_Example.php');
 require_once('activity/actionmsg/Activity_ActionMsg.php');
 require_once('activity/Activity_Comment.php');
 require_once('pages/Pages.php');

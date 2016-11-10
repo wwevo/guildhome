@@ -3,7 +3,7 @@
 abstract class Activity extends Pagination {
     // start model (i suppose)
     
-    static function getActivityById($id = NULL) {
+    static function getActivityMetaById($id = NULL) {
         if ($id === NULL) {
             return false;
         }
@@ -37,8 +37,9 @@ abstract class Activity extends Pagination {
         }
         return false;
     }
+    protected abstract function getActivityById($activity_id);
     
-    static function getActivityCountByType($type = 0) {
+    public static function getActivityCountByType($type = 0) {
         $db = db::getInstance();
         $sql = "SELECT
                     (SELECT
@@ -129,6 +130,7 @@ abstract class Activity extends Pagination {
         }
         return false;
     }
+    
     public function deleteActivity($activity_id) {
         $db = db::getInstance();
         $env = Env::getInstance();
@@ -171,7 +173,7 @@ abstract class Activity extends Pagination {
      * register it's output-view in the env-class and we will look for that here.
      * feel free to come up with something nicer
      */
-    protected abstract function getActivityView($act_id = NULL, $compact = NULL);
+    protected abstract function getActivityView($activity_id = NULL, $compact = NULL);
     
     public function validateActivity() {
         return $this->validateActivityTypeDetails();

@@ -133,7 +133,7 @@ class Login {
         if ($this->isLoggedIn()) {
             return $_SESSION['evo']['username'];
         }
-        return false;
+        return 'Guest';
     }
     
     public function isOperator() {

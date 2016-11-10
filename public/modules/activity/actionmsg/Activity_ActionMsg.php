@@ -13,7 +13,7 @@ class Activity_ActionMsg extends Activity {
         Env::registerHook('actionmessage', array(new Activity_ActionMsg(), 'getActivityView'));
     }
     
-    static function getActivityById($id = NULL) {
+    function getActivityById($id = NULL) {
         $db = db::getInstance();
         $sql = "SELECT activity_actionmsg.*, from_unixtime(activities.create_time, '%Y-%m-%d') AS create_date,
                     from_unixtime(activities.create_time, '%H:%i') AS create_time
@@ -73,7 +73,7 @@ class Activity_ActionMsg extends Activity {
         $identity = new Identity();
         $profile = new Profile();
 
-        $activity = parent::getActivityById($activity_id);
+        $activity = parent::getActivityMetaById($activity_id);
 
         $message  = '<a href="' . $profile->getProfileUrlById($user_id) . '">' . $identity->getIdentityById($user_id) . '</a>';
         $message .= ' commented on ' . $activity->type_description;
@@ -86,7 +86,7 @@ class Activity_ActionMsg extends Activity {
         $identity = new Identity();
         $profile = new Profile();
 
-        $activity = parent::getActivityById($activity_id);
+        $activity = parent::getActivityMetaById($activity_id);
 
         $message  = '<a href="' . $profile->getProfileUrlById($user_id) . '">' . $identity->getIdentityById($user_id) . '</a>';
         $message .= ' deleted ' . $activity->type_description;
@@ -100,7 +100,7 @@ class Activity_ActionMsg extends Activity {
         $identity = new Identity();
         $profile = new Profile();
 
-        $activity = parent::getActivityById($activity_id);
+        $activity = parent::getActivityMetaById($activity_id);
 
         $message  = '<a href="' . $profile->getProfileUrlById($user_id) . '">' . $identity->getIdentityById($user_id) . '</a>';
         if ($signup === TRUE) {

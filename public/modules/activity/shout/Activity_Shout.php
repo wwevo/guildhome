@@ -4,7 +4,7 @@ class Activity_Shout extends Activity {
     // start controller
     function initEnv() {
         Toro::addRoute(["/activity/shout/:alpha" => "Activity_Shout"]);
-        Toro::addRoute(["/activity/shout/:alpha/:alpha" => "Activity_Shout"]);
+        Toro::addRoute(["/activity/shout/:alpha/:number" => "Activity_Shout"]);
       
         Env::registerHook('shout', array(new Activity_Shout(), 'getActivityView'));
     }
@@ -86,7 +86,7 @@ class Activity_Shout extends Activity {
     }
     // end controller    
     // start model
-    function getActivity($id) {
+    function getActivityById($id) {
         $db = db::getInstance();
         $sql = "SELECT a.comments_enabled AS comments_enabled, ash.content AS content, a.userid AS userid
                     FROM activity_shouts ash
@@ -128,7 +128,7 @@ class Activity_Shout extends Activity {
         $login = new Login();
 
         $userid = $login->currentUserID();
-        $act = $this->getActivity($shout_id);
+        $act = $this->getActivityById($shout_id);
         if ($userid != $act->userid) {
             return false;
         }
@@ -182,7 +182,7 @@ class Activity_Shout extends Activity {
     }
     
     public function getActivityView($activity_id = NULL, $compact = NULL) {
-        $act = parent::getActivityById($activity_id);
+        $act = parent::getActivityMetaById($activity_id);
 
         $view = new View();
         $view->setTmpl($view->loadFile('/views/activity/shout/activity_shout_view.php'));
@@ -199,7 +199,7 @@ class Activity_Shout extends Activity {
             $subView->addContent('{##css##}', ' deleted');
         }
 
-        $activity_event = $this->getActivity($act->id);
+        $activity_event = $this->getActivityById($act->id);
         $content = Parsedown::instance()->text($activity_event->content);
 
         $delete_link = '/activity/shout/delete/' . $act->id;
@@ -271,7 +271,7 @@ class Activity_Shout extends Activity {
                 '{##submit_text##}' => 'Say it loud',
             ));
         } else {
-            $act = $this->getActivity($id);
+            $act = $this->getActivityById($id);
             $content = (isset($env->post('activity')['content'])) ? $env->post('activity')['content'] : $act->content;
             $content = str_replace("\n\r", "&#13;", $content);
 
@@ -296,7 +296,7 @@ class Activity_Shout extends Activity {
     
     function getDeleteActivityForm($id = NULL) {
         if ($id !== NULL) {
-            $act = $this->getActivity($id);
+            $act = $this->getActivityById($id);
             $content = $act->content;
         } else {
             $content = '';

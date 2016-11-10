@@ -20,7 +20,7 @@ class Activity_Comment {
                 switch ($action) {
                     default:
                         $page->addContent('{##main##}', '<h2>Comments</h2>');
-                        $act = Activity::getActivityById($activity_id);
+                        $act = Activity::getActivityMetaById($activity_id);
                         if (isset($env::$hooks[$act->type_name])) {
                             $activity_view = $env::$hooks[$act->type_name]($act->id, false);
                         }
@@ -336,7 +336,7 @@ class Activity_Comment {
         $msg = Msg::getInstance();
 
         $activity = $this;
-        $act = Activity::getActivityById($activity_id);
+        $act = Activity::getActivityMetaById($activity_id);
         $content = (!empty($env->post('comment')['content'])) ? $env->post('comment')['content'] : '';
         $content = str_replace("\n\r", "&#13;", $content);
 
@@ -363,7 +363,7 @@ class Activity_Comment {
         
         $comment =  $this->getComment($activity_id);
         $activity = $this;
-        $act = Activity::getActivityById($comment->activity_id);
+        $act = Activity::getActivityMetaById($comment->activity_id);
         $content = (!empty($env->post('comment')['content'])) ? $env->post('comment')['content'] : $comment->content;
         $content = str_replace("\n\r", "&#13;", $content);
 

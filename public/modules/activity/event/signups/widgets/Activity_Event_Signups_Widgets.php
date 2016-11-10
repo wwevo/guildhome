@@ -8,7 +8,7 @@ class Activity_Event_Signups_Widgets {
         if ($query !== false AND $query->num_rows >= 1) {
             $activity_event = new Activity_Event();
             while ($result_row = $query->fetch_object()) {
-                $signups[] = $activity_event->getActivity($result_row->event_id);
+                $signups[] = $activity_event->getActivityByID($result_row->event_id);
             }
             return $signups;
         }

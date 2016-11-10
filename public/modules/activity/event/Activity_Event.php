@@ -102,7 +102,7 @@ class Activity_Event extends Activity {
     }
     // end controller    
     // start model
-    function getActivity($id) {
+    function getActivityById($id) {
         $db = db::getInstance();
 
         $sql = "SELECT
@@ -176,7 +176,7 @@ class Activity_Event extends Activity {
         $login = new Login();
 
         $userid = $login->currentUserID();
-        $act = $this->getActivity($event_id);
+        $act = $this->getActivityById($event_id);
 
         if ($userid != $act->userid) {
             return false;
@@ -272,8 +272,8 @@ class Activity_Event extends Activity {
         $loopView = new View();
         $loopView->setTmpl($activityView->getSubTemplate('{##activity_loop##}'));
 
-        $act = $this->getActivity($event_id);
-        $act_meta = parent::getActivityById($event_id);
+        $act = $this->getActivityById($event_id);
+        $act_meta = parent::getActivityMetaById($event_id);
         
         if ($act === false OR $act_meta->type != '2') {
             return false;
@@ -385,7 +385,7 @@ class Activity_Event extends Activity {
             $view->addContent('{##form_action##}', '/activity/event/update/' . $event_id);
             $view->addContent('{##submit_text##}', 'Update');
 
-            $act = $this->getActivity($event_id);
+            $act = $this->getActivityById($event_id);
 
             $title = (!empty($env->post('activity')['title'])) ? $env->post('activity')['title'] : $act->title;
             $content = (!empty($env->post('activity')['content'])) ? $env->post('activity')['content'] : $act->description;
@@ -412,7 +412,7 @@ class Activity_Event extends Activity {
     
     function getDeleteActivityForm($id = NULL) {
         if ($id !== NULL) {
-            $act = $this->getActivity($id);
+            $act = $this->getActivityById($id);
             $content = $act->title . "<br />" . $act->description;
         } else {
             $content = '';

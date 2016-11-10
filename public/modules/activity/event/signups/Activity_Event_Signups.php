@@ -36,7 +36,7 @@ class Activity_Event_Signups {
 
     function getActivitySignupsView($event_id) {
         $activity_event = new Activity_Event();
-        $act = $activity_event->getActivity($event_id);
+        $act = $activity_event->getActivityByID($event_id);
 
         $signups_checked = $act->signups_activated;
         if ($signups_checked == '1') {
@@ -63,7 +63,7 @@ class Activity_Event_Signups {
     
     function getSignupForm($event_id, $target_url = '') {
         $activity_event = new Activity_Event();
-        $act = $activity_event->getActivity($event_id);
+        $act = $activity_event->getActivityByID($event_id);
 
         $login = new Login();
         if (!$login->isLoggedIn() OR $act->signups_activated != '1' OR $activity_event->eventIsCurrent($act) === false) {
@@ -92,7 +92,7 @@ class Activity_Event_Signups {
         
         $view->addContent('{##form_action##}', '/activity/event/signups/update/' . $id);
         $activity_event = new Activity_Event();
-        $act = $activity_event->getActivity($id);
+        $act = $activity_event->getActivityByID($id);
         $signups_min_val = (!empty($env->post('activity')['signups_min_val'])) ? $env->post('activity')['signups_min_val'] : $act->minimal_signups;
         $signups_max_val = (!empty($env->post('activity')['signups_max_val'])) ? $env->post('activity')['signups_max_val'] : $act->maximal_signups;
         $signups_checked = (!empty($env->post('activity')['signups'])) ? $env->post('activity')['signups'] : $act->signups_activated;
