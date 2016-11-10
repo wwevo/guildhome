@@ -3,8 +3,6 @@
 class Activity_Shout extends Activity {
     // start controller
     function initEnv() {
-        Toro::addRoute(["/activities/shouts" => "Activity_Shout"]);
-        Toro::addRoute(["/activities/shouts/:number" => "Activity_Shout"]);
         Toro::addRoute(["/activity/shout/:alpha" => "Activity_Shout"]);
         Toro::addRoute(["/activity/shout/:alpha/:alpha" => "Activity_Shout"]);
       
@@ -15,15 +13,8 @@ class Activity_Shout extends Activity {
         $env = Env::getInstance();
         $login = new Login();
         $page = Page::getInstance();
-        $page->addContent('{##main##}', parent::activityMenu('shout'));
+        $page->addContent('{##main##}', parent::activityMenu('shout', $compact = true));
         switch ($alpha) {
-            default :
-                $this->setOffset($alpha);
-                $this->setbaseURL('/activities/shouts/');
-                $env->clearPost('activity');
-                $page->addContent('{##main##}', $this->getAllActivitiesView('1')); // 1 = shout
-                $page->addContent('{##main##}', $this->pagination());
-                break;
             case 'new' :
                 if (!$login->isLoggedIn()) {
                     return false;

@@ -10,7 +10,7 @@ class Activity_ActionMsg extends Activity {
         Env::registerHook('delete_event_hook', array(new Activity_ActionMsg(), 'deleteEventAction'));
         
         // hook for the activity module
-        Env::registerHook('actnmsg', array(new Activity_ActionMsg(), 'getActivityView'));
+        Env::registerHook('actionmessage', array(new Activity_ActionMsg(), 'getActivityView'));
     }
     
     function getActivityById($id = NULL) {

@@ -3,6 +3,7 @@ require_once('log/Logger.php'); // logging stuff
 require_once('../../toroPhp/src/Toro.php'); // url requests
 require_once('parsedown/Parsedown.php'); // format that text!
 require_once('view/View.php'); // template based output-containers
+require_once('pagination/Pagination.php');
 // static container for the page-template
 require_once('view/Page.php'); // Page::getInstance();
 require_once('view/Menu.php'); // temporary menu-class

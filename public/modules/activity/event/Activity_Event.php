@@ -3,8 +3,6 @@
 class Activity_Event extends Activity {
     // start controller
     function initEnv() {
-        Toro::addRoute(["/activities/events" => "Activity_Event"]);
-        Toro::addRoute(["/activities/events/:number" => "Activity_Event"]);
         Toro::addRoute(["/activity/event/:alpha/:number" => "Activity_Event"]);
         Toro::addRoute(["/activity/event/:alpha" => "Activity_Event"]);
         
@@ -15,16 +13,8 @@ class Activity_Event extends Activity {
         $env = Env::getInstance();
         $login = new Login();
         $page = Page::getInstance();
-        $page->addContent('{##main##}', parent::activityMenu('event'));
+        $page->addContent('{##main##}', parent::activityMenu('event', $compact = true));
         switch ($action) {
-            default :
-                $env->clearPost('activity');
-                $this->setOffset($action);
-                $this->setbaseURL('/activities/events/');
-
-                $page->addContent('{##main##}', $this->getAllActivitiesView('2')); // 2 = event 
-                $page->addContent('{##main##}', $this->pagination());
-                break;
             case 'details' :
                 if ($event_id === NULL OR !is_numeric($event_id)) {
                     break;
@@ -84,6 +74,7 @@ class Activity_Event extends Activity {
                         exit;
                     }
                 }
+                unset($env->post('activity')['preview']);
                 $this->get('new');
                 break;
             case 'update' :
@@ -93,6 +84,7 @@ class Activity_Event extends Activity {
                         exit;
                     }
                 }
+                unset($env->post('activity')['preview']);
                 $this->get('update', $id);
                 break;
             case 'delete' :
