@@ -3,10 +3,9 @@
 class Activity_Event_Signups {
     // start controller
     function initEnv() {
-        Toro::addRoute(["/activity/event/signups/new" => "Activity_Event_Signups"]);
         Toro::addRoute(["/activity/event/signups/:alpha/:number" => "Activity_Event_Signups"]);
         
-        Env::registerHook('event_signups', array(new Activity_Event_Signups(), 'getSignupsFormView'));
+        Env::registerHook('activity_event_form_hook', array(new Activity_Event_Signups(), 'getSignupsFormView'));
         Env::registerHook('activity_event_view_hook', array(new Activity_Event_Signups(), 'activityEventSignupsViewHook'));
     }
 
@@ -204,10 +203,12 @@ class Activity_Event_Signups {
 
         if ($query !== false) {
             $env = Env::getInstance();
-            if (isset($env::$hooks['toggle_event_signup_hook'])) {
-                $env::$hooks['toggle_event_signup_hook']($event_id, $signup);
+            $hooks = $env::getHooks('toggle_event_signup_hook');
+            if ($hooks!== false) {
+                foreach ($hooks as $hook) {
+                    $hook['toggle_event_signup_hook']($event_id, $signup);
+                }
             }
-
             return true;
         }
         return false;
@@ -235,6 +236,6 @@ class Activity_Event_Signups {
         }
     }
 }
-$activity_event_signups = new Activity_Event_Signups();
-$activity_event_signups->initEnv();
-unset($activity_event_signups);
+$init_env = new Activity_Event_Signups();
+$init_env->initEnv();
+unset($init_env);

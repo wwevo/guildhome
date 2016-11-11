@@ -21,8 +21,11 @@ class Activity_Comment {
                     default:
                         $page->addContent('{##main##}', '<h2>Comments</h2>');
                         $act = Activity::getActivityMetaById($activity_id);
-                        if (isset($env::$hooks[$act->type_name])) {
-                            $activity_view = $env::$hooks[$act->type_name]($act->id, false);
+                        $hooks = $env::getHooks($act->type_name);
+                        if ($hooks!== false) {
+                            foreach ($hooks as $hook) {
+                                $activity_view = $hook[$act->type_name]($act->id, false);
+                            }
                         }
                         
                         $page->addContent('{##main##}', $activity_view);
@@ -198,8 +201,11 @@ class Activity_Comment {
         $query = $db->query($sql);
         if ($query !== false) {
             $env->clearPost('comment');
-            if (isset($env::$hooks['save_comment_hook'])) {
-                $env::$hooks['save_comment_hook']($activity_id);
+            $hooks = $env::getHooks('save_comment_hook');
+            if ($hooks!== false) {
+                foreach ($hooks as $hook) {
+                    $hook['save_comment_hook']($activity_id);
+                }
             }
             return true;
         }

@@ -145,8 +145,11 @@ abstract class Activity extends Pagination {
         $query = $db->query($sql);
         if ($query !== false) {
             $env->clearPost('activity');
-            if (isset($env::$hooks['delete_event_hook'])) {
-                $env::$hooks['delete_event_hook']($activity_id);
+            $hooks = $env::getHooks('delete_event_hook');
+            if ($hooks!== false) {
+                foreach ($hooks as $hook) {
+                    $hook['delete_event_hook']($activity_id);
+                }
             }
             return true;
         }

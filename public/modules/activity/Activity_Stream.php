@@ -115,11 +115,16 @@ class Activity_Stream extends Pagination {
                     $last_type = $act->type;
                 }
 
-                if (isset($env::$hooks[$act->type_name])) {
-                    $subView = $env::$hooks[$act->type_name]($act->id, true);
-                    $activity_loop .= '<li>' . $subView . '</li>';
+                $hooks = $env::getHooks($act->type_name);
+                if ($hooks!== false) {
+                    foreach ($hooks as $hook) {
+                        $subView = $hook[$act->type_name]($act->id, true);
+                        $activity_loop .= '<li>' . $subView . '</li>';
+                    }
                 }
+
             }
+
             $activity_loop .= '</ul></li>';
             $activity_loop .= '</ul>';
             $view->addContent('{##data##}',  $activity_loop);

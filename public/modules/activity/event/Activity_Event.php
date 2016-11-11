@@ -114,6 +114,7 @@ class Activity_Event extends Activity {
                     ae.description AS description,
                     ae.date AS date,
                     ae.time AS time,
+                    ae.tags_activated AS tags_activated,
                     ae.signups_activated AS signups_activated,
                     aes.event_id AS eventid,
                     aes.minimal_signups_activated AS minimal_signups_activated,
@@ -345,8 +346,11 @@ class Activity_Event extends Activity {
             $loopView->addContent('{##activity_logged_in##}',  $memberView);
         }
 
-        if (isset($env::$hooks['activity_event_view_hook'])) {
-            $env::$hooks['activity_event_view_hook']($loopView, $act, $event_id, $compact);
+        $hooks = $env::getHooks('activity_event_view_hook');
+        if ($hooks!== false) {
+            foreach ($hooks as $hook) {
+                $hook['activity_event_view_hook']($loopView, $act, $event_id, $compact);
+            }
         }
 
         $loopView->replaceTags();
@@ -393,9 +397,12 @@ class Activity_Event extends Activity {
             $time = (isset($env->post('activity')['time'])) ? $env->post('activity')['time'] : $act->time;
             $comments_checked = (!empty($env->post('activity')['comments'])) ? $env->post('activity')['comments'] : $act->comments_enabled;
 
-            if (isset($env::$hooks['event_signups'])) {
-                $event_data = $env::$hooks['event_signups']($event_id);
-                $view->addContent('{##signups_form##}', $event_data);
+            $hooks = $env::getHooks('activity_event_form_hook');
+            if ($hooks!== false) {
+                foreach ($hooks as $hook) {
+                    $event_data = $hook['activity_event_form_hook']($event_id);
+                    $view->addContent('{##signups_form##}', $event_data);
+                }
             }
         }
         

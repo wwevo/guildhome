@@ -20,8 +20,23 @@ class Env {
     }
 
     static function registerHook($key, callable $callback) {
-        self::$hooks[$key] = $callback;
+        self::$hooks[] = [$key => $callback];
         return true;
+    }
+    
+    static function getHooks($searchkey = null) {
+        if ($searchkey === null) {
+            return self::$hooks;
+        }
+        foreach (self::$hooks as $hook) {
+            if (key($hook) == $searchkey) {
+                $resultHooks[] = $hook;
+            }
+        }
+        if (is_array($resultHooks)) {
+            return $resultHooks;
+        }
+        return false;
     }
     
     private static function getEnv() {

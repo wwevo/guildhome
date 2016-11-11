@@ -97,8 +97,12 @@ class Register {
                 if ($result) {
                     $msg->add('register_general_validation', "User " . $username . " has been created.");
                     $env->clearPost('register');
-                    if (isset($env::$hooks['new_user_hook'])) {
-                        $env::$hooks['new_user_hook']($db->insert_id);
+
+                    $hooks = $env::getHooks('new_user_hook');
+                    if ($hooks!== false) {
+                        foreach ($hooks as $hook) {
+                            $hook['new_user_hook']($db->insert_id);
+                        }
                     }
                     return $db->insert_id; // user creation complete
                 } else {
