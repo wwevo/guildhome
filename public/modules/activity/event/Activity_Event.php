@@ -346,10 +346,10 @@ class Activity_Event extends Activity {
             $loopView->addContent('{##activity_logged_in##}',  $memberView);
         }
 
-        $hooks = $env::getHooks('activity_event_view_hook');
+        $hooks = $env::getHooks('activity_event_view_infuse_tags');
         if ($hooks!== false) {
             foreach ($hooks as $hook) {
-                $hook_tags = $hook['activity_event_view_hook']($act, $event_id, $compact);
+                $hook_tags = $hook['activity_event_view_infuse_tags']($event_id, $compact);
                 if (is_array($hook_tags)) {
                     foreach ($hook_tags as $tag => $content) {
                         $loopView->addContent($tag, $content);

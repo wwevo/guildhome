@@ -6,7 +6,7 @@ class Activity_Event_Signups {
         Toro::addRoute(["/activity/event/signups/:alpha/:number" => "Activity_Event_Signups"]);
         
         Env::registerHook('activity_event_form_hook', array(new Activity_Event_Signups(), 'getSignupsFormView'));
-        Env::registerHook('activity_event_view_hook', array(new Activity_Event_Signups(), 'activityEventSignupsViewHook'));
+        Env::registerHook('activity_event_view_infuse_tags', array(new Activity_Event_Signups(), 'tagInfuser'));
     }
 
     function post($alpha, $id = NULL) {
@@ -214,20 +214,22 @@ class Activity_Event_Signups {
         return false;
     }    
     
-    function activityEventSignupsViewHook($act, $event_id, $compact = false) {
+    function tagInfuser($event_id, $compact = false) {
+        $activity_event = new Activity_Event();
+        $event = $activity_event->getActivityById($event_id);
         $signups = '';
-        if ($act->signups_activated) {
+        if ($event->signups_activated) {
             $signups = "Signed up:" . $this->getSignupCountByEventId($event_id);
         }
 
-        if ($act->maximal_signups_activated) {
-            $signups .= "/" . $act->maximal_signups;
+        if ($event->maximal_signups_activated) {
+            $signups .= "/" . $event->maximal_signups;
         }
 
-        if ($act->minimal_signups_activated) {
-            $signups .= " (" . $act->minimal_signups . " required)";
+        if ($event->minimal_signups_activated) {
+            $signups .= " (" . $event->minimal_signups . " required)";
         }
-
+        // To-Do: tag_collection should be part of the View Class
         $tag_collection['{##activity_signups##}'] = $signups;
         $tag_collection['{##activity_signup_form##}'] = $this->getSignupForm($event_id, '/activity/event/details/' . $event_id);
         $tag_collection['{##activity_signups_list##}'] = $this->getActivitySignupsView($event_id);

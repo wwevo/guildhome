@@ -6,7 +6,7 @@ class Activity_Event_Tags {
         Toro::addRoute(["/activity/event/tags/:alpha/:number" => "Activity_Event_Tags"]);
         
         Env::registerHook('activity_event_form_hook', array(new Activity_Event_Tags(), 'getTagsFormView'));
-        Env::registerHook('activity_event_view_hook', array(new Activity_Event_Tags(), 'activityEventTagsViewHook'));
+        Env::registerHook('activity_event_view_infuse_tags', array(new Activity_Event_Tags(), 'tagInfuser'));
     }
 
     function post($alpha, $id = NULL) {
@@ -82,12 +82,15 @@ class Activity_Event_Tags {
         return false;
     }
 
-    function activityEventTagsViewHook($act, $event_id, $compact = false) {
+    function tagInfuser($event_id, $compact = false) {
+        $activity_event = new Activity_Event();
+        $event = $activity_event->getActivityById($event_id);
         $tags = '';
-        if ($act->tags_activated == '1') {
+        if ($event->tags_activated == '1') {
             $tags = "Tags active";
         }
         if (is_null($compact)) {
+            // To-Do: tag_collection should be part of the View Class
             $tag_collection['{##activity_tags##}'] = $tags;
             return $tag_collection;
         }
