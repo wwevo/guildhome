@@ -5,9 +5,9 @@ class Activity_ActionMsg extends Activity {
     function initEnv() {
         // hooks for the various places where messages can be implemented
         Env::registerHook('save_comment_hook', array(new Activity_ActionMsg(), 'saveCommentAction'));
-        Env::registerHook('new_user_hook', array(new Activity_ActionMsg(), 'saveNewUserAction'));
+        Env::registerHook('save_new_user_hook', array(new Activity_ActionMsg(), 'saveNewUserAction'));
         Env::registerHook('toggle_event_signup_hook', array(new Activity_ActionMsg(), 'toggleEventSignupAction'));
-        Env::registerHook('delete_event_hook', array(new Activity_ActionMsg(), 'deleteEventAction'));
+        Env::registerHook('delete_activity_hook', array(new Activity_ActionMsg(), 'deleteEventAction'));
         
         // hook for the activity module
         Env::registerHook('actionmessage', array(new Activity_ActionMsg(), 'getActivityView'));

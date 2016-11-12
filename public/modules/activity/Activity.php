@@ -2,7 +2,9 @@
 
 abstract class Activity extends Pagination {
     // start model (i suppose)
-    
+    protected abstract function getActivityById($activity_id);
+
+
     static function getActivityMetaById($id = NULL) {
         if ($id === NULL) {
             return false;
@@ -37,7 +39,6 @@ abstract class Activity extends Pagination {
         }
         return false;
     }
-    protected abstract function getActivityById($activity_id);
     
     public static function getActivityCountByType($type = 0) {
         $db = db::getInstance();
@@ -145,10 +146,10 @@ abstract class Activity extends Pagination {
         $query = $db->query($sql);
         if ($query !== false) {
             $env->clearPost('activity');
-            $hooks = $env::getHooks('delete_event_hook');
+            $hooks = $env::getHooks('delete_activity_hook');
             if ($hooks!== false) {
                 foreach ($hooks as $hook) {
-                    $hook['delete_event_hook']($activity_id);
+                    $hook['delete_activity_hook']($activity_id);
                 }
             }
             return true;
