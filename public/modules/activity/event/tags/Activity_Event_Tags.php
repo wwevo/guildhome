@@ -84,7 +84,7 @@ class Activity_Event_Tags {
 
     function activityEventTagsViewHook(&$loopView, $act, $event_id, $compact = false) {
         $tags = '';
-        if ($act->signups_activated) {
+        if ($act->tags_activated == '1') {
             $tags = "Tags active";
         }
         if (is_null($compact)) {
