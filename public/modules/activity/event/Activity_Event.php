@@ -349,7 +349,12 @@ class Activity_Event extends Activity {
         $hooks = $env::getHooks('activity_event_view_hook');
         if ($hooks!== false) {
             foreach ($hooks as $hook) {
-                $hook['activity_event_view_hook']($loopView, $act, $event_id, $compact);
+                $hook_tags = $hook['activity_event_view_hook']($act, $event_id, $compact);
+                if (is_array($hook_tags)) {
+                    foreach ($hook_tags as $tag => $content) {
+                        $loopView->addContent($tag, $content);
+                    }
+                }
             }
         }
 

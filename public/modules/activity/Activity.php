@@ -4,7 +4,6 @@ abstract class Activity extends Pagination {
     // start model (i suppose)
     protected abstract function getActivityById($activity_id);
 
-
     static function getActivityMetaById($id = NULL) {
         if ($id === NULL) {
             return false;
@@ -108,6 +107,13 @@ abstract class Activity extends Pagination {
         $query = $db->query($sql);
         
         if ($query !== false) {
+            $env->clearPost('activity');
+            $hooks = $env::getHooks('save_activity_hook');
+            if ($hooks!== false) {
+                foreach ($hooks as $hook) {
+                    $hook['save_activity_hook']($activity_id);
+                }
+            }
             $activity_id = $db->insert_id;
             $this->saveActivityTypeDetails($activity_id);
             return $activity_id;
@@ -126,6 +132,13 @@ abstract class Activity extends Pagination {
                 WHERE id = '$activity_id';";
         $query = $db->query($sql);
         if ($query !== false) {
+            $env->clearPost('activity');
+            $hooks = $env::getHooks('update_activity_hook');
+            if ($hooks!== false) {
+                foreach ($hooks as $hook) {
+                    $hook['update_activity_hook']($activity_id);
+                }
+            }
             $this->updateActivityTypeDetails($activity_id);
             return $activity_id;
         }

@@ -214,7 +214,7 @@ class Activity_Event_Signups {
         return false;
     }    
     
-    function activityEventSignupsViewHook(&$loopView, $act, $event_id, $compact = false) {
+    function activityEventSignupsViewHook($act, $event_id, $compact = false) {
         $signups = '';
         if ($act->signups_activated) {
             $signups = "Signed up:" . $this->getSignupCountByEventId($event_id);
@@ -228,12 +228,13 @@ class Activity_Event_Signups {
             $signups .= " (" . $act->minimal_signups . " required)";
         }
 
-        $loopView->addContent('{##activity_signups##}',  $signups);
-        $loopView->addContent('{##activity_signup_form##}', $this->getSignupForm($event_id, '/activity/event/details/' . $event_id));
-        $loopView->addContent('{##activity_signups_list##}', $this->getActivitySignupsView($event_id));
+        $tag_collection['{##activity_signups##}'] = $signups;
+        $tag_collection['{##activity_signup_form##}'] = $this->getSignupForm($event_id, '/activity/event/details/' . $event_id);
+        $tag_collection['{##activity_signups_list##}'] = $this->getActivitySignupsView($event_id);
         if (is_null($compact)) {
-            $loopView->addContent('{##activity_detailed_signups_list##}', $this->getActivitySignupsView($event_id));
+            $tag_collection['{##activity_detailed_signups_list##}'] = $this->getActivitySignupsView($event_id);
         }
+        return $tag_collection;
     }
 }
 $init_env = new Activity_Event_Signups();

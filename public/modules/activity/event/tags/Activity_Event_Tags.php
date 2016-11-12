@@ -82,14 +82,16 @@ class Activity_Event_Tags {
         return false;
     }
 
-    function activityEventTagsViewHook(&$loopView, $act, $event_id, $compact = false) {
+    function activityEventTagsViewHook($act, $event_id, $compact = false) {
         $tags = '';
         if ($act->tags_activated == '1') {
             $tags = "Tags active";
         }
         if (is_null($compact)) {
-            $loopView->addContent('{##activity_tags##}', $tags);
+            $tag_collection['{##activity_tags##}'] = $tags;
+            return $tag_collection;
         }
+        return false;
     }
 }
 $init_env = new Activity_Event_Tags();
