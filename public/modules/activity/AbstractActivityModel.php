@@ -67,8 +67,8 @@ abstract class AbstractActivityModel {
 		$query = $db->query ( $sql );
 		if ($query !== false) {
 			$env->clearPost ( 'activity' );
-			if (isset ( $env::$hooks ['delete_activity_hook'] )) {
-				$env::$hooks ['delete_activity_hook'] ( $activity_id );
+			if (isset ( $env::$hooks ['delete_event_hook'] )) {
+				$env::$hooks ['delete_event_hook'] ( $activity_id );
 			}
 			return true;
 		}

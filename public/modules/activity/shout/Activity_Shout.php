@@ -328,8 +328,12 @@ class Activity_Shout extends Activity {
         }
         return false;
     }
+
+    function createActivityTypeDatabaseTables($overwriteIfExists = false) {
+        return true;
+    }
     // end view
 }
-$activity_shout = new Activity_Shout();
-$activity_shout->initEnv();
-unset($activity_shout);
+$init_env = new Activity_Shout();
+$init_env->initEnv();
+unset($init_env);

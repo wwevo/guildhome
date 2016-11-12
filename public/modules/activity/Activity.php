@@ -183,5 +183,7 @@ abstract class Activity extends Pagination {
         return $this->validateActivityTypeDetails();
     }
     protected abstract function validateActivityTypeDetails();
+
+    public abstract function createActivityTypeDatabaseTables($overwriteIfExists = false);
     // end view
 }

@@ -436,8 +436,11 @@ class Activity_Event extends Activity {
         return $view;
     }
 
+    function createActivityTypeDatabaseTables($overwriteIfExists = false) {
+        return true;
+    }
 }
 // end view
-$activity_event = new Activity_Event();
-$activity_event->initEnv();
-unset($activity_event);
+$init_env = new Activity_Event();
+$init_env->initEnv();
+unset($init_env);

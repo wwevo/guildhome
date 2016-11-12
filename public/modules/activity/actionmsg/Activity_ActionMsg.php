@@ -136,7 +136,11 @@ class Activity_ActionMsg extends Activity {
     function validateActivityTypeDetails() {
         return true;
     }
-    
+
+    function createActivityTypeDatabaseTables($overwriteIfExists = false) {
+        return true;
+    }
 }
-$activity_actionmsg = new Activity_ActionMsg();
-$activity_actionmsg->initEnv();
+$init_env = new Activity_ActionMsg();
+$init_env->initEnv();
+unset($init_env);

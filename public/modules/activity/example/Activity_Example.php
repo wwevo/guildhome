@@ -53,6 +53,10 @@ class Activity_Example extends Activity {
     public function validateActivityTypeDetails() {
         /* nothing here in this excample */
     }
+
+    function createActivityTypeDatabaseTables($overwriteIfExists = false) {
+        /* nothing here in this excample */
+    }
 }
 $init_env = new Activity_Example();
 $init_env->initEnv();
