@@ -1,4 +1,5 @@
 <?php
+
 /*
  * absolute bare activity-submodule
  * all essential parts are used here to integrate stuff into the website
@@ -8,19 +9,20 @@
  *  - routes, to integrate the module into the website
  *  - get() function to handle requests
  * we re not using the update and other functions for now,
- * 
+ *
  *              this is just a hello world
  */
-class Activity_Example extends Activity {
+
+class Activity_Example extends Activity implements IDatabaseModel {
+
     function initEnv() {
         Toro::addRoute(["/activity/example" => "Activity_Example"]);
         Toro::addRoute(["/activity/example/:string" => "Activity_Example"]);
     }
-    
+
     function get($string = '') {
         $login = new Login();
         $username = $login->currentUsername();
-
         $page = Page::getInstance();
         $page->addContent('{##main##}', "<p>Hello $username!</p>");
         if ($string != '') {
@@ -54,10 +56,12 @@ class Activity_Example extends Activity {
         /* nothing here in this excample */
     }
 
-    function createActivityTypeDatabaseTables($overwriteIfExists = false) {
-        /* nothing here in this excample */
+    function createDatabaseTables($overwriteIfExists) {
+        /* nothing here in this example */
     }
+
 }
+
 $init_env = new Activity_Example();
 $init_env->initEnv();
 unset($init_env);

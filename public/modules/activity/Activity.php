@@ -1,6 +1,7 @@
 <?php
 
 abstract class Activity extends Pagination {
+
     // start model (i suppose)
     protected abstract function getActivityById($activity_id);
 
@@ -31,14 +32,14 @@ abstract class Activity extends Pagination {
                     WHERE activities.id = $id
                     LIMIT 1;";
         $query = $db->query($sql);
-        
+
         if ($query !== false AND $query->num_rows == 1) {
             $result = $query->fetch_object();
             return $result;
         }
         return false;
     }
-    
+
     public static function getActivityCountByType($type = 0) {
         $db = db::getInstance();
         $sql = "SELECT
@@ -57,14 +58,14 @@ abstract class Activity extends Pagination {
                     AND
                         from_unixtime(create_time) >= DATE_SUB(CURDATE(), INTERVAL 10 DAY);";
         $query = $db->query($sql);
-        
+
         if ($query !== false AND $query->num_rows == 1) {
             $count = $query->fetch_object();
             return $count;
         }
         return false;
     }
-    
+
     public static function getActivityTypeIDByName($activity_type_name = null) {
         if ($activity_type_name === NULL) {
             return false;
@@ -89,7 +90,7 @@ abstract class Activity extends Pagination {
         }
         return false;
     }
-    
+
     public function saveActivity($type_name) {
         if (!$this->validateActivity()) {
             return false;
@@ -102,13 +103,13 @@ abstract class Activity extends Pagination {
         $userid = $login->currentUserID();
         $uxtime = time();
         $allow_comments = isset($env->post('activity')['comments']) ? '1' : '0';
-        
+
         $sql = "INSERT INTO activities (id, userid, create_time, type, comments_enabled) VALUES ('NULL', '$userid', '$uxtime', '$type_id', '$allow_comments');";
         $query = $db->query($sql);
-        
+
         if ($query !== false) {
             $hooks = $env::getHooks('save_activity_hook');
-            if ($hooks!== false) {
+            if ($hooks !== false) {
                 foreach ($hooks as $hook) {
                     $hook['save_activity_hook']($activity_id);
                 }
@@ -120,6 +121,7 @@ abstract class Activity extends Pagination {
         }
         return false;
     }
+
     protected abstract function saveActivityTypeDetails($activity_id);
 
     public function updateActivity($activity_id) {
@@ -133,7 +135,7 @@ abstract class Activity extends Pagination {
         $query = $db->query($sql);
         if ($query !== false) {
             $hooks = $env::getHooks('update_activity_hook');
-            if ($hooks!== false) {
+            if ($hooks !== false) {
                 foreach ($hooks as $hook) {
                     $hook['update_activity_hook']($activity_id);
                 }
@@ -144,7 +146,7 @@ abstract class Activity extends Pagination {
         }
         return false;
     }
-    
+
     public function deleteActivity($activity_id) {
         $db = db::getInstance();
         $env = Env::getInstance();
@@ -160,7 +162,7 @@ abstract class Activity extends Pagination {
         if ($query !== false) {
             $env->clearPost('activity');
             $hooks = $env::getHooks('delete_activity_hook');
-            if ($hooks!== false) {
+            if ($hooks !== false) {
                 foreach ($hooks as $hook) {
                     $hook['delete_activity_hook']($activity_id);
                 }
@@ -183,6 +185,7 @@ abstract class Activity extends Pagination {
         }
         return false;
     }
+
     // end model
     // start view (i'd say)
     /*
@@ -191,12 +194,11 @@ abstract class Activity extends Pagination {
      * feel free to come up with something nicer
      */
     protected abstract function getActivityView($activity_id = NULL, $compact = NULL);
-    
+
     public function validateActivity() {
         return $this->validateActivityTypeDetails();
     }
-    protected abstract function validateActivityTypeDetails();
 
-    public abstract function createActivityTypeDatabaseTables($overwriteIfExists = false);
+    protected abstract function validateActivityTypeDetails();
     // end view
 }
