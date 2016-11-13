@@ -1,6 +1,4 @@
 <?php
-require_once "IDatabaseModel.php";
-
 require_once "login/Login.php";
 require_once "login/Login_Password.php";
 require_once "login/Register.php";
