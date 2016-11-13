@@ -2,12 +2,17 @@
 
 class Activity_Poll extends Activity {
 
-//    public $model = new PollModel();
-//    public $view = new PollView();
+    public $model;
+    public $view;
     // CONTROLLER FUNCTIONS
     // TODO: implement
     function initEnv() {
         
+    }
+    
+    function __construct() {
+        $this->model = new PollModel();
+        $this->view = new PollView();
     }
 
     // TODO: implement

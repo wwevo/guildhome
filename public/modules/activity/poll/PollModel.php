@@ -19,17 +19,14 @@ class PollModel implements IDatabaseModel {
         return false;
     }
 
-    protected function saveActivityTypeDetails(int $activity_id) {
+    protected function saveActivityTypeDetails($activity_id) {
         $db = db::getInstance();
         $env = Env::getInstance();
-        // save activity meta data
-        $this->save($type = 3); // 3=poll
-        // save 'poll' specific data
-        $activity_id = $db->insert_id;
+
         $poll_title = $env->post('activity')['title'];
         $poll_description = $env->post('activity')['description'];
         $expire_date = $env->post('activity')['expire_date'];
-        $sql = "INSERT INTO `activity_polls` (`activity_id`, `title`, `description`, `expire_date`) VALUES ($id, $poll_title, $poll_description, $expire_date);";
+        $sql = "INSERT INTO `activity_polls` (`activity_id`, `title`, `description`, `expire_date`) VALUES ($activity_id, $poll_title, $poll_description, $expire_date);";
         $query = $db->query($sql);
         if ($query !== false) {
             $env->clearPost('activity');
@@ -47,7 +44,7 @@ class PollModel implements IDatabaseModel {
         $db = db::getInstance();
         if ($overwriteIfExists) {
             $sqlDropExistingPollTables = "DROP TABLE IF EXISTS activity_polls_votes,activity_polls_options,activity_polls";
-            $db->query($overwriteIfExists);
+            $db->query($sqlDropExistingPollTables);
         }
         $sqlPollsTable = "CREATE TABLE `activity_polls` (`activity_id` INT(6) NOT NULL,`title` VARCHAR(100) NOT NULL,
 				`description` VARCHAR(500) NULL DEFAULT NULL, `expire_date` DATETIME NULL DEFAULT NULL,PRIMARY KEY (`activity_id`));";
