@@ -25,4 +25,4 @@ require_once "pages/Pages.php";
 require_once "gw2api/gw2api.php";
 require_once "gw2api/widgets/gw2api_Widgets.php";
 require_once "dev/Dev.php";
-require_once "config/database.php";
+require_once "config/Database.php";
