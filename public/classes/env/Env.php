@@ -33,7 +33,7 @@ class Env {
                 $resultHooks[] = $hook;
             }
         }
-        if (is_array($resultHooks)) {
+        if (isset($resultHooks) AND is_array($resultHooks)) {
             return $resultHooks;
         }
         return false;

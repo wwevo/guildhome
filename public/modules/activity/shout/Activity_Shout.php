@@ -107,7 +107,6 @@ class Activity_Shout extends Activity {
     function saveActivityTypeDetails($activity_id) {
         $db = db::getInstance();
         $env = Env::getInstance();
-        
         // save activity meta data
         $content = $env->post('activity')['content'];
 
@@ -128,18 +127,12 @@ class Activity_Shout extends Activity {
         $login = new Login();
 
         $userid = $login->currentUserID();
-        $act = $this->getActivityById($shout_id);
+        $act = $this->getActivityMetaById($shout_id);
         if ($userid != $act->userid) {
             return false;
         }
         
         $content = $env->post('activity')['content'];
-        $allow_comments = isset($env->post('activity')['comments']) ? '1' : '0';
-        $sql = "UPDATE activities SET
-                            comments_enabled= '$allow_comments'
-                        WHERE id = '$shout_id';";
-        $query = $db->query($sql);
-
         $sql = "UPDATE activity_shouts SET
                         content = '$content'
                     WHERE activity_id = '$shout_id';";
@@ -245,7 +238,6 @@ class Activity_Shout extends Activity {
     function getActivityForm($id = NULL) {
         $env = Env::getInstance();
         $msg = Msg::getInstance();
-
         if ($id === NULL) {
             if ($env->post('activity') === FALSE) { // check comments by default
                 $comments_checked = 'checked="checked"';

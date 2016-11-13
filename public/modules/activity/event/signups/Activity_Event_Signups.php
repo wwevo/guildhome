@@ -50,8 +50,8 @@ class Activity_Event_Signups {
                 $signed_up_users = 'No signups so far! Be the first!';
             }
             $view = new View();
-            $view->setTmpl($view->loadFile('/views/activity/event/signups/activity_event_signups_view.php'), array(
-                '{##signups##}' => $signed_up_users,
+            $view->setTmpl($view->loadFile('/views/core/one_tag.php'), array(
+                '{##data##}' => $signed_up_users,
             ));
 
             $view->replaceTags();
@@ -214,12 +214,13 @@ class Activity_Event_Signups {
         return false;
     }    
     
-    function tagInfuser($event_id, $compact = false) {
+    function tagInfuser($event_id, $compact) {
         $activity_event = new Activity_Event();
         $event = $activity_event->getActivityById($event_id);
         $signups = '';
         if ($event->signups_activated) {
             $signups = "Signed up:" . $this->getSignupCountByEventId($event_id);
+            $tag_collection['{##sub_module_css##}'] = ' signups_enabled';
         }
 
         if ($event->maximal_signups_activated) {
@@ -230,12 +231,24 @@ class Activity_Event_Signups {
             $signups .= " (" . $event->minimal_signups . " required)";
         }
         // To-Do: tag_collection should be part of the View Class
-        $tag_collection['{##activity_signups##}'] = $signups;
-        $tag_collection['{##activity_signup_form##}'] = $this->getSignupForm($event_id, '/activity/event/details/' . $event_id);
-        $tag_collection['{##activity_signups_list##}'] = $this->getActivitySignupsView($event_id);
+        $view = new View();
+        $view->setTmpl($view->loadFile('/views/activity/event/signups/activity_event_signups_view.php'));
         if (is_null($compact)) {
-            $tag_collection['{##activity_detailed_signups_list##}'] = $this->getActivitySignupsView($event_id);
+            $subView = new View();
+            $subView->setTmpl($view->getSubTemplate('{##signups_details##}'));
+            $subView->addContent('{##activity_signups##}', $signups);
+            $subView->addContent('{##activity_detailed_signups_list##}', $this->getActivitySignupsView($event_id));
+            $subView->replaceTags();
+            $tag_collection['{##signups_details##}'] = $subView;
+        } else {
+            $subView = new View();
+            $subView->setTmpl($view->getSubTemplate('{##signups_compact##}'));
+            $subView->addContent('{##activity_signups##}', $signups);
+            $subView->addContent('{##activity_signups_list##}', $this->getActivitySignupsView($event_id));
+            $subView->replaceTags();
+            $tag_collection['{##signups_compact##}'] = $subView;
         }
+        $tag_collection['{##activity_signup_form##}'] = $this->getSignupForm($event_id, '/activity/event/details/' . $event_id);
         return $tag_collection;
     }
 }

@@ -8,15 +8,27 @@
         <strong>{##activity_identity##}</strong> posted <strong>{##activity_type##}</strong>.
     </header>
     <section class="content clearfix">
-        <section class="details">
+        <section class="details{##sub_module_css##}">
             <h2>{##details_link##}<a href="{##details_link_url##}">{##details_link_text##}</a>{/##details_link##}</h2>
             <time datetime="{##activity_event_datetime##}">Date: {##activity_event_date##}</time>
+            {##signups_compact##}
+            <!-- all stuff in this section will be replaced, you can delete it if you like
+                 I only have it in here to show me how the html will look like -->
             <section class="signups clearfix">
                 <h3>Signups</h3>
                 <span title="{##activity_signups_list##}">{##activity_signups##}</span>
-                {##activity_detailed_signups_list##}
-                {##activity_tags##}
             </section>
+            {/##signups_compact##}
+            {##signups_details##}
+            <!-- all stuff in this section will be replaced, you can delete it if you like
+                 I only have it in here to show me how the html will look like -->
+            <section class="signups clearfix">
+                <h3>Signups</h3>
+                <span>{##activity_signups##}</span>
+            </section>
+            <div>{##activity_detailed_signups_list##}</div>
+            {/##signups_details##}
+            {##tags_details##}
             <section class="description clearfix">
                 <h3>Description</h3>
                 {##activity_content##}{##link_more##}<a href="{##link_more_url##}" class="more">{##link_more_text##}</a>{/##link_more##}

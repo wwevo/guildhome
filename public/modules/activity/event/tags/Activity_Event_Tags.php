@@ -82,16 +82,23 @@ class Activity_Event_Tags {
         return false;
     }
 
-    function tagInfuser($event_id, $compact = false) {
+    function tagInfuser($event_id, $compact = NULL) {
         $activity_event = new Activity_Event();
         $event = $activity_event->getActivityById($event_id);
         $tags = '';
         if ($event->tags_activated == '1') {
             $tags = "Tags active";
+            $tag_collection['{##sub_module_css##}'] = ' tags_enabled';
+        } else {
+            return false;
         }
+        // To-Do: tag_collection should be part of the View Class
+        $view = new View();
+        $view->setTmpl($view->loadFile('/views/activity/event/tags/activity_event_tags_view.php'));
         if (is_null($compact)) {
-            // To-Do: tag_collection should be part of the View Class
-            $tag_collection['{##activity_tags##}'] = $tags;
+            $view->addContent('{##activity_tags##}', $tags);
+            $view->replaceTags();
+            $tag_collection['{##tags_details##}'] = $view;
             return $tag_collection;
         }
         return false;

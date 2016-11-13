@@ -1,1 +1,1 @@
-{##tags##}
+{##activity_tags##}

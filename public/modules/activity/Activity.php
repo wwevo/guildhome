@@ -107,7 +107,6 @@ abstract class Activity extends Pagination {
         $query = $db->query($sql);
         
         if ($query !== false) {
-            $env->clearPost('activity');
             $hooks = $env::getHooks('save_activity_hook');
             if ($hooks!== false) {
                 foreach ($hooks as $hook) {
@@ -116,13 +115,14 @@ abstract class Activity extends Pagination {
             }
             $activity_id = $db->insert_id;
             $this->saveActivityTypeDetails($activity_id);
+            $env->clearPost('activity');
             return $activity_id;
         }
         return false;
     }
     protected abstract function saveActivityTypeDetails($activity_id);
 
-    public function updateActivity(int $activity_id) {
+    public function updateActivity($activity_id) {
         $db = db::getInstance();
         $env = Env::getInstance();
         $allow_comments = isset($env->post('activity')['comments']) ? '1' : '0';
@@ -132,7 +132,6 @@ abstract class Activity extends Pagination {
                 WHERE id = '$activity_id';";
         $query = $db->query($sql);
         if ($query !== false) {
-            $env->clearPost('activity');
             $hooks = $env::getHooks('update_activity_hook');
             if ($hooks!== false) {
                 foreach ($hooks as $hook) {
@@ -140,6 +139,7 @@ abstract class Activity extends Pagination {
                 }
             }
             $this->updateActivityTypeDetails($activity_id);
+            $env->clearPost('activity');
             return $activity_id;
         }
         return false;
@@ -151,7 +151,7 @@ abstract class Activity extends Pagination {
         $login = new Login();
 
         $userid = $login->currentUserID();
-        $actid = $this->getActivity($activity_id)->userid;
+        $actid = $this->getActivityMetaById($activity_id)->userid;
         if ($userid != $actid) {
             return false;
         }
