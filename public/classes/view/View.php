@@ -9,7 +9,7 @@ class View {
     var $areas;
     
     var $content = [];
-
+    
     function loadFile($tmpl_path) {
         $filename = 'themes/' . constant('theme') . $tmpl_path;
         if (file_exists($filename)) {
@@ -32,7 +32,7 @@ class View {
         if (func_num_args() > 1) {
             $this->content = func_get_arg(1);
         }
-       
+         
         $this->getTemplateTags();
     }
     
@@ -43,7 +43,7 @@ class View {
             $this->content[$key] = $content;
         }
     }
-
+    
     function setContent($key, $content) {
         $this->content[$key] = $content;
     }
@@ -56,19 +56,19 @@ class View {
         }
         return '';
     }
-
-
+    
+    
     function getTemplateTags() {
         preg_match_all("|{##.*?##}|", $this->tmpl, $this->tags['open']);
         preg_match_all("|{/##.*?##}|", $this->tmpl, $this->tags['closed']);
-
+    
         if (is_array($this->tags['closed'][0])) {
             foreach ($this->tags['closed'][0] as $tag) {
                 $this->areas[str_replace('/', '', $tag)] = $this->getSection($this->src, str_replace('/', '', $tag), $tag);
             }
         }
     }
-
+    
     function replaceTags() {
         if (count($this->tags['open'][0]) >= 1) {
             foreach ($this->tags['open'][0] as $index => $tag) {
@@ -132,5 +132,33 @@ class View {
         $link_view->replaceTags();
         return $link_view;
     }
+    
+    /**
+     * Creates a View object including a prettified button within a form.
+     * The button's name is 'submit'.
+     *
+     * @param unknown $action_url
+     *            url to page providing the post() method which shall be refered to on click
+     * @param unknown $redirect_url
+     *            optional url for redirect after click
+     * @param unknown $text
+     *            the button's label
+     * @return View
+     */
+    static function createPrettyButtonForm($action_url, $redirect_url, $text) {
+        $view = new self();
+        $view->setTmpl($view->loadFile('/views/core/widgets/prettybutton.php'));
+        $view->setContent('{##action##}', $action_url);
+        $view->addContent('{##text##}', $text);
 
+        if (isset($redirect_url)) {
+            $subView = new View();
+            $subView->setTmpl($view->getSubTemplate('{##target_url##}'));
+            $subView->addContent('{##url##}', $target_url);
+            $subView->replaceTags();
+            $view->addContent('{##target_url##}', $subView);
+        }
+        $view->replaceTags();
+        return $view;
+    }
 }
