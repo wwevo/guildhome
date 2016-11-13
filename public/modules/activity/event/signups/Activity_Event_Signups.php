@@ -9,7 +9,7 @@ class Activity_Event_Signups {
         Env::registerHook('activity_event_view_infuse_tags', array(new Activity_Event_Signups(), 'tagInfuser'));
     }
 
-    function post($alpha, $id = NULL) {
+    function post($alpha, $event_id = NULL) {
         $env = Env::getInstance();
         $login = new Login();
         if (!$login->isLoggedIn()) {
@@ -18,15 +18,13 @@ class Activity_Event_Signups {
         switch ($alpha) {
             case 'signup' :
             case 'signout' :
-                $this->toggleSignup($login->currentUserID(), $id);
+                $this->toggleSignup($login->currentUserID(), $event_id);
                 header("Location: " .  $env->post('target_url'));
                 exit;
             case 'update' :
                 if (isset($env->post('activity')['submit']['signups'])) {
-                    if ($this->saveSignups($id)) {
-                    }
-                    $activity_event = new Activity_Event();
-                    header("Location: /activity/event/update/" . $id);
+                    $this->saveSignups($event_id);
+                    header("Location: /activity/event/update/" . $event_id);
                     exit;
                 }
                 break;
