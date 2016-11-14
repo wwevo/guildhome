@@ -26,7 +26,6 @@ class Settings {
     }
     
     function validateSetting($key) {
-        $validation = Validation::getInstance();
         $env = Env::getInstance();
         $msg = Msg::getInstance();
         $error = 0;
@@ -39,14 +38,17 @@ class Settings {
             }
         }
 
-        if (isset($validation::$validation_rules[$key])) {
-            $valid = $validation::$validation_rules[$key]($value);
-            if ($valid === false) {
-                $msg->add('setting_' . $key . '_validation', 'Validation failed');
-                $error = 1;
+        $hooks = $env::getHooks($key);
+        if ($hooks !== false) {
+            foreach ($hooks as $hook) {
+                $valid = $hook[$key]($value);
+                if ($valid === false) {
+                    $msg->add('setting_' . $key . '_validation', 'Validation failed');
+                    $error = 1;
+                }
             }
         }
-        
+       
         if ($error == 1) {
             return false;
         } // either theres no validation at all or it has passed.

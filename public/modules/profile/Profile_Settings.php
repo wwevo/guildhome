@@ -5,7 +5,7 @@ class Profile_Settings extends Profile {
     function initEnv() {
         Toro::addRoute(["/profile/:alpha/settings" => 'Profile_Settings']);
         
-        Validation::registerValidation('birthday', array(new Profile_Settings(), 'validateBirthday'));
+        Env::registerHook('birthday', array(new Profile_Settings(), 'validateBirthday'));
     }
 
     function get($user_name = NULL, $action = NULL) {

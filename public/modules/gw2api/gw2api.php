@@ -5,7 +5,7 @@ class gw2api {
     function initEnv() {
         Toro::addRoute(["/gw2api" => "gw2api"]);
         Toro::addRoute(["/gw2api/:alpha" => "gw2api"]);
-        Validation::registerValidation('api_key', array(new gw2api(), 'validateApiKey'));
+        Env::registerHook('api_key', array(new gw2api(), 'validateApiKey'));
     }
 
     function get($slug = '') {
