@@ -42,8 +42,13 @@ class gw2api {
             header("Location: /activities");
         }
     }
+    /*
+     * for this to work I needed to manally set HTTP Headers for AJAX calls
+     *      var xmlhttp = new XMLHttpRequest();
+     *      xmlhttp.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+     */
 
-    function post_xhr($slug) {
+    function postXhr($slug) {
         $login = new Login();
         $env = Env::getInstance();
         if ($login->isLoggedIn()) {
