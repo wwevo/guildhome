@@ -16,11 +16,14 @@ class Settings {
 
         if ($login->isLoggedIn()) {
             if (isset($env->post('setting_' . $key)['submit'])) {
-                if ($this->validateSetting($key) AND $this->updateSetting($key)) {
-                    header("Location: " .  $env->post('target_url'));
-                } else {
-                    header("Location: " .  $env->post('target_url'));
-                }
+                if ($this->validateSetting($key)) {
+                    if ($this->updateSetting($key)) {
+                        header("Location: " .  $env->post('target_url'));
+                        exit;
+                    }
+                } 
+                header("Location: " .  $env->post('target_url'));
+                exit;
             }
         }        
     }

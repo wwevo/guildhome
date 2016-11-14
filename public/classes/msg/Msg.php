@@ -26,14 +26,18 @@ class Msg {
             $inst = self::getInstance();
             $inst->messages = $_SESSION['evo']['flash_messages'];
 
-            if (isset($inst->messages[$key][0])) {
-                $output = $inst->messages[$key][0];
+            if (isset($inst->messages[$key])) {
+                $output = $inst->messages[$key];
             }
             unset($inst->messages[$key]);
             unset($_SESSION['evo']['flash_messages'][$key]);
 
             if (!empty($output)) {
-                return '<span type="' . $type . '">'.$output.'</span>';
+                $msg = '';
+                foreach ($output as $msg_text) {
+                    $msg .= '<span type="' . $type . '">'.$msg_text.'</span>';
+                }
+                return $msg;
             }
         }
         return false;

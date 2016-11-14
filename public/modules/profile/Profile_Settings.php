@@ -24,17 +24,24 @@ class Profile_Settings extends Profile {
         $error = false;
         if (!preg_match("/([0-9]{4})\-([0-9]{2})\-([0-9]{2})/", $date, $matches)) {
             $error = true;
-            $msg->add('birthday_pattern_validation', 'This does not seem to be a valid birthday-date (dd/mm/yyyy)');
+            $msg->add('setting_birthday_validation', 'This does not seem to be a valid birthday-date (dd/mm/yyyy)');
         } else {
             if (!checkdate($matches[2], $matches[3], $matches[1])) {
                 $error = true;
-                $msg->add('birthday_date_validation', 'This is not a valid date!');
+                $msg->add('setting_birthday_validation', 'This is not a valid date!');
+            }
+            $date = new DateTime($date);
+            $now = new DateTime();
+            if($date > $now) {
+                $error = true;
+                $msg->add('setting_birthday_validation', 'Date is not in the past oO TIMETRAVELLER!!! Oo');
             }
         }
         
         if ($error === true) {
             return false;
         }
+        $msg->add('setting_birthday_validation', 'Valid Birthday \o/ Good job, you exist!');
         return true;
     }
     
