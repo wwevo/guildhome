@@ -27,9 +27,8 @@ class Gw2Api_Account implements Toro_Interface {
         // check for api keys
         $keyObject = new Gw2Api_Keys();
         $keyObject_collection = $keyObject->model->getApiKeysByUserId(Login::currentUserID());
-        if (is_array($keyObject_collection) AND count($keyObject_collection) >= 1) {
-            Page::getInstance()->addContent('{##main##}', $keyObject->view->listApiKeysByUserIdView($keyObject_collection));
-        }
+        var_dump($keyObject_collection);
+        Page::getInstance()->addContent('{##main##}', $keyObject->view->listApiKeysByUserIdView($keyObject_collection));
         Page::getInstance()->addContent('{##main##}', $keyObject->view->getNewApiKeyFormView('/gw2api/account'));
     }
 

@@ -17,8 +17,7 @@ class Gw2Api_Keys implements Toro_Interface {
     public function get() {
         // nothing to display here, we are only using this to intercept POST
         // requests
-        header("Location: /gw2api/account");
-        exit;
+
     }
 
     /*
@@ -31,14 +30,10 @@ class Gw2Api_Keys implements Toro_Interface {
             $id = null;
             $key = $env->post('gw2_api_account_add_key')['api_key'];
             $userid = Login::currentUserID();
-            
             $keyObject = new Gw2Api_Keys();
             $keyObject->model->setId($id)->setApiKey($key)->setUserId($userid);
             if ($keyObject->model->attemptSave()) {
-                $keyObject->model->fetchApiData();
-                if ($keyObject->model->attemptSave()) {
-                    Msg::getInstance()->add('add_api_key_form', 'Key Saved!');
-                }
+                Msg::getInstance()->add('add_api_key_form', 'Key Saved!');
             }
             header("Location: " . $env->post('target_url'));
             exit;

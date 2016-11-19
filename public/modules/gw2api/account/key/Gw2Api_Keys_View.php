@@ -13,7 +13,7 @@ class Gw2Api_Keys_View {
 
         $view = new View();
         $view->setTmpl($view->loadFile('/views/gw2api/account/add_api_key_form.php'), array(
-            '{##form_action##}' => '/gw2api/account/key',
+            '{##form_action##}' => '/gw2api/account/key/',
             '{##target_url##}' => $target_url,
             '{##setting_value##}' => $setting_value,
             '{##update_setting_validation##}' => Msg::getInstance()->fetch('add_api_key_form'),
