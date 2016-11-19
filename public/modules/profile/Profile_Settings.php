@@ -71,15 +71,8 @@ class Profile_Settings extends Profile {
             $view->addContent('{##main##}', '<hr />');
             $view->addContent('{##main##}', '<p>Stuff in this section is likely to have a lot of errors, use with caution.</p>');
             $view->addContent('{##main##}', '<h4>Api</h4>');
-            $view->addContent('{##main##}', '<p>just copy and paste from your guild wars account page. Only account and guilds are required, characters would be nice.</p>');
-            $view->addContent('{##main##}', $settings->getUpdateSettingForm('api_key', '/profile/' . $user->username . '/settings'));
+            $view->addContent('{##main##}', '<p>' . View::linkFab('/gw2api', 'Api-Management') . '</p>');
 
-            if (gw2api::hasApiData()) {
-                $gw2api = new gw2api();
-                $view->addContent('{##main##}', $gw2api->getApiKeyScopeView());
-                $gw2api_widgets = new gw2api_Widgets();
-                $view->addContent('{##main##}', $gw2api_widgets->getNextBirthdaysView());
-            }
             $view->addContent('{##main##}', '<h4>Timezone</h4>');
             $view->addContent('{##main##}', $settings->getTimezonePickerForm('/profile/' . $user->username . '/settings'));
 

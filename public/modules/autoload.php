@@ -25,19 +25,23 @@ require_once "activity/Activity.php";
 
 require_once "pages/Pages.php";
 
-require_once "gw2api/gw2api.php";
-    require_once "gw2api/widgets/gw2api_Widgets.php";
-
-require_once "gw2api/Gw2Api_Model.php";
+require_once "gw2api/Gw2Api_Interface.php";
+    require_once "gw2api/Gw2Api_Abstract.php";
+    require_once "gw2api/Gw2Api.php";
+    require_once "gw2api/account/Gw2Api_Account_Interface.php";
     require_once "gw2api/account/Gw2Api_Account_Model.php";
     require_once "gw2api/account/Gw2Api_Account_View.php";
     require_once "gw2api/account/Gw2Api_Account.php";
-    require_once "gw2api/roster/Gw2Api_Roster_Model.php";
-    require_once "gw2api/roster/Gw2Api_Roster_View.php";
-    require_once "gw2api/roster/Gw2Api_Roster.php";
-    require_once "gw2api/characters/Gw2Api_Characters_Model.php";
-    require_once "gw2api/characters/Gw2Api_Characters_View.php";
-    require_once "gw2api/characters/Gw2Api_Characters.php";
+    require_once "gw2api/account/key/Gw2Api_Key_Interface.php";
+    require_once "gw2api/account/key/Gw2Api_Keys_Model.php";
+    require_once "gw2api/account/key/Gw2Api_Keys_View.php";
+    require_once "gw2api/account/key/Gw2Api_Keys.php";
+    require_once "gw2api/account/roster/Gw2Api_Roster_Model.php";
+    require_once "gw2api/account/roster/Gw2Api_Roster_View.php";
+    require_once "gw2api/account/roster/Gw2Api_Roster.php";
+    require_once "gw2api/account/characters/Gw2Api_Characters_Model.php";
+    require_once "gw2api/account/characters/Gw2Api_Characters_View.php";
+    require_once "gw2api/account/characters/Gw2Api_Characters.php";
 
 require_once "dev/Dev.php";
 require_once "config/Database.php";

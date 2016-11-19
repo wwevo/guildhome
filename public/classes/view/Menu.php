@@ -21,10 +21,6 @@ class Menu {
                         $menu .= '  <li><a href="/profile/' . $login->currentUsername() . '">Profile</a>';
                         $menu .= '  <ul>';
                         $menu .= '      <li><a href="/profile/' . $login->currentUsername() . '/settings">Settings</a></li>';
-                        $gw2api = new gw2api();
-                        if ($gw2api->hasApiData('characters')) {
-                            $menu .= '      <li><a href="/profile/' . $login->currentUsername() . '/characters">Characters</a></li>';
-                        }
                         $menu .= '  </ul>';
                         $menu .= '  </li>';
 
@@ -32,14 +28,7 @@ class Menu {
                     $menu .= '</ul>';
                 break;
             case 'operator':
-                    if ($login->isLoggedIn()) {
-                        $menu  = '<hr />';
-                        $menu .= '<ul class="operator-menu">';
-                        $menu .= '  <li><a href="/gw2api">gw2api (test)</a></li>';
-                        $menu .= '</ul>';
-                    } else {
-                        $menu = '';
-                    }
+                    $menu = '';
                 break;
         }
         return $menu;

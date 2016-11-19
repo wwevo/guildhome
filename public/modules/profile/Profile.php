@@ -15,8 +15,6 @@ class Profile {
         if (is_null($user_id)) {
             $page->setContent('{##main##}', '<h2>Registered Members</h2>');
             $page->addContent('{##main##}', $this->getUsersView());
-            $gw2api = new gw2api();
-            $page->addContent('{##main##}', $gw2api->getRankUsageFromRosterView());
         } else {
             $page->setContent('{##main##}', '<h2>Profile</h2>');
             $page->addContent('{##main##}', $this->getProfileView($user_id));
@@ -56,11 +54,6 @@ class Profile {
 
             if ($user->id == $login->currentUserID()) { // it's-a-me!
                 $subView->addContent('{##email##}', $user->email);
-
-                $gw2api_widgets = new gw2api_Widgets();
-                if (gw2api::hasApiData('characters')) {
-                    $view->addContent('{##main##}', $gw2api_widgets->getNextBirthdaysView());
-                }
 
                 $activity_event_widgets = new Activity_Event_Signups_Widgets();
                 $view->addContent('{##main##}', $activity_event_widgets->getSignupsByUserIdView($login->currentUserID()));
