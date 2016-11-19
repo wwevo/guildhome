@@ -74,8 +74,8 @@ class Gw2Api_Account_Model extends Gw2Api_Abstract implements Gw2Api_Account_Int
         $db->query($sqlAccountTable);
         $sqlMappingTable = "CREATE TABLE `gw2api_account_key_mapping` (`account_id` VARCHAR(100) NOT NULL,`api_key` VARCHAR(72) NOT NULL,
             PRIMARY KEY (`account_id`, `api_key`),INDEX `gw2apiKTAM_toKey_idx` (`api_key` ASC), CONSTRAINT `gw2apiKTAM_toAccount` FOREIGN KEY (`account_id`)
-            REFERENCES `guildportal`.`gw2api_account` (`account_id`) ON DELETE CASCADE ON UPDATE CASCADE,CONSTRAINT `gw2apiKTAM_toKey` FOREIGN KEY (`api_key`)
-            REFERENCES `guildportal`.`gw2api_key` (`api_key`) ON DELETE NO ACTION ON UPDATE NO ACTION);";
+            REFERENCES `gw2api_account` (`account_id`) ON DELETE CASCADE ON UPDATE CASCADE,CONSTRAINT `gw2apiKTAM_toKey` FOREIGN KEY (`api_key`)
+            REFERENCES `gw2api_key` (`api_key`) ON DELETE NO ACTION ON UPDATE NO ACTION);";
         $db->query($sqlMappingTable);
     }
 }
