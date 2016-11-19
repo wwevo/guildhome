@@ -53,8 +53,11 @@ class Gw2Api_Keys_Model extends Gw2Api_Abstract implements Gw2Api_Key_Interface 
         if ($userid != Login::currentUserID()) {
             return false;
         }
-        $key = $this->
-        $api_tokeninfo = $this->gw2apiRequest('/v2/tokeninfo', $key);
+        if ($api_key === null || $api_key =="") {
+            $msg->add('add_api_key_form', 'Nothing entered!');
+            return false;
+        }
+        $api_tokeninfo = $this->gw2apiRequest('/v2/tokeninfo', $api_key);
         if (!isset($api_tokeninfo['permissions']) OR !is_array($api_tokeninfo['permissions'])) {
             $msg->add('add_api_key_form', 'Key rejected by Gw2-Server!');
             return false;
