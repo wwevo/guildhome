@@ -1,24 +1,44 @@
 <?php
 
 class Gw2Api_Account_Model extends Gw2Api_Abstract implements Gw2Api_Account_Interface {
+    private $account_id = null;
     private $account_name = null;
-    private $api_key_id = null;
-    private $userid = null;
+    private $user_id = null;
+    private $creation_date = null;
+    private $world = null;
+    private $commander = null;
 
     function __construct() {
         $_SESSION['dbconfig']['Gw2Api_Account_Model'] = $this;
+    }
+
+    public function getAccountId() {
+        return $this->account_id;
     }
 
     public function getAccountName() {
         return $this->account_name;
     }
 
-    public function getApiKeyId() {
-        return $this->api_key_id;
+    public function getUserid() {
+        return $this->user_id;
     }
 
-    public function getUserId() {
-        return $this->userid;
+    public function getCreationDate() {
+        return $this->creation_date;
+    }
+
+    public function getWorld() {
+        return $this->world;
+    }
+
+    public function getCommander() {
+        return $this->commander;
+    }
+
+    public function setAccountId($account_id) {
+        $this->account_id = $account_id;
+        return $this;
     }
 
     public function setAccountName($account_name) {
@@ -26,13 +46,23 @@ class Gw2Api_Account_Model extends Gw2Api_Abstract implements Gw2Api_Account_Int
         return $this;
     }
 
-    public function setApiKeyId($api_key_id) {
-        $this->api_key_id = $api_key_id;
+    public function setUserid($user_id) {
+        $this->user_id = $user_id;
         return $this;
     }
 
-    public function setUserId($userid) {
-        $this->userid = $userid;
+    public function setCreationDate($creation_date) {
+        $this->creation_date = $creation_date;
+        return $this;
+    }
+
+    public function setWorld($world) {
+        $this->world = $world;
+        return $this;
+    }
+
+    public function setCommander($commander) {
+        $this->commander = $commander;
         return $this;
     }
 
@@ -43,10 +73,10 @@ class Gw2Api_Account_Model extends Gw2Api_Abstract implements Gw2Api_Account_Int
 
     public function save() {
         $account_name = $this->getAccount_name();
-        $userid = $this->getUserId();
+        $user_id = $this->getUserId();
         $db = db::getInstance();
         // TODO: fix query
-        $sql = "INSERT INTO api_accounts (account_name, userid) VALUES ('$account_name', $userid);";
+        $sql = "INSERT INTO api_accounts (account_name, user_id) VALUES ('$account_name', $user_id);";
         if ($db->query($sql) === false) {
             // TODO: Error handling
             return false;

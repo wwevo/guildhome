@@ -1,10 +1,10 @@
 <?php
 
 class Gw2Api_Keys_Model extends Gw2Api_Abstract implements Gw2Api_Key_Interface {
-    private $id = null;
+    private $user_id = null;
     private $api_key = null;
-    private $userid = null;
     private $api_key_name = '';
+    private $api_key_permissions = [];
     
     function __construct() {
         $_SESSION['dbconfig']['Gw2Api_Key_Model'] = $this;
@@ -14,20 +14,29 @@ class Gw2Api_Keys_Model extends Gw2Api_Abstract implements Gw2Api_Key_Interface 
         return $this->id;
     }
 
-    public function getApiKey() {
-        return $this->api_key;
+    public function getUserId() {
+        return $this->user_id;
     }
 
-    public function getUserId() {
-        return $this->userid;
+    public function getApiKey() {
+        return $this->api_key;
     }
 
     public function getApiKeyName() {
         return $this->api_key_name;
     }
 
+    public function getApiKeyPermissions() {
+        return $this->api_key_permissions;
+    }
+
     public function setId($id) {
         $this->id = $id;
+        return $this;
+    }
+
+    public function setUserId($user_id) {
+        $this->user_id = $user_id;
         return $this;
     }
 
@@ -36,21 +45,21 @@ class Gw2Api_Keys_Model extends Gw2Api_Abstract implements Gw2Api_Key_Interface 
         return $this;
     }
 
-    public function setUserId($userid) {
-        $this->userid = $userid;
+    public function setApiKeyName($api_key_name) {
+        $this->api_key_name = $api_key_name;
         return $this;
     }
 
-    public function setApiKeyName($api_key_name) {
-        $this->api_key_name = $api_key_name;
+    public function setApiKeyPermissions($api_key_permissions) {
+        $this->api_key_permissions = $api_key_permissions;
         return $this;
     }
 
     function isValid() {
         $msg = Msg::getInstance();
         $api_key = $this->getApiKey();
-        $userid = $this->getUserId();
-        if ($userid != Login::currentUserID()) {
+        $user_id = $this->getUserId();
+        if ($user_id != Login::currentUserID()) {
             return false;
         }
         if ($api_key === null || $api_key =="") {
@@ -78,12 +87,12 @@ class Gw2Api_Keys_Model extends Gw2Api_Abstract implements Gw2Api_Key_Interface 
 
     function getApiKeysByUserId($userid) {
         $db = db::getInstance();
-        $sql = "SELECT * FROM gw2api_key WHERE userid = $userid;";
+        $sql = "SELECT * FROM gw2api_key WHERE user_id = $userid;";
         if (($query = $db->query($sql)) !== false AND $query->num_rows >= 1) {
             $keyObject_collection = [];
             while ($api_key_row = $query->fetch_object()) {
                 $keyObject = new self;
-                $keyObject->setId($api_key_row->id)->setApiKey($api_key_row->api_key)->setApiKeyName($api_key_row->api_key_name)->setUserId($api_key_row->userid);
+                $keyObject->setId($api_key_row->id)->setApiKey($api_key_row->api_key)->setApiKeyName($api_key_row->api_key_name)->setUserId($api_key_row->user_id)->setUserId($api_key_row->api_key_permissions);
                 $keyObject_collection[] = $keyObject;
             }
             return (array) $keyObject_collection;
@@ -93,14 +102,18 @@ class Gw2Api_Keys_Model extends Gw2Api_Abstract implements Gw2Api_Key_Interface 
 
     public function save() {
         $api_key = $this->getApiKey();
-        $userid = $this->getUserId();
-        $api_key_name = $this->getApiKeyName();
+        $user_id = $this->getUserId();
+        // get the scopes from the api. We know this will work because it
+        // must be a valid key at this point
+        $api_tokeninfo = $this->gw2apiRequest('/v2/tokeninfo', $api_key);
+        $api_key_permissions = serialize($api_tokeninfo['permissions']);
+        $api_key_name = $api_tokeninfo['name'];
         $db = db::getInstance();
-        $sql = "SELECT FROM gw2api_key WHERE api_key = '$api_key';";
+        $sql = "SELECT FROM gw2api_key WHERE api_key = '$api_key' AND user_id = '$user_id';";
         if (($query = $db->query($sql)) !== false AND $query->num_rows >= 1) {
-            $sql = "UPDATE gw2api_key SET api_key = '$api_key', api_key_name = '$api_key_name', userid = $userid WHERE api_key = '$api_key' AND userid = $userid;";
+            $sql = "UPDATE gw2api_key SET api_key = '$api_key', api_key_name = '$api_key_name', userid = $user_id, api_key_permissions = '$api_key_permissions' WHERE api_key = '$api_key' AND user_id = $user_id;";
         } else {
-            $sql = "INSERT INTO gw2api_key (api_key, api_key_name, userid) VALUES ('$api_key', '$api_key_name', $userid);";
+            $sql = "INSERT INTO gw2api_key (api_key, api_key_name, user_id, api_key_permissions) VALUES ('$api_key', '$api_key_name', $user_id, '$api_key_permissions');";
         }
         if ($db->query($sql) !== false) {
             return true;
@@ -114,12 +127,12 @@ class Gw2Api_Keys_Model extends Gw2Api_Abstract implements Gw2Api_Key_Interface 
             $sqlDropExistingKeyTables = "DROP TABLE IF EXISTS gw2api_key";
             $db->query($sqlDropExistingKeyTables);
         }
-        $sqlKeysTable= "CREATE TABLE `gw2api_key` (`user_id` INT(6) UNSIGNED NOT NULL,`api_key` VARCHAR(72) NOT NULL,`api_key_name` VARCHAR(45) NOT NULL,
-            `api_key_perm_account` TINYINT NOT NULL DEFAULT 0,`api_key_perm_builds` TINYINT NOT NULL DEFAULT 0,
-            `api_key_perm_characters` TINYINT NOT NULL DEFAULT 0,`api_key_perm_guilds` TINYINT NOT NULL DEFAULT 0,
-            `api_key_perm_inventories` TINYINT NOT NULL DEFAULT 0,`api_key_perm_progression` TINYINT NOT NULL DEFAULT 0,
-            `api_key_perm_pvp` TINYINT NOT NULL DEFAULT 0,`api_key_perm_tradingpost` TINYINT NOT NULL DEFAULT 0,`api_key_perm_unlocks` TINYINT NOT NULL DEFAULT 0,
-            `api_key_perm_wallet` TINYINT NOT NULL DEFAULT 0, PRIMARY KEY (`user_id`, `api_key`),
+        $sqlKeysTable = "CREATE TABLE `gw2api_key` (
+            `id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+            `user_id` INT(6) UNSIGNED NOT NULL,
+            `api_key` VARCHAR(72) NOT NULL,
+            `api_key_name` VARCHAR(45) NOT NULL,
+            `api_key_permissions` TEXT NOT NULL,
             CONSTRAINT `fk_gw2apiToUser` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION);";
         $db->query($sqlKeysTable);
     }
