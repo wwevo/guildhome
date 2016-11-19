@@ -111,7 +111,7 @@ class Gw2Api_Keys_Model extends Gw2Api_Abstract implements Gw2Api_Key_Interface 
     protected function createDatabaseTablesByType($overwriteIfExists) {
         $db = db::getInstance();
         if ($overwriteIfExists) {
-            $sqlDropExistingKeyTables = "DROP TABLE IF EXISTS gw2api_key";
+            $sqlDropExistingKeyTables = "DROP TABLE IF EXISTS gw2api_account_key_mapping,gw2api_key";
             $db->query($sqlDropExistingKeyTables);
         }
         $sqlKeysTable= "CREATE TABLE `gw2api_key` (`user_id` INT(6) UNSIGNED NOT NULL,`api_key` VARCHAR(72) NOT NULL,`api_key_name` VARCHAR(45) NOT NULL,
@@ -119,8 +119,12 @@ class Gw2Api_Keys_Model extends Gw2Api_Abstract implements Gw2Api_Key_Interface 
             `api_key_perm_characters` TINYINT NOT NULL DEFAULT 0,`api_key_perm_guilds` TINYINT NOT NULL DEFAULT 0,
             `api_key_perm_inventories` TINYINT NOT NULL DEFAULT 0,`api_key_perm_progression` TINYINT NOT NULL DEFAULT 0,
             `api_key_perm_pvp` TINYINT NOT NULL DEFAULT 0,`api_key_perm_tradingpost` TINYINT NOT NULL DEFAULT 0,`api_key_perm_unlocks` TINYINT NOT NULL DEFAULT 0,
-            `api_key_perm_wallet` TINYINT NOT NULL DEFAULT 0,`account_id` VARCHAR(100) NULL DEFAULT NULL, PRIMARY KEY (`user_id`, `api_key`),
-            CONSTRAINT `fk_gw2apiTpUser` FOREIGN KEY (`user_id`) REFERENCES `guildportal`.`users` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION);";
+            `api_key_perm_wallet` TINYINT NOT NULL DEFAULT 0, PRIMARY KEY (`user_id`, `api_key`),
+            CONSTRAINT `fk_gw2apiToUser` FOREIGN KEY (`user_id`) REFERENCES `guildportal`.`users` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION);";
         $db->query($sqlKeysTable);
+        $sqlMappingTable = "CREATE TABLE `gw2api_account_key_mapping` (`account_id` VARCHAR(100) NOT NULL,`api_key` VARCHAR(72) NOT NULL,
+            PRIMARY KEY (`account_id`, `api_key`),INDEX `gw2apiKTAM_toKey_idx` (`api_key` ASC), CONSTRAINT `gw2apiKTAM_toAccount` FOREIGN KEY (`account_id`)
+            REFERENCES `guildportal`.`gw2api_account` (`account_id`) ON DELETE CASCADE ON UPDATE CASCADE);";
+        $db->query($sqlMappingTable);
     }
 }
