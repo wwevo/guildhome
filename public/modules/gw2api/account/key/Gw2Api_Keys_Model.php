@@ -78,7 +78,7 @@ class Gw2Api_Keys_Model extends Gw2Api_Abstract implements Gw2Api_Key_Interface 
 
     function getApiKeysByUserId($userid) {
         $db = db::getInstance();
-        $sql = "SELECT * FROM api_keys WHERE userid = $userid;";
+        $sql = "SELECT * FROM gw2api_key WHERE userid = $userid;";
         if (($query = $db->query($sql)) !== false AND $query->num_rows >= 1) {
             $keyObject_collection = [];
             while ($api_key_row = $query->fetch_object()) {
@@ -96,11 +96,11 @@ class Gw2Api_Keys_Model extends Gw2Api_Abstract implements Gw2Api_Key_Interface 
         $userid = $this->getUserId();
         $api_key_name = $this->getApiKeyName();
         $db = db::getInstance();
-        $sql = "SELECT FROM api_keys WHERE api_key = '$api_key';";
+        $sql = "SELECT FROM gw2api_key WHERE api_key = '$api_key';";
         if (($query = $db->query($sql)) !== false AND $query->num_rows >= 1) {
-            $sql = "UPDATE api_keys SET api_key = '$api_key', api_key_name = '$api_key_name', userid = $userid WHERE api_key = '$api_key' AND userid = $userid;";
+            $sql = "UPDATE gw2api_key SET api_key = '$api_key', api_key_name = '$api_key_name', userid = $userid WHERE api_key = '$api_key' AND userid = $userid;";
         } else {
-            $sql = "INSERT INTO api_keys (api_key, api_key_name, userid) VALUES ('$api_key', '$api_key_name', $userid);";
+            $sql = "INSERT INTO gw2api_key (api_key, api_key_name, userid) VALUES ('$api_key', '$api_key_name', $userid);";
         }
         if ($db->query($sql) !== false) {
             return true;
@@ -111,16 +111,16 @@ class Gw2Api_Keys_Model extends Gw2Api_Abstract implements Gw2Api_Key_Interface 
     protected function createDatabaseTablesByType($overwriteIfExists) {
         $db = db::getInstance();
         if ($overwriteIfExists) {
-            $sqlDropExistingPollTables = "DROP TABLE IF EXISTS api_keys";
-            $db->query($sqlDropExistingPollTables);
+            $sqlDropExistingKeyTables = "DROP TABLE IF EXISTS gw2api_key";
+            $db->query($sqlDropExistingKeyTables);
         }
-        $api_keysTable = "CREATE TABLE api_keys (
-                id int(11) NOT NULL AUTO_INCREMENT,
-                api_key varchar(72) NOT NULL,
-                userid int(11) NOT NULL,
-                api_key_name varchar(32),
-            PRIMARY KEY (id, userid)) ENGINE=InnoDB DEFAULT CHARSET=latin1;";
-        $db->query($api_keysTable);
+        $sqlKeysTable= "CREATE TABLE `gw2api_key` (`user_id` INT(6) UNSIGNED NOT NULL,`api_key` VARCHAR(72) NOT NULL,`api_key_name` VARCHAR(45) NOT NULL,
+            `api_key_perm_account` TINYINT NOT NULL DEFAULT 0,`api_key_perm_builds` TINYINT NOT NULL DEFAULT 0,
+            `api_key_perm_characters` TINYINT NOT NULL DEFAULT 0,`api_key_perm_guilds` TINYINT NOT NULL DEFAULT 0,
+            `api_key_perm_inventories` TINYINT NOT NULL DEFAULT 0,`api_key_perm_progression` TINYINT NOT NULL DEFAULT 0,
+            `api_key_perm_pvp` TINYINT NOT NULL DEFAULT 0,`api_key_perm_tradingpost` TINYINT NOT NULL DEFAULT 0,`api_key_perm_unlocks` TINYINT NOT NULL DEFAULT 0,
+            `api_key_perm_wallet` TINYINT NOT NULL DEFAULT 0,`account_id` VARCHAR(100) NULL DEFAULT NULL, PRIMARY KEY (`user_id`, `api_key`),
+            CONSTRAINT `fk_gw2apiTpUser` FOREIGN KEY (`user_id`) REFERENCES `guildportal`.`users` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION);";
+        $db->query($sqlKeysTable);
     }
-
 }

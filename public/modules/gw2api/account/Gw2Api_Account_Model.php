@@ -39,7 +39,7 @@ class Gw2Api_Account_Model extends Gw2Api_Abstract implements Gw2Api_Account_Int
     }
 
     protected function isValid() {
-        // TODO: check 
+        // TODO: check
         return true;
     }
 
@@ -47,6 +47,7 @@ class Gw2Api_Account_Model extends Gw2Api_Abstract implements Gw2Api_Account_Int
         $account_name = $this->getAccount_name();
         $userid = $this->getUserId();
         $db = db::getInstance();
+        //TODO: fix query
         $sql = "INSERT INTO api_accounts (account_name, userid) VALUES ('$account_name', $userid);";
         if ($db->query($sql) === false) {
             // TODO: Error handling
@@ -54,6 +55,7 @@ class Gw2Api_Account_Model extends Gw2Api_Abstract implements Gw2Api_Account_Int
         }
         $account_id = $db->insert_id;
         $api_key_id = $this->getApiKeyId();
+        //TODO: fix query
         $sql = "INSERT INTO api_accounts (key_id, account_id) VALUES ('$api_key_id', $account_id);";
         if ($db->query($sql) === false) {
             // TODO: Error handling
@@ -65,14 +67,11 @@ class Gw2Api_Account_Model extends Gw2Api_Abstract implements Gw2Api_Account_Int
     protected function createDatabaseTablesByType($overwriteIfExists) {
         $db = db::getInstance();
         if ($overwriteIfExists) {
-            $sqlDropExistingPollTables = "DROP TABLE IF EXISTS api_accounts, api_key_account_mapping";
-            $db->query($sqlDropExistingPollTables);
+            $sqlDropAccountsTable = "DROP TABLE IF EXISTS gw2api_account";
+            $db->query($sqlDropAccountsTable);
         }
-        $api_accountsTable = "CREATE TABLE api_accounts (id int(11) NOT NULL AUTO_INCREMENT, account_name varchar(64) NOT NULL, userid int(11) NOT NULL, PRIMARY KEY (id, userid))
-            ENGINE=InnoDB DEFAULT CHARSET=latin1;";
-        $db->query($api_accountsTable);
-        $api_key_account_mappingTable = "CREATE TABLE api_key_account_mapping (key_id varchar(64) NOT NULL REFERENCES api_keys(id), account_id int(11) NOT NULL REFERENCES api_accounts(id), PRIMARY KEY (key_id, account_id))
-            ENGINE=InnoDB DEFAULT CHARSET=latin1;";
-        $db->query($api_key_account_mappingTable);
+        $sqlAccountsTable = "CREATE TABLE `gw2api_account` (`account_id` VARCHAR(100) NOT NULL, `account_name` VARCHAR(100) NOT NULL,
+            `creation_date` TIMESTAMP NOT NULL,`world` VARCHAR(100) NULL DEFAULT NULL,`commander` TINYINT NULL DEFAULT 0,PRIMARY KEY (`account_id`));";
+        $db->query($sqlAccountsTable);
     }
 }
