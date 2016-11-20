@@ -85,9 +85,16 @@ class Gw2Api_Keys_Model extends Gw2Api_Abstract implements Gw2Api_Key_Interface 
         return true;
     }
 
-    function getApiKeysByUserId($userid) {
+    /**
+     * Fetches all Gw2api_Keys associated with the given $user_id
+     * 
+     * @param   type    $user_id
+     * @return  array of 'Gw2api_Keys_Model' Objects
+     * @return  false
+     */
+    function getApiKeysByUserId($user_id) {
         $db = db::getInstance();
-        $sql = "SELECT * FROM gw2api_key WHERE user_id = $userid;";
+        $sql = "SELECT * FROM gw2api_key WHERE user_id = $user_id;";
         if (($query = $db->query($sql)) !== false AND $query->num_rows >= 1) {
             $keyObject_collection = [];
             while ($api_key_row = $query->fetch_object()) {
@@ -99,6 +106,25 @@ class Gw2Api_Keys_Model extends Gw2Api_Abstract implements Gw2Api_Key_Interface 
         return false;
     }
 
+    /**
+     * Fetches one Gw2api_Key associated with the given $api_key_id
+     * 
+     * @param   type    $api_key_id
+     * @return  one instance of 'Gw2api_Keys_Model' Object
+     * @return  false
+     */
+    function getApiKeyById($api_key_id) {
+        $db = db::getInstance();
+        $sql = "SELECT * FROM gw2api_key WHERE id = $api_key_id;";
+        if (($query = $db->query($sql)) !== false AND $query->num_rows == 1) {
+            $api_key_row = $query->fetch_object();
+            $keyObject = new self;
+            $keyObject->setId($api_key_row->id)->setApiKey($api_key_row->api_key)->setApiKeyName($api_key_row->api_key_name)->setUserId($api_key_row->user_id)->setApiKeyPermissions($api_key_row->api_key_permissions);
+            return $keyObject;
+        }
+        return false;
+    }
+ 
     public function save() {
         $api_key = $this->getApiKey();
         $user_id = $this->getUserId();
@@ -107,6 +133,7 @@ class Gw2Api_Keys_Model extends Gw2Api_Abstract implements Gw2Api_Key_Interface 
         $api_tokeninfo = $this->gw2apiRequest('/v2/tokeninfo', $api_key);
             $api_key_permissions = serialize($api_tokeninfo['permissions']);
             $api_key_name = $api_tokeninfo['name'];
+
         $db = db::getInstance();
         $sql = "SELECT * FROM gw2api_key WHERE api_key = '$api_key' AND user_id = $user_id;";
         if (($query = $db->query($sql)) !== false AND $query->num_rows >= 1) {

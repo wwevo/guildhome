@@ -16,7 +16,7 @@ class Gw2Api_Keys_View {
             '{##form_action##}' => '/gw2api/account/key/',
             '{##target_url##}' => $target_url,
             '{##update_setting_validation##}' => Msg::getInstance()->fetch('add_api_key_form'),
-            '{##setting_submit_text##}' => 'add',
+            '{##setting_submit_text##}' => 'add Api-Key',
         ));
         $setting_value = isset($env->post('gw2_api_account_add_key')['api_key']) ? $env->post('gw2_api_account_add_key')['api_key'] : '';
         $view->addContent('{##setting_value##}', $setting_value);
@@ -34,9 +34,8 @@ class Gw2Api_Keys_View {
     function listApiKeysByUserIdView($keyObject_collection) {
         $view = new View();
         $view->setTmpl($view->loadFile('/views/core/one_tag.php'));
-        $view->addContent('{##data##}', '<p>Only valid keys with allowed scopes will be accepted for now: (guild, account, characters)</p>');
+        $view->addContent('{##data##}', '<table>');
         if (is_array($keyObject_collection)) {
-            $view->addContent('{##data##}', '<table>');
             foreach ($keyObject_collection as $keyObject) {
                 $view->addContent('{##data##}', '<tr>');
                 $view->addContent('{##data##}', '<th colspan="2">');
@@ -57,10 +56,14 @@ class Gw2Api_Keys_View {
                 $view->addContent('{##data##}', '</td>');
                 $view->addContent('{##data##}', '</tr>');
             }
-            $view->addContent('{##data##}', '</table>');
         } else {
+            $view->addContent('{##data##}', '<tr>');
+            $view->addContent('{##data##}', '<th>');
             $view->addContent('{##data##}', 'no Api-Keys found');
+            $view->addContent('{##data##}', '</th>');
+            $view->addContent('{##data##}', '</tr>');
         }
+        $view->addContent('{##data##}', '</table>');
         $view->replaceTags();
         return $view;
     }
