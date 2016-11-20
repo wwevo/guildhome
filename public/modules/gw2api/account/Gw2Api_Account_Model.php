@@ -99,7 +99,7 @@ class Gw2Api_Account_Model extends Gw2Api_Abstract implements Gw2Api_Account_Int
             $db->query($sqlDropAccountsTable);
         }
         $sqlAccountTable = "CREATE TABLE `gw2api_account` (`account_id` VARCHAR(100) NOT NULL,`account_name` VARCHAR(100) NOT NULL,
-            `user_id` INT(6) UNSIGNED NOT NULL,`creation_date` TIMESTAMP NOT NULL,`world` VARCHAR(100) NULL DEFAULT NULL,`commander` TINYINT NULL DEFAULT 0,
+            `user_id` INT(6) UNSIGNED NOT NULL, `creation_date` TIMESTAMP NOT NULL, `last_updated` TIMESTAMP NOT NULL, `world` VARCHAR(100) NULL DEFAULT NULL,`commander` TINYINT NULL DEFAULT 0,
             PRIMARY KEY (`account_id`));";
         $db->query($sqlAccountTable);
         $sqlMappingTable = "CREATE TABLE `gw2api_account_key_mapping` (`account_id` VARCHAR(100) NOT NULL,`api_key` VARCHAR(72) NOT NULL,

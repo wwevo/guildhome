@@ -1,15 +1,5 @@
 <?php
 
-interface Toro_Interface {
-    public function get();
-    public function post();
-    
-}
-interface Toro_Interface_Xhr {
-    public function getXhr();
-    public function postXhr();
-}
-
 class Toro {
     private $routes = [];
 

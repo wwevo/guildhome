@@ -27,7 +27,7 @@ class Gw2Api_Keys_Model extends Gw2Api_Abstract implements Gw2Api_Key_Interface 
     }
 
     public function getApiKeyPermissions() {
-        return $this->api_key_permissions;
+        return unserialize($this->api_key_permissions);
     }
 
     public function setId($id) {
@@ -92,8 +92,7 @@ class Gw2Api_Keys_Model extends Gw2Api_Abstract implements Gw2Api_Key_Interface 
             $keyObject_collection = [];
             while ($api_key_row = $query->fetch_object()) {
                 $keyObject = new self;
-                $keyObject->setId($api_key_row->id)->setApiKey($api_key_row->api_key)->setApiKeyName($api_key_row->api_key_name)->setUserId($api_key_row->user_id)->setUserId($api_key_row->api_key_permissions);
-                $keyObject_collection[] = $keyObject;
+                $keyObject_collection[] = $keyObject->setId($api_key_row->id)->setApiKey($api_key_row->api_key)->setApiKeyName($api_key_row->api_key_name)->setUserId($api_key_row->user_id)->setApiKeyPermissions($api_key_row->api_key_permissions);
             }
             return (array) $keyObject_collection;
         }
@@ -106,10 +105,10 @@ class Gw2Api_Keys_Model extends Gw2Api_Abstract implements Gw2Api_Key_Interface 
         // get the scopes from the api. We know this will work because it
         // must be a valid key at this point
         $api_tokeninfo = $this->gw2apiRequest('/v2/tokeninfo', $api_key);
-        $api_key_permissions = serialize($api_tokeninfo['permissions']);
-        $api_key_name = $api_tokeninfo['name'];
+            $api_key_permissions = serialize($api_tokeninfo['permissions']);
+            $api_key_name = $api_tokeninfo['name'];
         $db = db::getInstance();
-        $sql = "SELECT FROM gw2api_key WHERE api_key = '$api_key' AND user_id = '$user_id';";
+        $sql = "SELECT * FROM gw2api_key WHERE api_key = '$api_key' AND user_id = $user_id;";
         if (($query = $db->query($sql)) !== false AND $query->num_rows >= 1) {
             $sql = "UPDATE gw2api_key SET api_key = '$api_key', api_key_name = '$api_key_name', userid = $user_id, api_key_permissions = '$api_key_permissions' WHERE api_key = '$api_key' AND user_id = $user_id;";
         } else {

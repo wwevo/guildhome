@@ -1,12 +1,13 @@
 <?php
 
-class Gw2Api_Account implements Toro_Interface {
+class Gw2Api_Account {
 
     public $model;
     public $view;
 
     function initEnv() {
         Toro::addRoute(["/gw2api/account" => "Gw2Api_Account"]);
+        Toro::addRoute(["/gw2api/account/:string/:number" => "Gw2Api_Account"]);
     }
 
     function __construct() {
@@ -29,7 +30,6 @@ class Gw2Api_Account implements Toro_Interface {
         $keyObject_collection = $keyObject->model->getApiKeysByUserId(Login::currentUserID());
         Page::getInstance()->addContent('{##main##}', $keyObject->view->listApiKeysByUserIdView($keyObject_collection));
         
-        
         Page::getInstance()->addContent('{##main##}', $keyObject->view->getNewApiKeyFormView('/gw2api/account'));
     }
 
@@ -37,7 +37,13 @@ class Gw2Api_Account implements Toro_Interface {
      * post() will be called by the Toro class (if a route is met for this
      * class) AND (a post header is being sent by your application).
      */
-    public function post() {
+    public function post($action = null, $api_key_id = null) {
+        $env = Env::getInstance();
+        $target_url = $env->post('redirect_url');
+        if (isset($target_url) && !empty($target_url)) {
+            header("Location: $target_url");
+            exit;
+        }
         $this->get();    
     }
 

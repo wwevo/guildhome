@@ -2,39 +2,62 @@
 
 class Gw2Api_Keys_View {
     
+    /**
+     * Displays simple form to add an API-Key 
+     * 
+     * @param   type    $target_url     contains ULR to redirect to after submitting the form,
+     * @return \View
+     */
     function getNewApiKeyFormView($target_url = '') {
         $env = Env::getInstance();
-
-        if (isset($env->post('gw2_api_account_add_key')['api_key'])) {
-            $setting_value = $env->post('gw2_api_account_add_key')['api_key'];
-        } else {
-            $setting_value = '';
-        }
 
         $view = new View();
         $view->setTmpl($view->loadFile('/views/gw2api/account/add_api_key_form.php'), array(
             '{##form_action##}' => '/gw2api/account/key/',
             '{##target_url##}' => $target_url,
-            '{##setting_value##}' => $setting_value,
             '{##update_setting_validation##}' => Msg::getInstance()->fetch('add_api_key_form'),
             '{##setting_submit_text##}' => 'add',
         ));
+        $setting_value = isset($env->post('gw2_api_account_add_key')['api_key']) ? $env->post('gw2_api_account_add_key')['api_key'] : '';
+        $view->addContent('{##setting_value##}', $setting_value);
+
         $view->replaceTags();
         return $view;
     }
 
+    /**
+     * Displays a simple list of available API-Keys
+     * 
+     * @param   type    $keyObject_collection   contains an array with 'Gw2Api_Keys()' to display
+     * @return  \View
+     */
     function listApiKeysByUserIdView($keyObject_collection) {
         $view = new View();
         $view->setTmpl($view->loadFile('/views/core/one_tag.php'));
-        $view->addContent('{##data##}', "<p>Only valid keys with allowed scopes will be accepted (guild, account, characters)</p>");
+        $view->addContent('{##data##}', '<p>Only valid keys with allowed scopes will be accepted for now: (guild, account, characters)</p>');
         if (is_array($keyObject_collection)) {
-            $api_keys = [];
+            $view->addContent('{##data##}', '<table class="table">');
             foreach ($keyObject_collection as $keyObject) {
-                $api_keys[] = $keyObject->getApiKey();
+                $view->addContent('{##data##}', '<tr>');
+                $view->addContent('{##data##}', '<th colspan="2">');
+                $view->addContent('{##data##}', $keyObject->getApiKeyName());
+                $view->addContent('{##data##}', '</th>');
+                $view->addContent('{##data##}', '</tr>');
+                $view->addContent('{##data##}', '<tr>');
+                $view->addContent('{##data##}', '<td>');
+                $view->addContent('{##data##}', '<ul><li>' . implode('</li><li>', $keyObject->getApiKeyPermissions()) . '</li></ul>');
+                $view->addContent('{##data##}', '</td>');
+                $view->addContent('{##data##}', '<td>');
+                $view->addContent('{##data##}', Gw2Api_Account_View::getImportAccountForm($keyObject, '/gw2api/account'));
+                $view->addContent('{##data##}', '</td>');
+                $view->addContent('{##data##}', '</tr>');
+                $view->addContent('{##data##}', '<tr>');
+                $view->addContent('{##data##}', '<td colspan="2">');
+                $view->addContent('{##data##}', $keyObject->getApiKey());
+                $view->addContent('{##data##}', '</td>');
+                $view->addContent('{##data##}', '</tr>');
             }
-            $view->addContent('{##data##}', "<pre>\n");
-            $view->addContent('{##data##}', print_r($api_keys, true));
-            $view->addContent('{##data##}', '</pre>');
+            $view->addContent('{##data##}', '</table>');
         } else {
             $view->addContent('{##data##}', 'no Api-Keys found');
         }
@@ -42,13 +65,17 @@ class Gw2Api_Keys_View {
         return $view;
     }
 
+    /**
+     * Diplays a collection of Views to manage API-Keys
+     * 
+     * @param   type    $keyObject_collection   contains an array with 'Gw2Api_Keys()' to manage
+     * @return \View
+     */
     function getApiKeyManagementView($keyObject_collection) {
-        $content = $this->listApiKeysByUserIdView($keyObject_collection);
-        $content .= $this->getNewApiKeyFormView();
         $view = new View();
-        $view->setTmpl($view->loadFile('/views/core/one_tag.php'), array(
-            '{##data##}' => $content,
-        ));
+        $view->setTmpl($view->loadFile('/views/core/one_tag.php'));
+        $view->addContent('##data##', $this->listApiKeysByUserIdView($keyObject_collection));
+        $view->addContent('##data##', $this->getNewApiKeyFormView());
         $view->replaceTags();
         return $view;
     }

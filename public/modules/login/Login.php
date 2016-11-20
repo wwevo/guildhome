@@ -192,7 +192,6 @@ class Login {
         }
         $view->replaceTags();
         return $view;
-        
     }
 
     public function getCombinedLoginView($target_url = null) {

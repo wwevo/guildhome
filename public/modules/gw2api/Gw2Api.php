@@ -1,6 +1,6 @@
 <?php
 
-class Gw2Api implements Toro_Interface {
+class Gw2Api {
     
     function initEnv() {
         Toro::addRoute(["/gw2api" => "Gw2Api"]);

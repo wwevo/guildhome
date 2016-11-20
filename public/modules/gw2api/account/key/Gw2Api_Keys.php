@@ -1,6 +1,6 @@
 <?php
 
-class Gw2Api_Keys implements Toro_Interface {
+class Gw2Api_Keys {
 
     public $model;
     public $view;
