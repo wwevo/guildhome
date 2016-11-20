@@ -486,17 +486,27 @@ aside a:hover {
     text-decoration: underline;
 }
 
+table,
 .widget table,
 .module table {
     width: 100%;
 }
 
+table tr th,
 .widget table tr th,
 .module table tr th {
     color: #ffffff;
     background-color: #EDA73E;
 }
 
+table tr,
+.widget table tr,
+.module table tr {
+    color: #000000;
+    background-color: #fff8e7;
+}
+
+table tr,
 .widget table tr:nth-child(2n),
 .module table tr:nth-child(2n) {
     color: #EA6C12;
@@ -520,14 +530,22 @@ aside a:hover {
     background-color: white;
 }
 
+table td.center,
 .widget table td.center,
 .module table td.center {
-    text-align:center;
+    text-align: center;
 }
 
+table td.right,
 .widget table td.right,
 .module table td.right {
     text-align: right;
+}
+
+table td.small,
+.widget table td.small,
+.module table td.small {
+    font-size: 80%;
 }
 
 ul.user-menu ul {

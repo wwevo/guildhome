@@ -36,7 +36,7 @@ class Gw2Api_Keys_View {
         $view->setTmpl($view->loadFile('/views/core/one_tag.php'));
         $view->addContent('{##data##}', '<p>Only valid keys with allowed scopes will be accepted for now: (guild, account, characters)</p>');
         if (is_array($keyObject_collection)) {
-            $view->addContent('{##data##}', '<table class="table">');
+            $view->addContent('{##data##}', '<table>');
             foreach ($keyObject_collection as $keyObject) {
                 $view->addContent('{##data##}', '<tr>');
                 $view->addContent('{##data##}', '<th colspan="2">');
@@ -44,16 +44,16 @@ class Gw2Api_Keys_View {
                 $view->addContent('{##data##}', '</th>');
                 $view->addContent('{##data##}', '</tr>');
                 $view->addContent('{##data##}', '<tr>');
-                $view->addContent('{##data##}', '<td>');
-                $view->addContent('{##data##}', '<ul><li>' . implode('</li><li>', $keyObject->getApiKeyPermissions()) . '</li></ul>');
-                $view->addContent('{##data##}', '</td>');
-                $view->addContent('{##data##}', '<td>');
-                $view->addContent('{##data##}', Gw2Api_Account_View::getImportAccountForm($keyObject, '/gw2api/account'));
+                $view->addContent('{##data##}', '<td colspan="2" class="small center">');
+                $view->addContent('{##data##}', $keyObject->getApiKey());
                 $view->addContent('{##data##}', '</td>');
                 $view->addContent('{##data##}', '</tr>');
                 $view->addContent('{##data##}', '<tr>');
-                $view->addContent('{##data##}', '<td colspan="2">');
-                $view->addContent('{##data##}', $keyObject->getApiKey());
+                $view->addContent('{##data##}', '<td>');
+                $view->addContent('{##data##}', '<ul><li>' . implode('</li><li>', $keyObject->getApiKeyPermissions()) . '</li></ul>');
+                $view->addContent('{##data##}', '</td>');
+                $view->addContent('{##data##}', '<td class="right">');
+                $view->addContent('{##data##}', Gw2Api_Account_View::getImportAccountForm($keyObject, '/gw2api/account'));
                 $view->addContent('{##data##}', '</td>');
                 $view->addContent('{##data##}', '</tr>');
             }
