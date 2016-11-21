@@ -22,10 +22,13 @@ class Gw2Api_Characters {
             default :
                 break;
             case "import" :
+                $keyObject = Gw2Api_Keys_Model::getApiKeyObjectsByAccountId($account_id, $required_scope = 'characters', $only_one = true);
 
-                $accountObject = new Gw2Api_Account();
-                $accountObject->model->setApiKey($charactersObject->getApiKey())->setUserId(Login::currentUserID());
-                if ($accountObject->model->attemptSave()) { }
+                $charactersObject = new Gw2Api_Characters_Model();
+                $charactersObject_collection = $charactersObject->fetchCharacterObjectsByApiKey($keyObject->getApiKey());
+                foreach ($charactersObject_collection as $charactersObject) {
+                    $charactersObject->attemptSave();
+                }
                 break;
         }
         $target_url = $env->post('redirect_url');

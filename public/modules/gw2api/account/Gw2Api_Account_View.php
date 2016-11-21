@@ -12,10 +12,7 @@ class Gw2Api_Account_View {
      */
     public static function getImportAccountForm(Gw2Api_Keys_Model $gw2_api_key, $target_url = null) {
         $gw2_api_key_id = $gw2_api_key->getId();
-        if ($target_url !== null) {
-            return View::createPrettyButtonForm("/gw2api/account/import/$gw2_api_key_id", $target_url, "import Account-Data");
-        }
-        return View::createPrettyButtonForm("/gw2api/account/import/$gw2_api_key_id", null, "import Account-Data");
+        return View::createPrettyButtonForm("/gw2api/account/import/$gw2_api_key_id", $target_url, "import Account-Data");
     }
 
     /**
@@ -36,8 +33,11 @@ class Gw2Api_Account_View {
                 $view->addContent('{##data##}', '</th>');
                 $view->addContent('{##data##}', '</tr>');
                 $view->addContent('{##data##}', '<tr>');
-                $view->addContent('{##data##}', '<td colspan="2" class="small center">');
+                $view->addContent('{##data##}', '<td class="small center">');
                 $view->addContent('{##data##}', $accountObject->getCreationDate());
+                $view->addContent('{##data##}', '</td>');
+                $view->addContent('{##data##}', '<td class="small center">');
+                $view->addContent('{##data##}', Gw2Api_Characters_View::getImportCharactersForm($accountObject, '/gw2api/account'));
                 $view->addContent('{##data##}', '</td>');
                 $view->addContent('{##data##}', '</tr>');
             }

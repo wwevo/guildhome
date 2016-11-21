@@ -93,7 +93,7 @@ class Gw2Api_Account_Model extends Gw2Api_Abstract implements Gw2Api_Account_Int
             $accountObject_collection = [];
             while ($account_data_row = $query->fetch_object()) {
                 $accountObject = new Gw2Api_Account_Model();
-                $accountObject_collection[] = $accountObject->setAccountId($account_data_row->account_id)->setAccountName($account_data_row->account_name)->setUserid($account_data_row->user_id)->setCreationDate($account_data_row->creation_date)->setWorld($account_data_row->world)->setCommander($account_data_row->commander);
+                $accountObject_collection[] = $accountObject->setId($account_data_row->id)->setAccountId($account_data_row->account_id)->setAccountName($account_data_row->account_name)->setUserid($account_data_row->user_id)->setCreationDate($account_data_row->creation_date)->setWorld($account_data_row->world)->setCommander($account_data_row->commander);
             }
             return (array) $accountObject_collection;
         }
@@ -107,6 +107,32 @@ class Gw2Api_Account_Model extends Gw2Api_Abstract implements Gw2Api_Account_Int
             $account_data_row = $query->fetch_object();
             $accountObject = new Gw2Api_Account_Model();
             $accountObject->setId($account_data_row->id)->setAccountId($account_data_row->account_id)->setAccountName($account_data_row->account_name)->setUserid($account_data_row->user_id)->setCreationDate($account_data_row->creation_date)->setWorld($account_data_row->world)->setCommander($account_data_row->commander);
+            return $accountObject;
+        }
+        return false;
+    }
+
+    static function getAccountObjectById($id) {
+        $db = db::getInstance();
+        $sql = "SELECT * FROM gw2api_account WHERE id = '$id';";
+        if (($query = $db->query($sql)) !== false AND $query->num_rows == 1) {
+            $account_data_row = $query->fetch_object();
+            $accountObject = new Gw2Api_Account_Model();
+            $accountObject->setId($account_data_row->id)->setAccountId($account_data_row->account_id)->setAccountName($account_data_row->account_name)->setUserid($account_data_row->user_id)->setCreationDate($account_data_row->creation_date)->setWorld($account_data_row->world)->setCommander($account_data_row->commander);
+            return $accountObject;
+        }
+        return false;
+    }
+
+    static function getAccountObjectByApiKey($api_key) {
+        $db = db::getInstance();
+        $keyObject = Gw2Api_Keys_Model::getApiKeyObjectByApiKey($api_key);
+        $api_key_id = $keyObject->getId();
+        $sql = "SELECT * FROM gw2api_account_key_mapping WHERE api_key_id = '$api_key_id';";
+        if (($query = $db->query($sql)) !== false AND $query->num_rows == 1) {
+            $account_data_row = $query->fetch_object();
+            $account_id = $account_data_row->account_id;
+            $accountObject = Gw2Api_Account_Model::getAccountObjectById($account_id);
             return $accountObject;
         }
         return false;

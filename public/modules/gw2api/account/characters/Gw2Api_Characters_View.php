@@ -2,12 +2,9 @@
 
 class Gw2Api_Characters_View {
 
-    public static function getImportAccountForm(Gw2Api_Characters_Model $account, $target_url = null) {
-        $account_id = $account->getId();
-        if ($target_url !== null) {
-            return View::createPrettyButtonForm("/gw2api/characters/import/$account_id", $target_url, "import Account-Data");
-        }
-        return View::createPrettyButtonForm("/gw2api/characters/import/$account_id", null, "import Account-Data");
+    public static function getImportCharactersForm(Gw2Api_Account_Model $account, $target_url = null) {
+        $id = $account->getId();
+        return View::createPrettyButtonForm("/gw2api/characters/import/$id", $target_url, "import Account-Characters");
     }
 
     function listCharactersDataView($charactersObject_collection) {
@@ -18,7 +15,7 @@ class Gw2Api_Characters_View {
             foreach ($charactersObject_collection as $charactersObject) {
                 $view->addContent('{##data##}', '<tr>');
                 $view->addContent('{##data##}', '<th colspan="2">');
-                $view->addContent('{##data##}', $charactersObject->getCharacterName());
+                $view->addContent('{##data##}', $charactersObject->getName());
                 $view->addContent('{##data##}', '</th>');
                 $view->addContent('{##data##}', '</tr>');
                 $view->addContent('{##data##}', '<tr>');

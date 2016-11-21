@@ -27,7 +27,7 @@ class Gw2Api_Account {
         }
         // check for api keys
         $keyObject = new Gw2Api_Keys();
-        $keyObject_collection = $keyObject->model->getApiKeysByUserId(Login::currentUserID());
+        $keyObject_collection = $keyObject->model->getApiKeyObjectsByUserId(Login::currentUserID());
         Page::getInstance()->addContent('{##main##}', '<h3>Available Keys</h3>');
         Page::getInstance()->addContent('{##main##}', $keyObject->view->listApiKeysView($keyObject_collection));
         Page::getInstance()->addContent('{##main##}', $keyObject->view->getNewApiKeyFormView('/gw2api/account'));
@@ -58,11 +58,9 @@ class Gw2Api_Account {
             default :
                 break;
             case "import" :
-                $keyObject = new Gw2Api_Keys_Model();
-                $keyObject = $keyObject->getApiKeyObjectByApiKeyId($api_key_id);
-                $api_key = $keyObject->getApiKey();
+                $keyObject = Gw2Api_Keys_Model::getApiKeyObjectByApiKeyId($api_key_id);
                 $accountObject = new Gw2Api_Account_Model();
-                $accountObject->setApiKey($api_key)->setUserId(Login::currentUserID());
+                $accountObject->setApiKey($keyObject->getApiKey())->setUserId(Login::currentUserID());
                 if ($accountObject->attemptSave()) { }
                 break;
         }

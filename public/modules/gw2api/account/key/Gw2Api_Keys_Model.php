@@ -92,13 +92,13 @@ class Gw2Api_Keys_Model extends Gw2Api_Abstract implements Gw2Api_Key_Interface 
      * @return  array of 'Gw2api_Keys_Model' Objects
      * @return  false
      */
-    function getApiKeysByUserId($user_id) {
+    static function getApiKeyObjectsByUserId($user_id) {
         $db = db::getInstance();
         $sql = "SELECT * FROM gw2api_key WHERE user_id = $user_id;";
         if (($query = $db->query($sql)) !== false AND $query->num_rows >= 1) {
             $keyObject_collection = [];
             while ($api_key_row = $query->fetch_object()) {
-                $keyObject = new self;
+                $keyObject = new Gw2Api_Keys_Model();
                 $keyObject_collection[] = $keyObject->setId($api_key_row->id)->setApiKey($api_key_row->api_key)->setApiKeyName($api_key_row->api_key_name)->setUserId($api_key_row->user_id)->setApiKeyPermissions($api_key_row->api_key_permissions);
             }
             return (array) $keyObject_collection;
@@ -137,13 +137,47 @@ class Gw2Api_Keys_Model extends Gw2Api_Abstract implements Gw2Api_Key_Interface 
         $sql = "SELECT * FROM gw2api_key WHERE id = $api_key_id;";
         if (($query = $db->query($sql)) !== false AND $query->num_rows == 1) {
             $api_key_row = $query->fetch_object();
-            $keyObject = new self;
+            $keyObject = new Gw2Api_Keys_Model();
             $keyObject->setId($api_key_row->id)->setApiKey($api_key_row->api_key)->setApiKeyName($api_key_row->api_key_name)->setUserId($api_key_row->user_id)->setApiKeyPermissions($api_key_row->api_key_permissions);
             return $keyObject;
         }
         return false;
     }
  
+    /**
+     * returns one or more Gw2api_Keys_Model()s
+     * 
+     * @param   type        $account_id         website-db account_id
+     * @param   type        $required_scope     only return keyObjects with this scope
+     * @param   type        $only_one           return first keyObject only
+     * @return  collection of Gw2_Keys_Model()
+     * @return  Gw2_Keys_Model()
+     */
+    static function getApiKeyObjectsByAccountId($account_id, $required_scope = null, $only_one = false) {
+        $db = db::getInstance();
+        $sql = "SELECT * FROM gw2api_account_key_mapping WHERE account_id = '$account_id';";
+        if (($query = $db->query($sql)) !== false AND $query->num_rows >= 1) {
+            $keyObject_collection = [];
+            while ($key_mapping_row = $query->fetch_object()) {
+                $api_key_id = $key_mapping_row->api_key_id;
+                $keyObject = Gw2Api_Keys_Model::getApiKeyObjectByApiKeyId($api_key_id);
+                if ($required_scope === null) {
+                    $keyObject_collection[] = $keyObject;
+                } else {
+                    if (in_array($required_scope, $keyObject->getApiKeyPermissions())) {
+                        if ($only_one) {
+                            return $keyObject;
+                        } else {
+                            $keyObject_collection[] = $keyObject;
+                        }
+                    }
+                }
+            }
+            return (array) $keyObject_collection;
+        }
+        return false;
+    }
+
     public function save() {
         $api_key = $this->getApiKey();
         $user_id = $this->getUserId();

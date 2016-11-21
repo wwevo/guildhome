@@ -2,14 +2,15 @@
 
 class Gw2Api_Characters_Model extends Gw2Api_Abstract {
 
-    private $id;
-    private $eol_id;
-    private $account_id;
-    private $creation_date;
-    private $name;
-    private $gender;
-    private $race;
-    private $profession;
+    private $api_key = null;
+    private $id = null;
+    private $eol_id = null;
+    private $account_id = null;
+    private $creation_date = null;
+    private $name = null;
+    private $gender = null;
+    private $race = null;
+    private $profession = null;
 
     function getId() {
         return $this->id;
@@ -62,7 +63,7 @@ class Gw2Api_Characters_Model extends Gw2Api_Abstract {
         return $this;
     }
 
-    function setCreationDate($creation_date) {
+    private function setCreationDate($creation_date) {
         $this->creation_date = $creation_date;
         return $this;
     }
@@ -98,7 +99,7 @@ class Gw2Api_Characters_Model extends Gw2Api_Abstract {
 
     function getCharacterDataByAccountId($account_id) {
         $db = db::getInstance();
-        $sql = "SELECT * FROM gw2api_characters WHERE account_id = $account_id;";
+        $sql = "SELECT * FROM gw2api_characters WHERE account_id = '$account_id';";
         if (($query = $db->query($sql)) !== false AND $query->num_rows >= 1) {
             $charactersObject_collection = [];
             while ($characters_data_row = $query->fetch_object()) {
@@ -109,6 +110,37 @@ class Gw2Api_Characters_Model extends Gw2Api_Abstract {
         }
         return false;
     }
+    
+    function fetchCharacterObjectsByApiKey($api_key) {
+        $api_characters = $this->gw2apiRequest('/v2/characters', $api_key);
+        $characterObject_collection = [];
+        foreach ($api_characters as $key => $value) {
+            $character_data = $this->gw2apiRequest('/v2/characters/' . rawurlencode($value), $api_key);
+            $accountObject = Gw2Api_Account_Model::getAccountObjectByApiKey($api_key);
+
+            $characterObject = new Gw2Api_Characters_Model();
+            $characterObject->setAccountId($accountObject->getAccountId());
+            $characterObject->setGender($character_data['gender']);
+            $characterObject->setCreationDate($character_data['created']);
+            $characterObject->setRace($character_data['race']);
+            $characterObject->setProfession($character_data['profession']);
+            $characterObject->setName($character_data['name']);
+            $eol_id = md5((string) $character_data['created'] . (string) $character_data['race']);
+            $characterObject->setEolId($eol_id);
+
+//            if (!empty($characters[$key]['guild'])) {
+//                $characters[$key]['guild'] = $this->gw2apiRequest('/v1/guild_details.json?guild_id=' . $characters[$key]['guild'])['guild_name'];
+//            }
+//            $oDateNow = new DateTime();
+//            $oDateBirth = new DateTime($characters[$key]['created']);
+//            $oDateIntervall = $oDateNow->diff($oDateBirth, true);
+//            $characters[$key]['age'] = $oDateIntervall->format('%a');
+//            $birthday = new DateTime(date('Y-m-d', mktime(0, 0, 0, date("m"), date("d") - $characters[$key]["age"], date("Y"))));
+//            $characters[$key]['birthday'] = $birthday->format("Y-m-d");
+            $characterObject_collection[] = $characterObject;
+        }
+        return $characterObject_collection;
+    }
 
     protected function createDatabaseTablesByType($overwriteIfExists) {
         $db = db::getInstance();
@@ -118,7 +150,7 @@ class Gw2Api_Characters_Model extends Gw2Api_Abstract {
         }
         $sqlCharactersTable = "CREATE TABLE `gw2api_characters` (
             `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-            `eol_id` INT UNSIGNED NOT NULL,
+            `eol_id` VARCHAR(64) NOT NULL,
             `account_id` VARCHAR(100) NOT NULL,
             `creation_date` TIMESTAMP NOT NULL,
             `name` VARCHAR(100) NULL,
@@ -130,31 +162,24 @@ class Gw2Api_Characters_Model extends Gw2Api_Abstract {
     }
 
     protected function isValid() {
-        
+        return true;
     }
 
     public function save() {
-        $api_characters = $this->gw2apiRequest('/v2/characters', $this->getApiKey());
-        var_dump($api_characters); exit;
-
-        $id = $this->getId();
-        $eol_id = $this->getEolId();
         $account_id = $this->getAccountId();
         $creation_date = $this->getCreationDate();
         $name = $this->getName();
         $gender = $this->getGender();
         $race = $this->getRace();
         $profession = $this->getProfession();
-
-            $api_key_permissions = serialize($api_tokeninfo['permissions']);
-            $api_key_name = $api_tokeninfo['name'];
+        $eol_id = $this->getEolId();
 
         $db = db::getInstance();
-        $sql = "SELECT * FROM gw2api_characters WHERE account_id = $account_id AND eol_id = $eol_id;";
+        $sql = "SELECT * FROM gw2api_characters WHERE account_id = '$account_id' AND eol_id = '$eol_id';";
         if (($query = $db->query($sql)) !== false AND $query->num_rows >= 1) {
-            $sql = "UPDATE gw2api_key SET creation_date = '$creation_date', name = '$name', gender = '$gender' , race = '$race' , profession = '$profession'  WHERE account_id = $account_id AND eol_id = $eol_id;";
+            $sql = "UPDATE gw2api_characters SET creation_date = '$creation_date', name = '$name', gender = '$gender' , race = '$race' , profession = '$profession'  WHERE account_id = '$account_id' AND eol_id = '$eol_id';";
         } else {
-            $sql = "INSERT INTO gw2api_key (eol_id, account_id, creation_date, name, gender, race, profession) VALUES ('$eol_id', '$account_id', $creation_date, '$name', '$gender', '$race', '$profession');";
+            $sql = "INSERT INTO gw2api_characters (eol_id, account_id, creation_date, name, gender, race, profession) VALUES ('$eol_id', '$account_id', '$creation_date', '$name', '$gender', '$race', '$profession');";
         }
         if ($db->query($sql) !== false) {
             return true;
