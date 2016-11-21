@@ -29,13 +29,23 @@ class Gw2Api_Account {
         $keyObject = new Gw2Api_Keys();
         $keyObject_collection = $keyObject->model->getApiKeysByUserId(Login::currentUserID());
         Page::getInstance()->addContent('{##main##}', '<h3>Available Keys</h3>');
-        Page::getInstance()->addContent('{##main##}', $keyObject->view->listApiKeysByUserIdView($keyObject_collection));
+        Page::getInstance()->addContent('{##main##}', $keyObject->view->listApiKeysView($keyObject_collection));
         Page::getInstance()->addContent('{##main##}', $keyObject->view->getNewApiKeyFormView('/gw2api/account'));
         
         $accountObject = new Gw2Api_Account();
-        $accountObject_collection = $accountObject->model->getAccountDataByUserId(Login::currentUserID());
+        $accountObject_collection = $accountObject->model->getAccountObjectsByUserId(Login::currentUserID());
         Page::getInstance()->addContent('{##main##}', '<h3>Available Accounts</h3>');
-        Page::getInstance()->addContent('{##main##}', $accountObject->view->listAccountDataByUserIdView($accountObject_collection));
+        Page::getInstance()->addContent('{##main##}', $accountObject->view->listAccountDataView($accountObject_collection));
+        
+        if (is_array($accountObject_collection)) {
+            Page::getInstance()->addContent('{##main##}', '<h3>Available Characters</h3>');
+            foreach ($accountObject_collection as $accountObject) {
+                $charactersObject = new Gw2Api_Characters();
+                $charactersObject_collection = $charactersObject->model->getCharacterDataByAccountId($accountObject->getAccountId());
+                Page::getInstance()->addContent('{##main##}', '<h4>' . $accountObject->getAccountName() . '</h4>');
+                Page::getInstance()->addContent('{##main##}', $charactersObject->view->listCharactersDataView($charactersObject_collection));
+            }
+        }
     }
 
     /*
@@ -49,10 +59,11 @@ class Gw2Api_Account {
                 break;
             case "import" :
                 $keyObject = new Gw2Api_Keys_Model();
-                $keyObject = $keyObject->getApiKeyById($api_key_id);
-                $accountObject = new Gw2Api_Account();
-                $accountObject->model->setApiKey($keyObject->getApiKey())->setUserId(Login::currentUserID());
-                if ($accountObject->model->attemptSave()) { }
+                $keyObject = $keyObject->getApiKeyObjectByApiKeyId($api_key_id);
+                $api_key = $keyObject->getApiKey();
+                $accountObject = new Gw2Api_Account_Model();
+                $accountObject->setApiKey($api_key)->setUserId(Login::currentUserID());
+                if ($accountObject->attemptSave()) { }
                 break;
         }
         $target_url = $env->post('redirect_url');

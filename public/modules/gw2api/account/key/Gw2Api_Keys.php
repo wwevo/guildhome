@@ -14,12 +14,6 @@ class Gw2Api_Keys {
         $this->view = new Gw2Api_Keys_View();
     }
 
-    public function get() {
-        // nothing to display here, we are only using this to intercept POST
-        // requests
-
-    }
-
     /*
      * post() will be called by the Toro class (if a route is met for this
      * class) AND (a post header is being sent by your application).

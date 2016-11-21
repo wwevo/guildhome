@@ -24,7 +24,7 @@ class Gw2Api_Account_View {
      * @param   type    $accountObject_collection   contains an array with 'Gw2Api_Account()' objects to display
      * @return  \View
      */
-    function listAccountDataByUserIdView($accountObject_collection) {
+    function listAccountDataView($accountObject_collection) {
         $view = new View();
         $view->setTmpl($view->loadFile('/views/core/one_tag.php'));
         $view->addContent('{##data##}', '<table>');

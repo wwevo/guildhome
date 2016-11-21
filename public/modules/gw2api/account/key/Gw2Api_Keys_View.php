@@ -31,7 +31,7 @@ class Gw2Api_Keys_View {
      * @param   type    $keyObject_collection   contains an array with 'Gw2Api_Keys()' to display
      * @return  \View
      */
-    function listApiKeysByUserIdView($keyObject_collection) {
+    function listApiKeysView($keyObject_collection) {
         $view = new View();
         $view->setTmpl($view->loadFile('/views/core/one_tag.php'));
         $view->addContent('{##data##}', '<table>');
@@ -77,7 +77,7 @@ class Gw2Api_Keys_View {
     function getApiKeyManagementView($keyObject_collection) {
         $view = new View();
         $view->setTmpl($view->loadFile('/views/core/one_tag.php'));
-        $view->addContent('##data##', $this->listApiKeysByUserIdView($keyObject_collection));
+        $view->addContent('##data##', $this->listApiKeysView($keyObject_collection));
         $view->addContent('##data##', $this->getNewApiKeyFormView());
         $view->replaceTags();
         return $view;
