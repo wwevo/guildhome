@@ -23,7 +23,9 @@ class Gw2Api_Characters {
                 break;
             case "import" :
                 $keyObject = Gw2Api_Keys_Model::getApiKeyObjectsByAccountId($account_id, $required_scope = 'characters', $only_one = true);
-
+                if ($keyObject === false) {
+                    break;
+                }
                 $charactersObject = new Gw2Api_Characters_Model();
                 $charactersObject_collection = $charactersObject->fetchCharacterObjectsByApiKey($keyObject->getApiKey());
                 foreach ($charactersObject_collection as $charactersObject) {

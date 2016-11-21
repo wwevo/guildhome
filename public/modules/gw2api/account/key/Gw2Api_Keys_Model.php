@@ -173,6 +173,9 @@ class Gw2Api_Keys_Model extends Gw2Api_Abstract implements Gw2Api_Key_Interface 
                     }
                 }
             }
+            if (empty($keyObject_collection)) {
+                return false;
+            }
             return (array) $keyObject_collection;
         }
         return false;
