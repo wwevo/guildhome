@@ -36,9 +36,16 @@ class Gw2Api_Account_View {
                 $view->addContent('{##data##}', '<td class="small center">');
                 $view->addContent('{##data##}', $accountObject->getCreationDate());
                 $view->addContent('{##data##}', '</td>');
-                $view->addContent('{##data##}', '<td class="small center">');
-                $view->addContent('{##data##}', Gw2Api_Characters_View::getImportCharactersForm($accountObject, '/gw2api/account'));
-                $view->addContent('{##data##}', '</td>');
+                $keyObject = Gw2Api_Keys_Model::getApiKeyObjectsByAccountId($accountObject->getId(), $required_scope = 'characters', $only_one = true);
+                if ($keyObject !== false) {
+                    $view->addContent('{##data##}', '<td class="small center">');
+                    $view->addContent('{##data##}', Gw2Api_Characters_View::getImportCharactersForm($accountObject, '/gw2api/account'));
+                    $view->addContent('{##data##}', '</td>');
+                } else {
+                    $view->addContent('{##data##}', '<td class="small center">');
+                    $view->addContent('{##data##}', 'No Api-Key with "characters" scope found!');
+                    $view->addContent('{##data##}', '</td>');
+               }
                 $view->addContent('{##data##}', '</tr>');
             }
         } else {

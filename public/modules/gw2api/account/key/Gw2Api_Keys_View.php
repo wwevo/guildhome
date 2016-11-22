@@ -68,18 +68,4 @@ class Gw2Api_Keys_View {
         return $view;
     }
 
-    /**
-     * Diplays a collection of Views to manage API-Keys
-     * 
-     * @param   type    $keyObject_collection   contains an array with 'Gw2Api_Keys()' to manage
-     * @return \View
-     */
-    function getApiKeyManagementView($keyObject_collection) {
-        $view = new View();
-        $view->setTmpl($view->loadFile('/views/core/one_tag.php'));
-        $view->addContent('##data##', $this->listApiKeysView($keyObject_collection));
-        $view->addContent('##data##', $this->getNewApiKeyFormView());
-        $view->replaceTags();
-        return $view;
-    }
 }
