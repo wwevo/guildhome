@@ -102,14 +102,42 @@ class Gw2Api_Members_Model extends Gw2Api_Abstract {
         return true;
     }
 
-    static function getMemberObjectByAccountName($account_name) {
+    static function getMemberObjectById($id) {
         $db = db::getInstance();
-        $sql = "SELECT * FROM gw2api_members WHERE account_name = '$account_name';";
+        $sql = "SELECT * FROM gw2api_members WHERE id = $id;";
         if (($query = $db->query($sql)) !== false AND $query->num_rows == 1) {
             $member_data_row = $query->fetch_object();
             $memberObject = new Gw2Api_Members_Model();
             $memberObject->setId($member_data_row->id)->setJoined($member_data_row->joined)->setAccountName($member_data_row->account_name)->setGuildRank($member_data_row->guild_rank);
             return $memberObject;
+        }
+        return false;
+    }
+
+    static function getMemberObjectByAccountName($account_name) {
+        $db = db::getInstance();
+        $sql = "SELECT * FROM gw2api_members WHERE account_name = '$account_name';";
+        if (($query = $db->query($sql)) !== false AND $query->num_rows == 1) {
+            $member_data_row = $query->fetch_object();
+            return Gw2Api_Members_Model::getMemberObjectById($member_data_row->id);
+        }
+        return false;
+    }
+
+    static function getMemberObjectsByGuildId($guild_id) {
+        $db = db::getInstance();
+        $sql = "SELECT * FROM gw2api_guild_member_mapping WHERE guild_id = $guild_id;";
+        if (($query = $db->query($sql)) !== false AND $query->num_rows >= 1) {
+            $membersObject_collection = [];
+            while ($member_mapping_row = $query->fetch_object()) {
+                $member_id = $member_mapping_row->member_id;
+                $memberObject = Gw2Api_Members_Model::getMemberObjectById($member_id);
+                $membersObject_collection[] = $memberObject;
+            }
+            if (empty($membersObject_collection)) {
+                return false;
+            }
+            return (array) $membersObject_collection;
         }
         return false;
     }
