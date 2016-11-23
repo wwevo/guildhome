@@ -1,6 +1,6 @@
 <?php
 
-interface Gw2Api_Account_Interface {
+interface Gw2Api_Accounts_Interface {
     public function setAccountId($account_id);
     public function setAccountName($account_name);
     public function setUserId($userid);

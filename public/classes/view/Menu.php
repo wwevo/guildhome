@@ -6,29 +6,37 @@ class Menu {
         switch ($name) {
             default: 
             case 'site':
-                    $menu  = '<ul class="site-menu">';
-                    $menu .= '  <li><a href="/">Home</a></li>';
-                    $menu .= '  <li><a href="/activities">Activities</a></li>';
-                    $menu .= '  <li><a href="/profiles">Members</a></li>';
-                    $menu .= '  <li><a href="/pages/view/about">About EoL</a></li>';
-                    $menu .= '</ul>';
+                $menu  = '<ul class="site-menu">';
+                $menu .= '  <li><a href="/">Home</a></li>';
+                $menu .= '  <li><a href="/activities">Activities</a></li>';
+                $menu .= '  <li><a href="/profiles">Members</a></li>';
+                $menu .= '  <li><a href="/pages/view/about">About EoL</a></li>';
+                $menu .= '</ul>';
                 break;
             case 'user':
-                    $menu  = '<ul class="user-menu">';
-                    $menu .= '  <li>' . $login->getCombinedLoginView(Env::getCurrentURL()) . '</li>';
-                    if ($login->isLoggedIn()) {
-                        $menu .= '<hr />';
-                        $menu .= '  <li><a href="/profile/' . $login->currentUsername() . '">Profile</a>';
-                        $menu .= '  <ul>';
-                        $menu .= '      <li><a href="/profile/' . $login->currentUsername() . '/settings">Settings</a></li>';
-                        $menu .= '  </ul>';
-                        $menu .= '  </li>';
-
-                    }
-                    $menu .= '</ul>';
+                $menu  = '<ul class="user-menu">';
+                $menu .= '  <li>' . $login->getCombinedLoginView(Env::getCurrentURL()) . '</li>';
+                if ($login->isLoggedIn()) {
+                    $menu .= '<hr />';
+                    $menu .= '  <li><a href="/profile/' . $login->currentUsername() . '">Profile</a>';
+                    $menu .= '  <ul>';
+                    $menu .= '      <li><a href="/profile/' . $login->currentUsername() . '/settings">Settings</a></li>';
+                    $menu .= '  </ul>';
+                    $menu .= '  </li>';
+                }
+                $menu .= '</ul>';
                 break;
             case 'operator':
+                $menu = '';
+                break;
+            case 'admin':
+                if (!Login::isAdmin()) {
                     $menu = '';
+                    break;
+                }
+                $menu  = '<ul class="admin-menu">';
+                $menu .= '  <li><a href="/settings/system">System Settings</a></li>';
+                $menu .= '</ul>';
                 break;
         }
         return $menu;

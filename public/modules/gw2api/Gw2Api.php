@@ -10,7 +10,8 @@ class Gw2Api {
         if (!Login::isLoggedIn()) {
             return false;
         }
-        Page::getInstance()->addContent('{##main##}', View::linkFab('/gw2api/account/', 'Manage Accounts'));
+        header("Location: /gw2api/account");
+        exit;
     }
 
     public function post() {

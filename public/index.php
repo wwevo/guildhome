@@ -64,6 +64,7 @@ $menu = new Menu();
 $page->addContent('{##nav##}', $menu->getMenu('site'));
 $page->addContent('{##user_nav##}', $menu->getMenu('user'));
 $page->addContent('{##user_nav##}', $menu->getMenu('operator'));
+$page->addContent('{##user_nav##}', $menu->getMenu('admin'));
 
 $activity_event_widgets = new Activity_Event_Widgets();
 $page->addContent('{##widgets##}', '<hr />');

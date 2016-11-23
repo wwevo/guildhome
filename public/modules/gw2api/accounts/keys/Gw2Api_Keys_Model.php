@@ -1,6 +1,6 @@
 <?php
 
-class Gw2Api_Keys_Model extends Gw2Api_Abstract implements Gw2Api_Key_Interface {
+class Gw2Api_Keys_Model extends Gw2Api_Abstract implements Gw2Api_Keys_Interface {
     private $user_id = null;
     private $api_key = null;
     private $api_key_name = '';

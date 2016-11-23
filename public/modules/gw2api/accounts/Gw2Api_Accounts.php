@@ -1,18 +1,18 @@
 <?php
 
-class Gw2Api_Account {
+class Gw2Api_Accounts {
 
     public $model;
     public $view;
 
     function initEnv() {
-        Toro::addRoute(["/gw2api/account" => "Gw2Api_Account"]);
-        Toro::addRoute(["/gw2api/account/:string/:number" => "Gw2Api_Account"]);
+        Toro::addRoute(["/gw2api/account" => "Gw2Api_Accounts"]);
+        Toro::addRoute(["/gw2api/account/:string/:number" => "Gw2Api_Accounts"]);
     }
 
     function __construct() {
-        $this->model = new Gw2Api_Account_Model();
-        $this->view = new Gw2Api_Account_View();
+        $this->model = new Gw2Api_Accounts_Model();
+        $this->view = new Gw2Api_Accounts_View();
     }
 
     /*
@@ -20,7 +20,6 @@ class Gw2Api_Account {
      * routes will probbly be set in this classes initEnv(), they can be set
      * from anywhere in the project though
      */
-
     public function get() {
         if (!Login::isLoggedIn()) {
             return false;
@@ -32,7 +31,7 @@ class Gw2Api_Account {
         Page::getInstance()->addContent('{##main##}', $keyObject->view->listApiKeysView($keyObject_collection));
         Page::getInstance()->addContent('{##main##}', $keyObject->view->getNewApiKeyFormView('/gw2api/account'));
         
-        $accountObject = new Gw2Api_Account();
+        $accountObject = new Gw2Api_Accounts();
         $accountObject_collection = $accountObject->model->getAccountObjectsByUserId(Login::currentUserID());
         Page::getInstance()->addContent('{##main##}', '<h3>Available Accounts</h3>');
         Page::getInstance()->addContent('{##main##}', $accountObject->view->listAccountDataView($accountObject_collection));
@@ -59,7 +58,7 @@ class Gw2Api_Account {
                 break;
             case "import" :
                 $keyObject = Gw2Api_Keys_Model::getApiKeyObjectByApiKeyId($api_key_id);
-                $accountObject = new Gw2Api_Account_Model();
+                $accountObject = new Gw2Api_Accounts_Model();
                 $accountObject->setApiKey($keyObject->getApiKey())->setUserId(Login::currentUserID());
                 if ($accountObject->attemptSave()) { }
                 break;
@@ -78,6 +77,6 @@ class Gw2Api_Account {
  * I chose the initEnv approach because I don't know any better.
  * it's my way of having a onFirstLoad feature for my classes
  */
-$init_env = new Gw2Api_Account();
+$init_env = new Gw2Api_Accounts();
 $init_env->initEnv();
 unset($init_env);

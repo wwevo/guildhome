@@ -2,7 +2,7 @@
 
 class Gw2Api_Characters_View {
 
-    public static function getImportCharactersForm(Gw2Api_Account_Model $account, $target_url = null) {
+    public static function getImportCharactersForm(Gw2Api_Accounts_Model $account, $target_url = null) {
         $id = $account->getId();
         return View::createPrettyButtonForm("/gw2api/characters/import/$id", $target_url, "import Account-Characters");
     }

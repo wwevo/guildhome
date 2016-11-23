@@ -1,6 +1,6 @@
 <?php
 
-interface Gw2Api_Key_Interface {
+interface Gw2Api_Keys_Interface {
     public function setId($id);
     public function setApiKey($api_key);
     public function setUserId($user_id);

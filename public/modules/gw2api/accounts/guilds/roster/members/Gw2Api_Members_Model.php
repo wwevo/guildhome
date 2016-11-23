@@ -1,6 +1,6 @@
 <?php
 
-class Gw2Api_Characters_Model extends Gw2Api_Abstract {
+class Gw2Api_Members_Model extends Gw2Api_Abstract {
 
     private $api_key = null;
     private $id = null;
@@ -116,9 +116,9 @@ class Gw2Api_Characters_Model extends Gw2Api_Abstract {
         $characterObject_collection = [];
         foreach ($api_characters as $key => $value) {
             $character_data = $this->gw2apiRequest('/v2/characters/' . rawurlencode($value), $api_key);
-            $accountObject = Gw2Api_Account_Model::getAccountObjectByApiKey($api_key);
+            $accountObject = Gw2Api_Accounts_Model::getAccountObjectByApiKey($api_key);
 
-            $characterObject = new Gw2Api_Characters_Model();
+            $characterObject = new Gw2Api_Members_Model();
             $characterObject->setAccountId($accountObject->getAccountId());
             $characterObject->setGender($character_data['gender']);
             $characterObject->setCreationDate($character_data['created']);

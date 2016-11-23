@@ -52,7 +52,7 @@ class Gw2Api_Keys_View {
                 $view->addContent('{##data##}', '<ul><li>' . implode('</li><li>', $keyObject->getApiKeyPermissions()) . '</li></ul>');
                 $view->addContent('{##data##}', '</td>');
                 $view->addContent('{##data##}', '<td class="right">');
-                $view->addContent('{##data##}', Gw2Api_Account_View::getImportAccountForm($keyObject, '/gw2api/account'));
+                $view->addContent('{##data##}', Gw2Api_Accounts_View::getImportAccountForm($keyObject, '/gw2api/account'));
                 $view->addContent('{##data##}', '</td>');
                 $view->addContent('{##data##}', '</tr>');
             }
