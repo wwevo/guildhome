@@ -8,6 +8,10 @@ class Gw2Api_Guilds_Model extends Gw2Api_Abstract implements Gw2Api_Guilds_Inter
     private $guild_name = null;
     private $tag = null;
 
+    function __construct() {
+        $_SESSION['dbconfig']['Gw2Api_Guilds_Model'] = $this;
+    }
+
     function getAccountId() {
         return $this->account_id;
     }
@@ -52,11 +56,7 @@ class Gw2Api_Guilds_Model extends Gw2Api_Abstract implements Gw2Api_Guilds_Inter
         $this->tag = $tag;
         return $this;
     }
-
-    function __construct() {
-        $_SESSION['dbconfig']['Gw2Api_Guilds_Model'] = $this;
-    }
-
+    
     function isValid() {
     }
 
@@ -65,21 +65,31 @@ class Gw2Api_Guilds_Model extends Gw2Api_Abstract implements Gw2Api_Guilds_Inter
         $sql = "SELECT * FROM gw2api_guilds WHERE id = $id;";
         if (($query = $db->query($sql)) !== false AND $query->num_rows >= 1) {
             $guild_data_row = $query->fetch_object();
-                $guildObject = new Gw2Api_Guilds_Model();
-                $guildObject->setId($guild_data_row->id)->setGuildId($guild_data_row->guild_id)->setName($guild_data_row->name)->setTag($guild_data_row->tag);
+            $guildObject = new Gw2Api_Guilds_Model();
+            $guildObject->setId($guild_data_row->id)->setGuildId($guild_data_row->guild_id)->setName($guild_data_row->name)->setTag($guild_data_row->tag);
             return $guildObject;
         }
         return false;
     }
 
+    static function getGuildObjectByGuildId($guild_id) {
+        $db = db::getInstance();
+        $sql = "SELECT * FROM gw2api_guilds WHERE guild_id = '$guild_id';";
+        if (($query = $db->query($sql)) !== false AND $query->num_rows >= 1) {
+            $guild_data_row = $query->fetch_object();
+            $guildObject = Gw2Api_Guilds_Model::getGuildObjectById($guild_data_row->id);
+            return $guildObject;
+        }
+        return false;
+    }
+    
     static function getGuildObjectsByAccountId($account_id) {
         $db = db::getInstance();
         $sql = "SELECT * FROM gw2api_account_guild_mapping WHERE account_id = $account_id;";
         if (($query = $db->query($sql)) !== false AND $query->num_rows >= 1) {
             $guildObject_collection = [];
             while ($guild_mapping_row = $query->fetch_object()) {
-                $id = $guild_mapping_row->guilds_id;
-                $guildObject = Gw2Api_Guilds_Model::getGuildObjectById($id);
+                $guildObject = Gw2Api_Guilds_Model::getGuildObjectById($guild_mapping_row->guilds_id);
                 $guildObject_collection[] = $guildObject;
             }
             return (array) $guildObject_collection;
@@ -115,25 +125,24 @@ class Gw2Api_Guilds_Model extends Gw2Api_Abstract implements Gw2Api_Guilds_Inter
         $name = $this->getName();
         $tag = $this->getTag();
 
-        $guildObject = Gw2Api_Guilds_Model::getGuildObjectById($id);
+        $guildObject = Gw2Api_Guilds_Model::getGuildObjectByGuildId($guild_id);
         $db = db::getInstance();
         if (false !== $guildObject) {
-            $sql = "UPDATE gw2api_guilds SET guild_id = '$guild_id', name = '$name', tag = '$tag' WHERE id = $id;";
+            $sql = "UPDATE gw2api_guilds SET name = '$name', tag = '$tag' WHERE guild_id = '$guild_id';";
             if ($db->query($sql) === false) {
-                return false;
             }
+            $id = $guildObject->getId();
         } else {
             $sql = "INSERT INTO gw2api_guilds (guild_id, name, tag) VALUES ('$guild_id', '$name', '$tag');";
             if ($db->query($sql) === false) {
-                return false;
             }
             $id = $db->insert_id;
         }
-        $sql = "SELECT * FROM gw2api_account_guild_mapping WHERE guilds_id = $id;";
+        $sql = "SELECT * FROM gw2api_account_guild_mapping WHERE guilds_id = $id AND account_id = $account_id;";
         if (($query = $db->query($sql)) !== false AND $query->num_rows >= 1) {
             return true;
         }
-        $sql = "INSERT INTO gw2api_account_guild_mapping (account_id, guilds_id) VALUES ('$account_id', $id);";
+        $sql = "INSERT INTO gw2api_account_guild_mapping (account_id, guilds_id) VALUES ($account_id, $id);";
         if ($db->query($sql) === false) {
             return false;
         }
@@ -147,15 +156,15 @@ class Gw2Api_Guilds_Model extends Gw2Api_Abstract implements Gw2Api_Guilds_Inter
             $db->query($sqlDropAccountsTable);
         }
         $sqlGuildsTable = "CREATE TABLE `gw2api_guilds` (
-            `id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
-            `guild_id` VARCHAR(100) NOT NULL,
+            `id` INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+            `guild_id` VARCHAR(100) NOT NULL UNIQUE,
             `name` VARCHAR(100) NOT NULL,
             `tag` VARCHAR(100) NOT NULL
         );";
         $db->query($sqlGuildsTable);
         $sqlMappingTable = "CREATE TABLE `gw2api_account_guild_mapping` (
-            `account_id` int(11) NOT NULL,
-            `guilds_id` int(11) NOT NULL,
+            `account_id` INT(11) NOT NULL,
+            `guilds_id` INT(11) NOT NULL,
             PRIMARY KEY (`account_id`, `guilds_id`)
         );";
         $db->query($sqlMappingTable);

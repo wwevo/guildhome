@@ -222,8 +222,8 @@ class Gw2Api_Accounts_Model extends Gw2Api_Abstract implements Gw2Api_Accounts_I
             return false;
         }            
         $sqlMappingTable = "CREATE TABLE `gw2api_account_key_mapping` (
-            `account_id` int(11) NOT NULL,
-            `api_key_id` int(11) NOT NULL,
+            `account_id` INT(11) NOT NULL,
+            `api_key_id` INT(11) NOT NULL,
             PRIMARY KEY (`account_id`, `api_key_id`)
         );";
         return $db->query($sqlMappingTable);

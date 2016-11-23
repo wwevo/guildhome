@@ -112,6 +112,7 @@ class Login {
         if ($this->isLoggedIn()) {
             // delete the session of the user
             $_SESSION['evo'] = null;
+            $_SESSION['dbconfig'] = null;
         }
     }
 

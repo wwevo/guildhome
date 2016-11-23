@@ -14,10 +14,14 @@ class Gw2Api_Guilds_View {
         if (is_array($guildsObject_collection)) {
             foreach ($guildsObject_collection as $guildObject) {
                 $view->addContent('{##data##}', '<tr>');
-                $view->addContent('{##data##}', '<th>');
+                $view->addContent('{##data##}', '<td>');
                 $view->addContent('{##data##}', $guildObject->getName());
-                $view->addContent('{##data##}', '</th>');
-                $view->addContent('{##data##}', '</tr>');
+                $view->addContent('{##data##}', '</td>');
+                // TODO: i'd like to display this only if user is a/the guilds leader, havent found a way yet.
+                    $view->addContent('{##data##}', '<td>');
+                    $view->addContent('{##data##}', Gw2Api_Members_View::getImportMembersForm($guildObject, '/gw2api/account'));
+                    $view->addContent('{##data##}', '</td>');
+                    $view->addContent('{##data##}', '</tr>');
             }
         } else {
             $view->addContent('{##data##}', '<tr>');

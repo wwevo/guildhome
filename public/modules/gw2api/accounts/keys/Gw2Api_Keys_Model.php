@@ -7,7 +7,7 @@ class Gw2Api_Keys_Model extends Gw2Api_Abstract implements Gw2Api_Keys_Interface
     private $api_key_permissions = [];
     
     function __construct() {
-        $_SESSION['dbconfig']['Gw2Api_Key_Model'] = $this;
+        $_SESSION['dbconfig']['Gw2Api_Keys_Model'] = $this;
     }
 
     public function getId() {
@@ -92,15 +92,26 @@ class Gw2Api_Keys_Model extends Gw2Api_Abstract implements Gw2Api_Keys_Interface
      * @return  array of 'Gw2api_Keys_Model' Objects
      * @return  false
      */
-    static function getApiKeyObjectsByUserId($user_id) {
+    static function getApiKeyObjectsByUserId($user_id, $required_scope = null) {
         $db = db::getInstance();
         $sql = "SELECT * FROM gw2api_key WHERE user_id = $user_id;";
         if (($query = $db->query($sql)) !== false AND $query->num_rows >= 1) {
             $keyObject_collection = [];
-            while ($api_key_row = $query->fetch_object()) {
-                $keyObject = new Gw2Api_Keys_Model();
-                $keyObject_collection[] = $keyObject->setId($api_key_row->id)->setApiKey($api_key_row->api_key)->setApiKeyName($api_key_row->api_key_name)->setUserId($api_key_row->user_id)->setApiKeyPermissions($api_key_row->api_key_permissions);
+            while ($key_mapping_row = $query->fetch_object()) {
+                $api_key_id = $key_mapping_row->id;
+                $keyObject = Gw2Api_Keys_Model::getApiKeyObjectByApiKeyId($api_key_id);
+                if ($required_scope === null) {
+                    $keyObject_collection[] = $keyObject;
+                } else {
+                    if (in_array($required_scope, $keyObject->getApiKeyPermissions())) {
+                        $keyObject_collection[] = $keyObject;
+                    }
+                }
             }
+//            while ($api_key_row = $query->fetch_object()) {
+//                $keyObject = new Gw2Api_Keys_Model();
+//                $keyObject_collection[] = $keyObject->setId($api_key_row->id)->setApiKey($api_key_row->api_key)->setApiKeyName($api_key_row->api_key_name)->setUserId($api_key_row->user_id)->setApiKeyPermissions($api_key_row->api_key_permissions);
+//            }
             return (array) $keyObject_collection;
         }
         return false;

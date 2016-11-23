@@ -12,6 +12,10 @@ class Gw2Api_Characters_Model extends Gw2Api_Abstract {
     private $race = null;
     private $profession = null;
 
+    function __construct() {
+        $_SESSION['dbconfig']['Gw2Api_Characters_Model'] = $this;
+    }
+
     function getId() {
         return $this->id;
     }
@@ -91,10 +95,6 @@ class Gw2Api_Characters_Model extends Gw2Api_Abstract {
     public function setApiKey($api_key) {
         $this->api_key = $api_key;
         return $this;
-    }
-
-    function __construct() {
-        $_SESSION['dbconfig']['Gw2Api_Characters_Model'] = $this;
     }
 
     function getCharacterDataByAccountId($account_id) {

@@ -48,17 +48,19 @@ class Gw2Api_Accounts_View {
                 }
                 $view->addContent('{##data##}', '</tr>');
                 $view->addContent('{##data##}', '<tr>');
+                $view->addContent('{##data##}', '<td colspan="2" class="small center">');
+                $view->addContent('{##data##}', Gw2Api_Guilds_View::getImportGuildsForm($accountObject, '/gw2api/account'));
+                $view->addContent('{##data##}', '</td>');
+                
+                $view->addContent('{##data##}', '</tr>');
                 $guildObject_collection = Gw2Api_Guilds_Model::getGuildObjectsByAccountId($accountObject->getId());
                 if (is_array($guildObject_collection)) {
+                    $view->addContent('{##data##}', '<tr>');
                     $view->addContent('{##data##}', '<td colspan="2">');
                     $view->addContent('{##data##}', Gw2Api_Guilds_View::listAvailableGuildsView($guildObject_collection));
                     $view->addContent('{##data##}', '</td>');
-                } else {
-                    $view->addContent('{##data##}', '<td colspan="2" class="small center">');
-                    $view->addContent('{##data##}', Gw2Api_Guilds_View::getImportGuildsForm($accountObject, '/gw2api/account'));
-                    $view->addContent('{##data##}', '</td>');
+                    $view->addContent('{##data##}', '</tr>');
                 }
-                $view->addContent('{##data##}', '</tr>');
             }
         } else {
             $view->addContent('{##data##}', '<tr>');
