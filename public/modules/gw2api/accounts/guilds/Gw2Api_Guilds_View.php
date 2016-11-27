@@ -7,7 +7,7 @@ class Gw2Api_Guilds_View {
         return View::createPrettyButtonForm("/gw2api/guilds/import/$id", $target_url, "import Account-Guilds");
     }
 
-    static function listAvailableGuildsView($guildsObject_collection) {
+    static function listDataTableView($guildsObject_collection) {
         $view = new View();
         $view->setTmpl($view->loadFile('/views/core/one_tag.php'));
         $view->addContent('{##data##}', '<table>');
@@ -18,7 +18,7 @@ class Gw2Api_Guilds_View {
                 $view->addContent('{##data##}', $guildObject->getName());
                 $view->addContent('{##data##}', '</td>');
                 // TODO: i'd like to display this only if user is a/the guilds leader, havent found a way yet.
-                $view->addContent('{##data##}', '<td>');
+                $view->addContent('{##data##}', '<td class="right">');
                 $view->addContent('{##data##}', Gw2Api_Members_View::getImportMembersForm($guildObject, '/gw2api/account'));
                 $view->addContent('{##data##}', '</td>');
                 $view->addContent('{##data##}', '</tr>');
@@ -26,7 +26,7 @@ class Gw2Api_Guilds_View {
                 if (is_array($membersObject_collection)) {
                     $view->addContent('{##data##}', '<tr>');
                     $view->addContent('{##data##}', '<td colspan="2">');
-                    $view->addContent('{##data##}', Gw2Api_Members_View::listMembersDataView($membersObject_collection));
+                    $view->addContent('{##data##}', Gw2Api_Members_View::listDataTableView($membersObject_collection));
                     $view->addContent('{##data##}', '</td>');
                     $view->addContent('{##data##}', '</tr>');
                 }

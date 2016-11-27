@@ -21,6 +21,7 @@ class Menu {
                     $menu .= '  <li><a href="/profile/' . $login->currentUsername() . '">Profile</a>';
                     $menu .= '  <ul>';
                     $menu .= '      <li><a href="/profile/' . $login->currentUsername() . '/settings">Settings</a></li>';
+                    $menu .= '      <li><a href="/profile/' . $login->currentUsername() . '/characters">Characters</a></li>';
                     $menu .= '  </ul>';
                     $menu .= '  </li>';
                 }

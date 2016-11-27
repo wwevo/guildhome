@@ -11,7 +11,7 @@
 {##ranks##}
         <tr>
             <td>{##rank_description##}</td>
-            <td>{##rank_count##}</td>
+            <td class="center">{##rank_count##}</td>
         </tr>
 {/##ranks##}
         </tbody>

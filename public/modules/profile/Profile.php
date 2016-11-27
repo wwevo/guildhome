@@ -9,12 +9,14 @@ class Profile {
     
     function get($user_name = NULL) {
         $page = Page::getInstance();
-        $login = new Login();
         $user_id = $this->getUserIDByUsername($user_name);
 
         if (is_null($user_id)) {
             $page->setContent('{##main##}', '<h2>Registered Members</h2>');
             $page->addContent('{##main##}', $this->getUsersView());
+            
+            $members_widgets = new Gw2Api_Members_Widgets();
+            $page->addContent('{##main##}', $members_widgets->getRankUsageFromRosterView());
         } else {
             $page->setContent('{##main##}', '<h2>Profile</h2>');
             $page->addContent('{##main##}', $this->getProfileView($user_id));
@@ -54,6 +56,19 @@ class Profile {
 
             if ($user->id == $login->currentUserID()) { // it's-a-me!
                 $subView->addContent('{##email##}', $user->email);
+
+                $accountObject = new Gw2Api_Accounts_Model();
+                $accountObject_collection = $accountObject->getAccountObjectsByUserId(Login::currentUserID());
+                if (is_array($accountObject_collection)) {
+                    $allCharactersObjects_collection = [];
+                    foreach ($accountObject_collection as $accountObject) {
+                        $charactersObject = new Gw2Api_Characters_Model();
+                        $charactersObject_collection = $charactersObject->getCharacterDataByAccountId($accountObject->getAccountId());
+                        $allCharactersObjects_collection = array_merge($allCharactersObjects_collection, $charactersObject_collection);
+                    }
+                    $characters_widgets = new Gw2Api_Characters_Widgets();
+                    $view->addContent('{##main##}', $characters_widgets->getNextBirthdaysView($allCharactersObjects_collection));
+                }
 
                 $activity_event_widgets = new Activity_Event_Signups_Widgets();
                 $view->addContent('{##main##}', $activity_event_widgets->getSignupsByUserIdView($login->currentUserID()));

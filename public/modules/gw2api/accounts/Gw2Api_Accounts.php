@@ -28,13 +28,13 @@ class Gw2Api_Accounts {
         $keyObject = new Gw2Api_Keys();
         $keyObject_collection = $keyObject->model->getApiKeyObjectsByUserId(Login::currentUserID());
         Page::getInstance()->addContent('{##main##}', '<h3>Available Keys</h3>');
-        Page::getInstance()->addContent('{##main##}', $keyObject->view->listApiKeysView($keyObject_collection));
+        Page::getInstance()->addContent('{##main##}', $keyObject->view->listDataTableView($keyObject_collection));
         Page::getInstance()->addContent('{##main##}', $keyObject->view->getNewApiKeyFormView('/gw2api/account'));
         
         $accountObject = new Gw2Api_Accounts();
         $accountObject_collection = $accountObject->model->getAccountObjectsByUserId(Login::currentUserID());
         Page::getInstance()->addContent('{##main##}', '<h3>Available Accounts</h3>');
-        Page::getInstance()->addContent('{##main##}', $accountObject->view->listAccountDataView($accountObject_collection));
+        Page::getInstance()->addContent('{##main##}', $accountObject->view->listDataTableView($accountObject_collection));
         
         if (is_array($accountObject_collection)) {
             Page::getInstance()->addContent('{##main##}', '<h3>Available Characters</h3>');
@@ -42,7 +42,7 @@ class Gw2Api_Accounts {
                 $charactersObject = new Gw2Api_Characters();
                 $charactersObject_collection = $charactersObject->model->getCharacterDataByAccountId($accountObject->getAccountId());
                 Page::getInstance()->addContent('{##main##}', '<h4>' . $accountObject->getAccountName() . '</h4>');
-                Page::getInstance()->addContent('{##main##}', $charactersObject->view->listCharactersDataView($charactersObject_collection));
+                Page::getInstance()->addContent('{##main##}', $charactersObject->view->listDataTableView($charactersObject_collection));
             }
         }
     }

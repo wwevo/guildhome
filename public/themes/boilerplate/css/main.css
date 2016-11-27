@@ -506,7 +506,7 @@ table tr,
     background-color: #fff8e7;
 }
 
-table tr,
+table tr:nth-child(2n),
 .widget table tr:nth-child(2n),
 .module table tr:nth-child(2n) {
     color: #EA6C12;

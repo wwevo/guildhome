@@ -127,7 +127,7 @@ class Gw2Api_Keys_Model extends Gw2Api_Abstract implements Gw2Api_Keys_Interface
     static function getApiKeyObjectByApiKey($api_key) {
         $db = db::getInstance();
         $sql = "SELECT * FROM gw2api_key WHERE api_key = '$api_key';";
-        if (($query = $db->query($sql)) !== false AND $query->num_rows == 1) {
+        if (($query = $db->query($sql)) !== false AND $query->num_rows >= 1) {
             $api_key_row = $query->fetch_object();
             $keyObject = new Gw2Api_Keys_Model();
             $keyObject->setId($api_key_row->id)->setApiKey($api_key_row->api_key)->setApiKeyName($api_key_row->api_key_name)->setUserId($api_key_row->user_id)->setApiKeyPermissions($api_key_row->api_key_permissions);

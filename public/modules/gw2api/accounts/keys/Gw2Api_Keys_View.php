@@ -31,12 +31,12 @@ class Gw2Api_Keys_View {
      * @param   type    $keyObject_collection   contains an array with 'Gw2Api_Keys()' to display
      * @return  \View
      */
-    function listApiKeysView($keyObject_collection) {
+    function listDataTableView($keyObject_collection) {
         $view = new View();
         $view->setTmpl($view->loadFile('/views/core/one_tag.php'));
-        $view->addContent('{##data##}', '<table>');
         if (is_array($keyObject_collection)) {
             foreach ($keyObject_collection as $keyObject) {
+                $view->addContent('{##data##}', '<table>');
                 $view->addContent('{##data##}', '<tr>');
                 $view->addContent('{##data##}', '<th colspan="2">');
                 $view->addContent('{##data##}', $keyObject->getApiKeyName());
@@ -55,15 +55,17 @@ class Gw2Api_Keys_View {
                 $view->addContent('{##data##}', Gw2Api_Accounts_View::getImportAccountForm($keyObject, '/gw2api/account'));
                 $view->addContent('{##data##}', '</td>');
                 $view->addContent('{##data##}', '</tr>');
+                $view->addContent('{##data##}', '</table>');
             }
         } else {
+            $view->addContent('{##data##}', '<table>');
             $view->addContent('{##data##}', '<tr>');
             $view->addContent('{##data##}', '<th>');
             $view->addContent('{##data##}', 'no Api-Keys found');
             $view->addContent('{##data##}', '</th>');
             $view->addContent('{##data##}', '</tr>');
+            $view->addContent('{##data##}', '</table>');
         }
-        $view->addContent('{##data##}', '</table>');
         $view->replaceTags();
         return $view;
     }
