@@ -25,19 +25,29 @@ require_once "activity/Activity.php";
 
 require_once "pages/Pages.php";
 
-require_once "gw2api/gw2api.php";
-    require_once "gw2api/widgets/gw2api_Widgets.php";
-
-require_once "gw2api/Gw2Api_Model.php";
-    require_once "gw2api/account/Gw2Api_Account_Model.php";
-    require_once "gw2api/account/Gw2Api_Account_View.php";
-    require_once "gw2api/account/Gw2Api_Account.php";
-    require_once "gw2api/roster/Gw2Api_Roster_Model.php";
-    require_once "gw2api/roster/Gw2Api_Roster_View.php";
-    require_once "gw2api/roster/Gw2Api_Roster.php";
-    require_once "gw2api/characters/Gw2Api_Characters_Model.php";
-    require_once "gw2api/characters/Gw2Api_Characters_View.php";
-    require_once "gw2api/characters/Gw2Api_Characters.php";
+require_once "gw2api/Gw2Api_Interface.php";
+require_once "gw2api/Gw2Api_Abstract.php";
+require_once "gw2api/Gw2Api.php";
+    require_once "gw2api/accounts/Gw2Api_Accounts_Interface.php";
+    require_once "gw2api/accounts/Gw2Api_Accounts_Model.php";
+    require_once "gw2api/accounts/Gw2Api_Accounts_View.php";
+    require_once "gw2api/accounts/Gw2Api_Accounts.php";
+        require_once "gw2api/accounts/characters/Gw2Api_Characters_Model.php";
+        require_once "gw2api/accounts/characters/Gw2Api_Characters_Widgets.php";
+        require_once "gw2api/accounts/characters/Gw2Api_Characters_View.php";
+        require_once "gw2api/accounts/characters/Gw2Api_Characters.php";
+        require_once "gw2api/accounts/guilds/Gw2Api_Guilds_Interface.php";
+        require_once "gw2api/accounts/guilds/Gw2Api_Guilds_Model.php";
+        require_once "gw2api/accounts/guilds/Gw2Api_Guilds_View.php";
+        require_once "gw2api/accounts/guilds/Gw2Api_Guilds.php";
+            require_once "gw2api/accounts/guilds/members/Gw2Api_Members_Model.php";
+            require_once "gw2api/accounts/guilds/members/Gw2Api_Members_Widgets.php";
+            require_once "gw2api/accounts/guilds/members/Gw2Api_Members_View.php";
+            require_once "gw2api/accounts/guilds/members/Gw2Api_Members.php";
+        require_once "gw2api/accounts/keys/Gw2Api_Keys_Interface.php";
+        require_once "gw2api/accounts/keys/Gw2Api_Keys_Model.php";
+        require_once "gw2api/accounts/keys/Gw2Api_Keys_View.php";
+        require_once "gw2api/accounts/keys/Gw2Api_Keys.php";
 
 require_once "dev/Dev.php";
 require_once "config/Database.php";

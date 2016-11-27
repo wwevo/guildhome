@@ -145,15 +145,15 @@ class View {
     static function createPrettyButtonForm($action_url, $redirect_url, $text) {
         $view = new self();
         $view->setTmpl($view->loadFile('/views/core/widgets/prettybutton.php'));
-        $view->setContent('{##action##}', $action_url);
+        $view->setContent('{##action_url##}', $action_url);
         $view->addContent('{##text##}', $text);
 
         if (isset($redirect_url)) {
             $subView = new View();
-            $subView->setTmpl($view->getSubTemplate('{##target_url##}'));
-            $subView->addContent('{##url##}', $target_url);
+            $subView->setTmpl($view->getSubTemplate('{##redirect_url##}'));
+            $subView->addContent('{##url##}', $redirect_url);
             $subView->replaceTags();
-            $view->addContent('{##target_url##}', $subView);
+            $view->addContent('{##redirect_url##}', $subView);
         }
         $view->replaceTags();
         return $view;

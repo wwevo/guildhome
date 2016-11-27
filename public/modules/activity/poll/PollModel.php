@@ -40,7 +40,7 @@ class PollModel implements IDatabaseModel {
     }
 
     public function createDatabaseTables($overwriteIfExists) {
-        echo 'PollModel.createDatabaseTables() called!';
+//        echo 'PollModel.createDatabaseTables() called!';
         $db = db::getInstance();
         if ($overwriteIfExists) {
             $sqlDropExistingPollTables = "DROP TABLE IF EXISTS activity_polls_votes,activity_polls_options,activity_polls";

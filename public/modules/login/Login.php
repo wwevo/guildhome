@@ -112,39 +112,40 @@ class Login {
         if ($this->isLoggedIn()) {
             // delete the session of the user
             $_SESSION['evo'] = null;
+            $_SESSION['dbconfig'] = null;
         }
     }
 
-    public function isLoggedIn() {
+    public static function isLoggedIn() {
         if (isset($_SESSION['evo']['user_login_status']) AND $_SESSION['evo']['user_login_status'] == 1) {
             return true;
         }
         return false;
     }
 
-    public function currentUserID() {
-        if ($this->isLoggedIn()) {
+    public static function currentUserID() {
+        if (self::isLoggedIn()) {
             return $_SESSION['evo']['user_id'];
         }
         return false;
     }
     
-    public function currentUsername() {
-        if ($this->isLoggedIn()) {
+    public static function currentUsername() {
+        if (self::isLoggedIn()) {
             return $_SESSION['evo']['username'];
         }
         return 'Guest';
     }
     
-    public function isOperator() {
+    public static function isOperator() {
         if (isset($_SESSION['evo']['user_is_operator']) AND $_SESSION['evo']['user_is_operator'] == 1
-            OR $this->isAdmin()) {
+            OR self::isAdmin()) {
             return true;
         }
         return false;
     }
     
-    public function isAdmin() {
+    public static function isAdmin() {
         if (isset($_SESSION['evo']['user_is_admin']) AND $_SESSION['evo']['user_is_admin'] == 1) {
             return true;
         }
@@ -192,7 +193,6 @@ class Login {
         }
         $view->replaceTags();
         return $view;
-        
     }
 
     public function getCombinedLoginView($target_url = null) {

@@ -11,7 +11,7 @@
 {##roster##}
         <tr>
             <td>{##account_name##}</td>
-            <td>{##guild_rank##}</td>
+            <td class="center">{##guild_rank##}</td>
         </tr>
 {/##roster##}
         </tbody>

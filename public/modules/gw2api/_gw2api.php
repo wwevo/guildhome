@@ -4,11 +4,10 @@ class gw2api {
 
     function initEnv() {
         Toro::addRoute(["/gw2api" => "gw2api"]);
-        Toro::addRoute(["/gw2api/:alpha" => "gw2api"]);
         Env::registerHook('api_key', array(new gw2api(), 'validateApiKey'));
     }
 
-    function get($slug = '') {
+    function get() {
         $page = Page::getInstance();
         $login = new Login();
         $settings = new Settings();
@@ -102,7 +101,7 @@ class gw2api {
         $msg = Msg::getInstance();
         $error = 0;
         $api_tokeninfo = $this->gw2apiRequest('/v2/tokeninfo', $key);
-        if (!isset($api_tokeninfo['permissions']) OR ! is_array($api_tokeninfo['permissions'])) {
+        if (!isset($api_tokeninfo['permissions']) OR !is_array($api_tokeninfo['permissions'])) {
             $msg->add('setting_api_key_validation', 'Not a valid API-Key?');
             $error = 1;
         } else {

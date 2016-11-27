@@ -8,13 +8,20 @@ class Profile_Characters {
 
     function get($user_name = NULL) {
         $page = Page::getInstance();
-        $login = new Login();
         
-        if ($user_name == $login->currentUsername()) {
-            $page->setContent('{##main##}', '<h2>Profile</h2>');
-            $gw2api = new gw2api();
-            if ($gw2api->hasApiData('characters')) {
-                $page->addContent('{##main##}', $gw2api->getAccountCharactersView());
+        if ($user_name == Login::currentUsername()) {
+            $page->setContent('{##main##}', '<h2>Characters</h2>');
+
+            $accountObject = new Gw2Api_Accounts_Model();
+            $accountObject_collection = $accountObject->getAccountObjectsByUserId(Login::currentUserID());
+            if (!is_array($accountObject_collection)) {
+                return false;
+            }
+            foreach ($accountObject_collection as $accountObject) {
+                $charactersObject = new Gw2Api_Characters();
+                $charactersObject_collection = $charactersObject->model->getCharacterDataByAccountId($accountObject->getAccountId());
+                Page::getInstance()->addContent('{##main##}', '<h4>' . $accountObject->getAccountName() . '</h4>');
+                Page::getInstance()->addContent('{##main##}', $charactersObject->view->listDataTableView($charactersObject_collection));
             }
         }
     }   
