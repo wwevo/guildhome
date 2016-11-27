@@ -1,54 +1,11 @@
 <?php
 
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
-/**
- * Description of Register
- *
- * @author Christian Voigt <chris at notjustfor.me>
- */
 class Register {
-    /**
-     * @var object The database connection
-     */
-    
+
     public function initEnv() {
         Toro::addRoute(["/register" => 'Register']);
     }
 
-    function create_tables() {
-        // Dirty Setup
-        $db = db::getInstance();
-        $sql = "CREATE TABLE users (
-            id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-            username VARCHAR(30) NOT NULL,
-            password_hash VARCHAR(64) NOT NULL,
-            email VARCHAR(50),
-            rank INT(1)
-        )";
-        $result = $db->query($sql);
-
-        $sql = "CREATE TABLE user_ranks (
-            id INT(6) UNSIGNED PRIMARY KEY,
-            description VARCHAR(50)
-        )";
-        $result = $db->query($sql);
-        
-        $sql = "INSERT INTO user_ranks (id, description)
-                            VALUES('0', 'admin');";
-        $result = $db->query($sql);
-        $sql = "INSERT INTO user_ranks (id, description)
-                            VALUES('1', 'operator');";
-        $result = $db->query($sql);
-        $sql = "INSERT INTO user_ranks (id, description)
-                            VALUES('2', 'user');";
-        $result = $db->query($sql);
-    }
-    
     public function get() {
         $page = Page::getInstance();
         $page->setContent('{##main##}', '<h2>Register</h2>');
@@ -59,8 +16,8 @@ class Register {
         $env = Env::getInstance();
         
         if (isset($env->post('register')['submit'])) {
-            if ($this->registerNewUser() == TRUE) {
-                header("Location: /login");
+            if ($this->registerNewUser() !== false) {
+                header("Location: /activities");
             } else {
                 header("Location: /register");
             }
@@ -71,6 +28,7 @@ class Register {
         $env = Env::getInstance();
         $msg = Msg::getInstance();
 
+        $error = 0;
         if (empty($env->post('register')['voucher'])) {
             $msg->add('register_voucher_validation', 'Sorry, VIP only; please obtain your personal voucher from any guild officer!');
             $error = 1;
@@ -138,8 +96,15 @@ class Register {
 
                 if ($result) {
                     $msg->add('register_general_validation', "User " . $username . " has been created.");
-                    $env->clear_post('register');
-                    return true; // user creation complete
+                    $env->clearPost('register');
+
+                    $hooks = $env::getHooks('save_new_user_hook');
+                    if ($hooks!== false) {
+                        foreach ($hooks as $hook) {
+                            $hook['save_new_user_hook']($db->insert_id);
+                        }
+                    }
+                    return $db->insert_id; // user creation complete
                 } else {
                     $msg->add('register_general_validation', "Something unexpected happened during Database operations. No user has been created.");
                     return false;
@@ -161,7 +126,7 @@ class Register {
         $msg = Msg::getInstance();
 
         $view = new View;
-        $view->setTmpl(file('views/core/login/register_form.php'), array(
+        $view->setTmpl($view->loadFile('/views/core/login/register_form.php'), array(
             '{##form_action##}' => '/register',
             '{##register_username##}' => $env->post('register')['username'],
             '{##register_username_text##}' => 'Username',
@@ -187,3 +152,4 @@ class Register {
 }
 $register = new Register();
 $register->initEnv();
+unset($register);

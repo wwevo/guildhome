@@ -1,34 +1,9 @@
 <?php
 
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
-/**
- * Description of Profile
- *
- * @author Christian Voigt <chris at notjustfor.me>
- */
 class Settings {
     
     function initEnv() {
         Toro::addRoute(["/setting/:alpha" => 'Settings']);
-        //$this->create_tables();
-    }
-    
-    function create_tables() {
-        // Dirty Setup
-        $db = db::getInstance();
-        $sql = "CREATE TABLE settings (
-            id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-            userid INT(6) NOT NULL,
-            setting VARCHAR(128),
-            setting_value TEXT
-        )";
-        $result = $db->query($sql);
-        echo $sql;
     }
     
     function get() {
@@ -41,9 +16,46 @@ class Settings {
 
         if ($login->isLoggedIn()) {
             if (isset($env->post('setting_' . $key)['submit'])) {
-                $this->updateSetting($key);
+                if ($this->validateSetting($key)) {
+                    if ($this->updateSetting($key)) {
+                        header("Location: " .  $env->post('target_url'));
+                        exit;
+                    }
+                } 
+                header("Location: " .  $env->post('target_url'));
+                exit;
             }
         }        
+    }
+    
+    function validateSetting($key) {
+        $env = Env::getInstance();
+        $msg = Msg::getInstance();
+        $error = 0;
+        
+        if (!empty($key)) {
+            if (isset($env->post('setting_' . $key)['value'])) {
+                $value = $env->post('setting_' . $key)['value'];
+            } elseif (isset($_FILES['setting_' . $key]) AND is_array($_FILES['setting_' . $key])) {
+                $value = $_FILES['setting_' . $key];
+            }
+        }
+
+        $hooks = $env::getHooks($key);
+        if ($hooks !== false) {
+            foreach ($hooks as $hook) {
+                $valid = $hook[$key]($value);
+                if ($valid === false) {
+                    $msg->add('setting_' . $key . '_validation', 'Validation failed');
+                    $error = 1;
+                }
+            }
+        }
+       
+        if ($error == 1) {
+            return false;
+        } // either theres no validation at all or it has passed.
+        return true;
     }
     
     function getSettingByKey($key, $user_id = NULL) {
@@ -55,16 +67,17 @@ class Settings {
         }
         $sql = "SELECT *
                     FROM settings
-                    WHERE userid = '" . $user_id . "' AND setting = '" . $key . "';";
+                    WHERE userid = '$user_id' AND setting = '$key';";
         $result = $db->query($sql);
 
         if ($result !== false AND $result->num_rows >= 1) {
             $result_row = $result->fetch_object();
-            return $result_row->setting_value;
-        } else {
-            return false;
+            
+            if (!empty($result_row->setting_value) AND $result_row->setting_value != '') {
+                return $result_row->setting_value;    
+            }
         }
-        
+        return false;
     }
     
     function updateSetting($key, $value = '') {
@@ -86,7 +99,7 @@ class Settings {
 
         $key = $db->real_escape_string(strip_tags($key));
         $value = $db->real_escape_string(strip_tags($value));
-
+        
         $sql = "SELECT * FROM settings WHERE userid = '" . $user_id . "' AND setting = '" . $key . "';";
         $result = $db->query($sql);
 
@@ -100,13 +113,13 @@ class Settings {
         }            
 
         if ($db->query($sql) === true) {
-            $env->clear_post('setting_' . $key);
+            $env->clearPost('setting_' . $key);
             return true;
         }
         return false;
     }
 
-    function getUpdateSettingForm($key) {
+    function getUpdateSettingForm($key, $target_url = '') {
         $env = Env::getInstance();
         $msg = Msg::getInstance();
  
@@ -117,11 +130,36 @@ class Settings {
         }
 
         $view = new View();
-        $view->setTmpl(file('views/settings/update_setting_form.php'), array(
+        $view->setTmpl($view->loadFile('/views/settings/update_setting_form.php'), array(
             '{##form_action##}' => '/setting/' . $key,
+            '{##target_url##}' => $target_url,
             '{##setting_key##}' => $key,
             '{##setting_value##}' => $setting_value,
-            '{##update_setting_validation##}' => $msg->fetch('update_setting_validation'),
+            '{##update_setting_validation##}' => $msg->fetch('setting_' . $key .'_validation'),
+            '{##setting_submit_text##}' => 'update',
+            '{##setting_cancel_text##}' => 'reset',
+        ));
+        $view->replaceTags();
+        return $view;
+    }
+
+    function getUpdateDateForm($key, $target_url = '') {
+        $env = Env::getInstance();
+        $msg = Msg::getInstance();
+ 
+        if (isset($env->post('setting_' . $key)['value'])) {
+            $setting_value = $env->post('setting_' . $key)['value'];
+        } else {
+            $setting_value = $this->getSettingByKey($key);
+        }
+
+        $view = new View();
+        $view->setTmpl($view->loadFile('/views/settings/update_date_form.php'), array(
+            '{##form_action##}' => '/setting/' . $key,
+            '{##target_url##}' => $target_url,
+            '{##setting_key##}' => $key,
+            '{##setting_value##}' => $setting_value,
+            '{##update_setting_validation##}' => $msg->fetch('setting_' . $key .'_validation'),
             '{##setting_submit_text##}' => 'update',
             '{##setting_cancel_text##}' => 'reset',
         ));
@@ -129,6 +167,41 @@ class Settings {
         return $view;
     }
     
+    function getTimezonePickerForm($target_url = '') {
+        $env = Env::getInstance();
+        $view = new View();
+        $view->setTmpl($view->loadFile('/views/settings/timezone_picker_form.php'), array(
+            '{##form_action##}' => '/setting/timezone',
+            '{##target_url##}' => $target_url,
+            '{##timezone_submit_text##}' => 'pick',
+        ));
+        
+        $settings = new Settings();
+        if (($timezone = $settings->getSettingByKey('timezone')) === false) {
+            $option_selected = '';
+        }
+
+        $options_list = '';
+        foreach ($env->generateTimezoneList() as $option_value => $option_text) {
+            $subView = new View();
+            $subView->setTmpl($view->getSubTemplate('{##timezone_select_option##}'));
+            $subView->addContent('{##option_value##}', $option_value);
+            $subView->addContent('{##option_text##}', $option_text);
+            if ($timezone == $option_value) {
+                $subView->addContent('{##option_selected##}', ' selected="selected"');
+            }
+            $subView->replaceTags();
+            $options_list .= $subView;
+        }
+        $view->addContent('{##timezone_select_option##}', $options_list);
+        
+        $view->replaceTags();
+        return $view;
+    }
+    
+
+    
 }
 $settings = new Settings();
 $settings->initEnv();
+unset($settings);

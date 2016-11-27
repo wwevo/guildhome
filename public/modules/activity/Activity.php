@@ -1,237 +1,224 @@
 <?php
 
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+abstract class Activity extends Pagination implements IDatabaseModel {
 
-/**
- * Description of activity
- *
- * @author ecv
- */
-class Activity {
-    
-    function initEnv() {
-        Toro::addRoute(["/activities" => "Activity"]);
-    }
-    
-    function create_tables() {
-        // Dirty Setup
-        $db = db::getInstance();
-        $sql = "CREATE TABLE activities (
-            id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-            userid INT(6) NOT NULL,
-            create_time INT(11) NOT NULL,
-            type INT(6)
-        )";
-        $result = $db->query($sql);
-        echo $sql;
+    // start model (i suppose)
+    protected abstract function getActivityById($activity_id);
 
-        $sql = "CREATE TABLE activity_types (
-            id INT(6) UNSIGNED PRIMARY KEY,
-            name VARCHAR(32),
-            description VARCHAR(50)
-        )";
-        $result = $db->query($sql);
-        echo $sql;
-    }
-    
-    function activity_menu() {
-        $login = new Login();
-        $page = Page::getInstance();
-        $page->addContent('{##main##}', '<a href="/activities">10 days of EoL</a> ');
-        $page->addContent('{##main##}', '<a href="/activities/shouts">Shouts</a> ');
-        if ($login->isLoggedIn()) {
-            $page->addContent('{##main##}', '<a href="/activity/shout/new">(+)</a> ');
-        }
-        $page->addContent('{##main##}', '<a href="/activities/events">Events</a> ');
-        if ($login->isLoggedIn()) {
-            $page->addContent('{##main##}', '<a href="/activity/event/new">(+)</a>');
-        }
-    }
-    
-    function get() {
-        $env = Env::getInstance();
-        $env->clear_post('activity');
-
-        $page = Page::getInstance();
-        $page->setContent('{##main##}', '<h2>Activities</h2>');
-        $this->activity_menu();
-        $page->addContent('{##main##}', $this->getAllActivitiesView());
-//        $page->addContent('{##sidebar##}', '<aside>Change Identity</aside>');
-
-    }
-    
-    function save($type = '1') {
-        $db = db::getInstance();
-        $login = new Login();
-        
-        $userid = $login->currentUserID();
-        $uxtime = time();
-        
-        $sql = "INSERT INTO activities (id, userid, create_time, type) VALUES ('NULL', '$userid', '$uxtime', '$type');";
-        $query = $db->query($sql);
-    }
-
-    function getActivityById($id = NULL) {
+    static function getActivityMetaById($id = NULL) {
         if ($id === NULL) {
             return false;
         }
         $db = db::getInstance();
-        $sql = "SELECT activities.id, activities.userid, from_unixtime(activities.create_time) AS create_time, activities.type AS type, activity_types.description AS type_description
+        $sql = "SELECT
+                    activities.id,
+                    activities.userid,
+                    activities.create_time AS timestamp,
+                    activities.comments_enabled AS comments_enabled,
+                    activities.deleted as deleted,
+                    activities.type AS type,
+                    activity_types.name AS type_name,
+                    activity_types.description AS type_description,
+                    from_unixtime(activities.create_time) AS create_time,
+                    (SELECT concat(ae.date, ' ', ae.time) AS timestamp
+                        FROM activity_events ae
+                        WHERE ae.activity_id = activities.id
+                        HAVING DATE_ADD(timestamp,INTERVAL 2 HOUR) >= NOW() AND timestamp <= DATE_ADD(NOW(),INTERVAL 48 HOUR)
+                    ) AS event_date,
+                    DAY (from_unixtime(activities.create_time)) as event_day
                     FROM activities
                     INNER JOIN activity_types
-                    ON activities.type = activity_types.id
+                        ON activities.type = activity_types.id
                     WHERE activities.id = $id
-                    ORDER BY activities.create_time DESC LIMIT 1;";
+                    LIMIT 1;";
         $query = $db->query($sql);
-        
+
         if ($query !== false AND $query->num_rows == 1) {
             $result = $query->fetch_object();
             return $result;
         }
         return false;
     }
-    
-    function getActivities() {
+
+    public static function getActivityCountByType($type = 0) {
         $db = db::getInstance();
-        $sql = "SELECT activities.id, activities.userid, from_unixtime(activities.create_time) AS create_time, activities.type AS type, activity_types.description AS type_description
+        $sql = "SELECT
+                    (SELECT
+                        count(*) AS count
+                        FROM activities
+                        WHERE
+                            type = $type
+                        AND
+                            deleted = 0
+                    ) AS count_all,
+                    count(*) AS count
                     FROM activities
-                    INNER JOIN activity_types
-                    ON activities.type = activity_types.id
-                    HAVING create_time >= DATE_SUB(CURDATE(), INTERVAL 10 DAY)
-                    ORDER BY activities.create_time DESC;";
+                    WHERE
+                        deleted = 0 AND type = $type
+                    AND
+                        from_unixtime(create_time) >= DATE_SUB(CURDATE(), INTERVAL 10 DAY);";
         $query = $db->query($sql);
 
-        if ($query !== false AND $query->num_rows >= 1) {
-            while ($result_row = $query->fetch_object()) {
-                $activities[] = $result_row;
-            }
-            return $activities;
+        if ($query !== false AND $query->num_rows == 1) {
+            $count = $query->fetch_object();
+            return $count;
         }
         return false;
     }
-    
-    function getSubView($act = NULL, $view = NULL) {
-        $subView = new View();
-        $subView->setTmpl($view->getSubTemplate('{##activity_loop##}'));
-        $subView->addContent('{##activity_published##}', $act->create_time);
-        $subView->addContent('{##activity_type##}',  $act->type_description);
-        switch ($act->type) {
-            case '1' : 
-                $shout = new Activity_Shout();
-                $activity_shout = $shout->getActivity($act->id);
-                $content = Parsedown::instance()->text($activity_shout->content);
-                if (isset($activity_shout->comments_activated) AND $activity_shout->comments_activated == '1') {
-                    $allow_comments = TRUE;
-                } else {
-                    $allow_comments = FALSE;
-                }
-                $delete_link = '/activity/shout/delete/' . $act->id;
-                $update_link = '/activity/shout/update/' . $act->id;
-                $comment_link = '/comment/activity/view/' . $act->id;
-                break;
-            case '2' : 
-                $event = new Activity_Event();
-                $activity_event = $event->getActivity($act->id);
-                if (isset($activity_event->comments_activated) AND $activity_event->comments_activated == '1') {
-                    $allow_comments = TRUE;
-                } else {
-                    $allow_comments = FALSE;
-                }
-                
-                $event_data =  Parsedown::instance()->text($activity_event->title);
-                $event_data .= Parsedown::instance()->text($activity_event->description);
-                $event_data .= $activity_event->date . " @ ";
-                $event_data .= $activity_event->time;
-                    
-                $content = $event_data;
-                $delete_link = '/activity/event/delete/' . $act->id;
-                $update_link = '/activity/event/update/' . $act->id;
-                $comment_link = '/comment/activity/view/' . $act->id;
-                break;
-        }
-        $subView->addContent('{##activity_content##}',  $content);
 
-        $identity = new Identity();
-        $subView->addContent('{##activity_identity##}', $identity->getIdentityById($act->userid, 0));
-        $subView->addContent('{##avatar##}', $identity->getAvatarByUserId($act->userid));
-
-        if ($allow_comments === TRUE) {
-            $comment = new Comment();
-            $comment_count = $comment->getCommentCount($act->id);
-            $subView->addContent('{##comment_link##}', $comment_link);
-            $subView->addContent('{##comment_link_text##}',  'comments (' . $comment_count . ')');
+    public static function getActivityTypeIDByName($activity_type_name = null) {
+        if ($activity_type_name === NULL) {
+            return false;
         }
-        
+        $db = db::getInstance();
+        $type_name = $db->real_escape_string(strip_tags($activity_type_name, ENT_QUOTES));
+
+        $sql = "SELECT
+                    activities.type AS type
+                    FROM activities
+                    INNER JOIN activity_types
+                        ON activities.type = activity_types.id
+                    WHERE
+                        activity_types.name = '$type_name'
+                    OR
+                        activity_types.name_plural = '$type_name'
+                    LIMIT 1;";
+        $query = $db->query($sql);
+        if ($query !== false AND $query->num_rows == 1) {
+            $result = $query->fetch_object();
+            return $result->type;
+        }
+        return false;
+    }
+
+    public function saveActivity($type_name) {
+        if (!$this->validateActivity()) {
+            return false;
+        }
+        $env = Env::getInstance();
+        $db = db::getInstance();
         $login = new Login();
-        if ($login->isLoggedIn()) {
-            $memberView = new View();
-            $memberView->setTmpl($view->getSubTemplate('{##activity_logged_in##}'));
-            if ($login->currentUserID() === $act->userid) {
-                $memberView->addContent('{##delete_link##}', $delete_link);
-                $memberView->addContent('{##delete_link_text##}',  'delete');
-                $memberView->addContent('{##update_link##}', $update_link);
-                $memberView->addContent('{##update_link_text##}',  'update');
-            }
-            $memberView->replaceTags();
-            $subView->addContent('{##activity_logged_in##}',  $memberView);
-        }
-        $subView->replaceTags();
-        return $subView;
-    }
+        $type_id = $this->getActivityTypeIDByName($type_name);
 
-    /*
-     * Being a patchwork funtion at the moment, a lot of stuff is Jerry-Rigged here
-     * A lot of stuff has to be worked out to be viable for public release
-     * Whats clearly missing:
-     *      - automatic detection of activity type and corresponding class
-     */
-    function getAllActivitiesView($type = NULL) {
-        $view = new View();
-        $view->setTmpl(file('views/activity/list_all_activities.php'));
-        $activities = $this->getActivities();
-        if (false !== $activities) {
-            $activity_loop = NULL;
-            foreach ($activities as $act) {
-                if ($type !== NULL AND $act->type !== $type) {
-                    continue;
+        $userid = $login->currentUserID();
+        $uxtime = time();
+        $allow_comments = isset($env->post('activity')['comments']) ? '1' : '0';
+
+        $sql = "INSERT INTO activities (id, userid, create_time, type, comments_enabled) VALUES ('NULL', '$userid', '$uxtime', '$type_id', '$allow_comments');";
+        $query = $db->query($sql);
+
+        if ($query !== false) {
+            $hooks = $env::getHooks('save_activity_hook');
+            if ($hooks !== false) {
+                foreach ($hooks as $hook) {
+                    $hook['save_activity_hook']($activity_id);
                 }
-                $subView = $this->getSubView($act, $view);
-                $activity_loop .= $subView;
             }
-            $view->addContent('{##activity_loop##}',  $activity_loop);
+            $activity_id = $db->insert_id;
+            $this->saveActivityTypeDetails($activity_id);
+            $env->clearPost('activity');
+            return $activity_id;
         }
-        $view->replaceTags();
-        return $view;
+        return false;
     }
 
-    function getActivityView($id = NULL) {
-        $view = new View();
-        $view->setTmpl(file('views/activity/list_all_activities.php'));
-        $act = $this->getActivityById($id);
-        if (false !== $act) {
-            $subView = $this->getSubView($act, $view);
-            $view->addContent('{##activity_loop##}',  $subView);
+    protected abstract function saveActivityTypeDetails($activity_id);
+
+    public function updateActivity($activity_id) {
+        $db = db::getInstance();
+        $env = Env::getInstance();
+        $allow_comments = isset($env->post('activity')['comments']) ? '1' : '0';
+
+        $sql = "UPDATE activities SET
+                    comments_enabled= '$allow_comments'
+                WHERE id = '$activity_id';";
+        $query = $db->query($sql);
+        if ($query !== false) {
+            $hooks = $env::getHooks('update_activity_hook');
+            if ($hooks !== false) {
+                foreach ($hooks as $hook) {
+                    $hook['update_activity_hook']($activity_id);
+                }
+            }
+            $this->updateActivityTypeDetails($activity_id);
+            $env->clearPost('activity');
+            return $activity_id;
         }
-        $view->replaceTags();
-        return $view;
+        return false;
     }
 
-    function createSlug($str) {
-	if ($str !== mb_convert_encoding(mb_convert_encoding($str, 'UTF-32', 'UTF-8'), 'UTF-8', 'UTF-32')) {
-            $str = mb_convert_encoding($str, 'UTF-8', mb_detect_encoding($str));
+    public function deleteActivity($activity_id) {
+        $db = db::getInstance();
+        $env = Env::getInstance();
+        $login = new Login();
+
+        $userid = $login->currentUserID();
+        $actid = $this->getActivityMetaById($activity_id)->userid;
+        if ($userid != $actid) {
+            return false;
         }
-        $str = htmlentities($str, ENT_NOQUOTES, 'UTF-8');
-        $str = preg_replace('`&([a-z]{1,2})(acute|uml|circ|grave|ring|cedil|slash|tilde|caron|lig);`i', '\\1', $str);
-        $str = html_entity_decode($str, ENT_NOQUOTES, 'UTF-8');
-        $str = preg_replace(array('`[^a-z0-9]`i','`[-]+`'), '-', $str);
-        $str = strtolower(trim($str, '-'));
-        return $str;
+        $sql = "UPDATE activities SET deleted = '1' WHERE id = '$activity_id';";
+        $query = $db->query($sql);
+        if ($query !== false) {
+            $env->clearPost('activity');
+            $hooks = $env::getHooks('delete_activity_hook');
+            if ($hooks !== false) {
+                foreach ($hooks as $hook) {
+                    $hook['delete_activity_hook']($activity_id);
+                }
+            }
+            return true;
+        }
+        return false;
     }
-   
+
+    protected abstract function updateActivityTypeDetails($activity_id);
+
+    public static function commentsEnabled($activity_id) {
+        $db = db::getInstance();
+        $sql = "SELECT comments_enabled FROM activities WHERE id = '$activity_id';";
+        $query = $db->query($sql);
+        if ($query !== false AND $query->num_rows >= 1) {
+            $result_row = $query->fetch_object();
+            $result = ($result_row->comments_enabled == '1') ? true : false;
+            return $result;
+        }
+        return false;
+    }
+
+    // end model
+    // start view (i'd say)
+    /*
+     * this is my attempt of making this modular. every activity-submodule can
+     * register it's output-view in the env-class and we will look for that here.
+     * feel free to come up with something nicer
+     */
+    protected abstract function getActivityView($activity_id = NULL, $compact = NULL);
+
+    public function validateActivity() {
+        return $this->validateActivityTypeDetails();
+    }
+
+    protected abstract function validateActivityTypeDetails();
+
+    // end view
+
+    function createDatabaseTables($overwriteIfExists) {
+        $db = db::getInstance();
+        if ($overwriteIfExists) {
+            $sqlDropExistingActivityTables = "DROP TABLE IF EXISTS activities,activity_types";
+            $db->query($sqlDropExistingActivityTables);
+        }
+        $sqlActivityTypesTable = "CREATE TABLE `activity_types` (`id` int(6) unsigned NOT NULL AUTO_INCREMENT,`name` varchar(50) NOT NULL,
+            `description` varchar(100) DEFAULT NULL,`name_plural` varchar(45) NOT NULL,PRIMARY KEY (`id`)) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=latin1;";
+        $db->query($sqlActivityTypesTable);
+        $sqlInsertActivityTypesTable = "INSERT INTO `activity_types`(`id`,`name`,`description`,`name_plural`) VALUES
+            (1,`shout`,`a shout`,`shouts`),(2,`event`,`an event`,`events`),(3,`poll`,`a poll`,`polls`),(4,`actionmessage`,`an action message`,`actionmessages`)";
+        $db->query($sqlInsertActivityTypesTable);
+        $sqlActivitiesTable = "CREATE TABLE `activities` (`id` int(6) NOT NULL AUTO_INCREMENT,`userid` int(6) NOT NULL,`create_time` int(11) NOT NULL,
+            `type` int(1) DEFAULT NULL,`comments_enabled` tinyint(1) NOT NULL DEFAULT '0',`deleted` int(11) DEFAULT '0',PRIMARY KEY (`id`))
+            ENGINE=InnoDB AUTO_INCREMENT=261 DEFAULT CHARSET=latin1;";
+        $db->query($sqlActivitiesTable);
+    }
+
 }
-$activity = new Activity();
-$activity->initEnv();

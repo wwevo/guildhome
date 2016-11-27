@@ -1,16 +1,5 @@
 <?php
 
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
-/**
- * Description of Profile
- *
- * @author Christian Voigt <chris at notjustfor.me>
- */
 class Profile {
     
     function initEnv() {
@@ -18,64 +7,98 @@ class Profile {
         Toro::addRoute(["/profile/:alpha" => 'Profile']);
     }
     
-    function get($slug = NULL) {
-        $login = new Login();
+    function get($user_name = NULL) {
         $page = Page::getInstance();
-        
-        if (empty($slug)) {
+        $user_id = $this->getUserIDByUsername($user_name);
+
+        if (is_null($user_id)) {
             $page->setContent('{##main##}', '<h2>Registered Members</h2>');
             $page->addContent('{##main##}', $this->getUsersView());
+            
+            $members_widgets = new Gw2Api_Members_Widgets();
+            $page->addContent('{##main##}', $members_widgets->getRankUsageFromRosterView());
         } else {
             $page->setContent('{##main##}', '<h2>Profile</h2>');
-            $db = db::getInstance();
-            $user = $this->getUsers($db->real_escape_string($slug))[0];
-            
-            $view = new View();
-            $view->setTmpl(file('views/profile/profile_main.php'));
-
-            if (is_object($user)) {
-                $subView = new View();
-                $subView->setTmpl($view->getSubTemplate('{##profile_badge##}'));
-                $identity = new Identity();
-                $subView->addContent('{##rank##}', $user->rank_description);
-                $subView->addContent('{##display_name##}', $user->username);
-                $subView->addContent('{##avatar##}', $identity->getAvatarByUserId($user->id));
-
-                if ($user->id == $login->currentUserID()) { // it's-a-me!
-                    $subView->addContent('{##email##}', $user->email);
-
-                    $settings = new Settings();
-                    $view->addContent('{##main##}', '<p>Desired Displayname</p>');
-                    $view->addContent('{##main##}', $settings->getUpdateSettingForm('display_name'));
-                    $view->addContent('{##main##}', '<p>use any image url, only direct links will work</p>');
-                    $view->addContent('{##main##}', $settings->getUpdateSettingForm('avatar'));
-                    $view->addContent('{##main##}', '<p>just copy and paste from your guild wars account page. Only account and guilds are required, characters would be nice.</p>');
-                    $view->addContent('{##main##}', $settings->getUpdateSettingForm('api_key'));
-                }
-                $subView->replaceTags();
-                $view->addContent('{##profile_badge##}', $subView);
-            } else {
-                $view->addContent('{##main##}', 'unknown user');
-            }
-            $view->replaceTags();
-            $page->addContent('{##main##}', $view);
+            $page->addContent('{##main##}', $this->getProfileView($user_id));
         }
+    }
+    
+    function getUserIDByUsername($user_name) {
+        if ($user_name === NULL) {
+            return $user_name;
+        }
+        
+        $db = db::getInstance();
+        $sql = "SELECT users.id FROM users WHERE users.username = '$user_name';";
+        
+        $result = $db->query($sql);
 
+        if ($result->num_rows == 1) {
+            $result_row = $result->fetch_object();
+            return $result_row->id;
+        }
+        return false;
     }
 
+    function getProfileView($user_id) {
+        $login = new Login();
+        $view = new View();
+        $view->setTmpl($view->loadFile('/views/profile/profile_main.php'));
+
+        $user = $this->getUsers($user_id)[0];
+        if (is_object($user)) {
+            $subView = new View();
+            $subView->setTmpl($view->getSubTemplate('{##profile_badge##}'));
+            $identity = new Identity();
+            $subView->addContent('{##rank##}', $user->rank_description);
+            $subView->addContent('{##display_name##}', $user->username);
+            $subView->addContent('{##avatar##}', $identity->getAvatarByUserId($user->id));
+
+            if ($user->id == $login->currentUserID()) { // it's-a-me!
+                $subView->addContent('{##email##}', $user->email);
+
+                $accountObject = new Gw2Api_Accounts_Model();
+                $accountObject_collection = $accountObject->getAccountObjectsByUserId(Login::currentUserID());
+                if (is_array($accountObject_collection)) {
+                    $allCharactersObjects_collection = [];
+                    foreach ($accountObject_collection as $accountObject) {
+                        $charactersObject = new Gw2Api_Characters_Model();
+                        $charactersObject_collection = $charactersObject->getCharacterDataByAccountId($accountObject->getAccountId());
+                        $allCharactersObjects_collection = array_merge($allCharactersObjects_collection, $charactersObject_collection);
+                    }
+                    $characters_widgets = new Gw2Api_Characters_Widgets();
+                    $view->addContent('{##main##}', $characters_widgets->getNextBirthdaysView($allCharactersObjects_collection));
+                }
+
+                $activity_event_widgets = new Activity_Event_Signups_Widgets();
+                $view->addContent('{##main##}', $activity_event_widgets->getSignupsByUserIdView($login->currentUserID()));
+            }
+            $subView->replaceTags();
+            $view->addContent('{##profile_badge##}', $subView);
+        } else {
+            $view->addContent('{##main##}', 'unknown user');
+        }
+        $view->replaceTags();
+        return $view;
+    }
+    
+    public function getUserByID($user_id = null) {
+        return $this->getUsers($user_id)[0];
+    }
+    
     public function getUsers($user = null) {
         $db = db::getInstance();
         if (is_null($user)) {
             $sql = "SELECT users.id, users.username, users.email, user_ranks.id AS rank, user_ranks.description AS rank_description
                         FROM users
-                        INNER JOIN user_ranks
+                        LEFT JOIN user_ranks
                         ON users.rank = user_ranks.id
                         WHERE users.rank != '0'
                         ORDER BY users.id ASC;";
         } else {
             $sql = "SELECT users.id, users.username, users.email, user_ranks.id AS rank, user_ranks.description AS rank_description
                         FROM users
-                        INNER JOIN user_ranks
+                        LEFT JOIN user_ranks
                         ON users.rank = user_ranks.id
                         WHERE users.id = '" . $user . "'
                         OR users.username = '" . $user . "';";
@@ -93,9 +116,14 @@ class Profile {
         }
     }
 
+    function getProfileUrlById($user_id) {
+        $user = $this->getUserById($user_id);
+        return '/profile/' . $user->username;
+    }
+    
     public function getUsersView() {
         $view = new View();
-        $view->setTmpl(file('views/core/login/all_users_view.php'));
+        $view->setTmpl($view->loadFile('/views/profile/all_users_view.php'));
 
         $all_users = null;
         $users = $this->getUsers();
@@ -122,5 +150,6 @@ class Profile {
     }
 
 }
-$profile = new Profile();
-$profile->initEnv();
+$init_env = new Profile();
+$init_env->initEnv();
+unset($init_env);

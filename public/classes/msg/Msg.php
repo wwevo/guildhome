@@ -1,18 +1,6 @@
 <?php
 
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
-/**
- * Description of Msg
- *
- * @author ecv
- */
 class Msg {
-
     private static $instance;
     private $messages = [];
 
@@ -33,19 +21,23 @@ class Msg {
         $_SESSION['evo']['flash_messages'] = $inst->messages;
     }
     
-    public static function fetch($key) {
+    public static function fetch($key, $type = 'validation') {
         if (isset($_SESSION['evo']['flash_messages'])) {
             $inst = self::getInstance();
             $inst->messages = $_SESSION['evo']['flash_messages'];
 
-            if (isset($inst->messages[$key][0])) {
-                $output = $inst->messages[$key][0];
+            if (isset($inst->messages[$key])) {
+                $output = $inst->messages[$key];
             }
             unset($inst->messages[$key]);
             unset($_SESSION['evo']['flash_messages'][$key]);
 
             if (!empty($output)) {
-                return '<span type="validation">'.$output.'</span>';
+                $msg = '';
+                foreach ($output as $msg_text) {
+                    $msg .= '<span type="' . $type . '">'.$msg_text.'</span>';
+                }
+                return $msg;
             }
         }
         return false;

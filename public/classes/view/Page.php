@@ -1,16 +1,5 @@
 <?php
 
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
-/**
- * Description of Page
- *
- * @author Christian Voigt <chris at notjustfor.me>
- */
 class Page extends View {
     private static $instance;
     
@@ -24,5 +13,5 @@ class Page extends View {
         }
         return static::$instance;
     }
-
+    
 }

@@ -1,25 +1,36 @@
 <?php
-
+header("Content-Type: text/html;charset=utf-8");
+include_once 'config/env.php';
 /* 
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * config/env.php:
+ * <?php
+ * define('GH_BASEDIR', '');
+ *
  */
 
-header("Content-Type: text/html;charset=utf-8");
-date_default_timezone_set('UTC');
- error_reporting(E_ALL);
-//error_reporting(E_ALL & ~E_NOTICE);
-ini_set("display_errors", 1);
-
-// we need sessions in this one, make sure it's started
-if (!session_id()) {
-    session_start();
+if (constant('GH_BASEDIR') == 'beta.eol.gw2.localhost') {
+    error_reporting(E_ALL | E_STRICT);
+    //error_reporting(E_ALL & ~E_NOTICE);
+    ini_set("display_errors", 1);
+} else {
+    error_reporting(E_ERROR);
+    ini_set("display_errors", 0);
 }
+
+define('default_theme', 'boilerplate');
+
+session_start(); // we need sessions in this one, make sure it's started
+$now = time();
+if (isset($_SESSION['discard_after']) && $now > $_SESSION['discard_after']) {
+    session_unset(); // this session has worn out its welcome; 
+    session_destroy(); // kill it...
+    session_start(); // ...and start a brand new one
+}
+$_SESSION['discard_after'] = $now + 3600;
 
 // checking for minimum PHP version
 if (version_compare(PHP_VERSION, '5.3.7', '<')) {
-    exit("Sorry, Simple PHP Login does not run on a PHP version smaller than 5.3.7 !");
+    exit("The PHP Version used is way to old.");
 } else if (version_compare(PHP_VERSION, '5.5.0', '<')) {
     require_once("libraries/password_compatibility_library.php");
 }
