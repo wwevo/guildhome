@@ -35,10 +35,14 @@ class Activity_ActionMsg extends Activity implements IDatabaseModel {
         $view = new View();
         $view->setTmpl($view->loadFile('/views/activity/actionmsg/activity_actionmsg_view.php'));
         $actionmsg = $this->getActivityById($id);
-        $message = 'at ' . $actionmsg->create_time . ', ';
-        $message .= $actionmsg->message;
-        if (isset($actionmsg->related_activity_id)) {
-            $message .= ' (<a href="/comment/activity/view/' . $actionmsg->related_activity_id . '">view</a>)';
+        if ($actionmsg) {
+            $message = 'at ' . $actionmsg->create_time . ', ';
+            $message .= $actionmsg->message;
+            if (isset($actionmsg->related_activity_id)) {
+                $message .= ' (<a href="/comment/activity/view/' . $actionmsg->related_activity_id . '">view</a>)';
+            }
+        }else {
+            $message = 'no message found :(';
         }
         $view->setContent('{##action_message##}', $message);
         $view->replaceTags();
@@ -119,7 +123,7 @@ class Activity_ActionMsg extends Activity implements IDatabaseModel {
 
     function saveActivityTypeDetails($activity_id) {
         $db = db::getInstance();
-        $related_activity_id = $this->getRelatedActivityID();
+        $related_activity_id = is_null($this->getRelatedActivityID()) ? "NULL" : $this->getRelatedActivityID();
         $message = $this->getMessage();
         $sql = "INSERT INTO activity_actionmsg (activity_id, message, related_activity_id) VALUES ($activity_id, '$message', $related_activity_id);";
         $db->query($sql);

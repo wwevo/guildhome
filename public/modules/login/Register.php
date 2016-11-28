@@ -70,7 +70,7 @@ class Register {
             $error = 1;
         }
 
-        if ($error == 0) {
+        if ($error == 0 OR $error != 0) {
             $db = db::getInstance();
             // No validation errors
             $username = $db->real_escape_string(strip_tags($env->post('register')['username'], ENT_QUOTES));
