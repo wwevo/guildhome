@@ -17,6 +17,19 @@ class Profile {
             
             $members_widgets = new Gw2Api_Members_Widgets();
             $page->addContent('{##main##}', $members_widgets->getRankUsageFromRosterView());
+            
+            if (Login::isLoggedIn()) {
+                $settings = new Settings();
+                $guild_id = $settings->getSettingByKey('guild_id', Login::getUserIdByUsername('admin'));
+                $guildObject = Gw2Api_Guilds_Model::getGuildObjectByGuildId($guild_id);
+                if (false !== $guildObject) {
+                    $membersObject = new Gw2Api_Members();
+                    // TODO: getting guild-ID from admin-settings  
+                    $membersObject_collection = $membersObject->model->getMemberObjectsByGuildId($guildObject->getId());
+                    $page->addContent('{##main##}', '<h2>Guild Roster</h2>');
+                    $page->addContent('{##main##}', $membersObject->view->listDataTableView($membersObject_collection));
+                }
+            }
         } else {
             $page->setContent('{##main##}', '<h2>Profile</h2>');
             $page->addContent('{##main##}', $this->getProfileView($user_id));
@@ -72,6 +85,9 @@ class Profile {
 
                 $activity_event_widgets = new Activity_Event_Signups_Widgets();
                 $view->addContent('{##main##}', $activity_event_widgets->getSignupsByUserIdView($login->currentUserID()));
+            }
+            if (Login::isAdmin()) {
+                
             }
             $subView->replaceTags();
             $view->addContent('{##profile_badge##}', $subView);

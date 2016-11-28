@@ -546,6 +546,7 @@ table td.small,
 .widget table td.small,
 .module table td.small {
     font-size: 80%;
+    line-height: 1.33em;
 }
 
 ul.user-menu ul {

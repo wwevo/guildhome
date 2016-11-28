@@ -54,6 +54,10 @@ class Profile_Settings extends Profile {
             $view->setTmpl($view->loadFile('/views/profile/profile_settings.php'));
 
             $settings = new Settings();
+            if (Login::isAdmin()) {
+                $view->addContent('{##main##}', '<h4>Admin</h4>');
+                $view->addContent('{##main##}', $settings->getUpdateSettingForm('guild_id', '/profile/' . $user->username . '/settings'));
+            }
             $view->addContent('{##main##}', '<h4>Desired Displayname</h4>');
             $view->addContent('{##main##}', $settings->getUpdateSettingForm('display_name', '/profile/' . $user->username . '/settings'));
             $view->addContent('{##main##}', "<h4>When's your birthday?</h4>");

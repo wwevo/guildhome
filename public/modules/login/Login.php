@@ -151,6 +151,18 @@ class Login {
         }
         return false;
     }
+    
+    public static function getUserIdByUsername($username) {
+        $db = db::getInstance();
+        $sql = "SELECT * FROM users WHERE username = '$username';";
+        if (($query = $db->query($sql)) !== false AND $query->num_rows == 1) {
+            $userObject = $query->fetch_object();
+            if (false === $userObject) {
+                return false;
+            }
+            return $userObject->id;
+        }
+    }
     // end model
     // view controller
     public function getLoginView($target_url = null) {
