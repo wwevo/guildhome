@@ -143,6 +143,21 @@ class Activity_Event extends Activity {
 
         if ($query !== false AND $query->num_rows >= 1) {
             $activity = $query->fetch_object();
+
+            $event_date = $activity->date . ' ' . $activity->time;
+            $settings = new Settings();
+            $timezone = $settings->getSettingByKey('timezone');
+
+            if (false !== $timezone && date_default_timezone_get() != $timezone) {
+                $utc_date = $this->date_convert($event_date, 'UTC', 'Y-m-d H:i:s', $timezone, 'Y-m-d H:i:s');
+                $date_array = explode(' ', $utc_date);
+            } else {
+                $date_array = explode(' ', $event_date);
+            }
+            $activity->date = $date_array[0];
+            $activity->time = $date_array[1];
+
+            
             return $activity;
         }
         return false;
@@ -153,8 +168,20 @@ class Activity_Event extends Activity {
         $env = Env::getInstance();
         $title = $env->post('activity')['title'];
         $description = $env->post('activity')['content'];
-        $time = $env->post('activity')['time'];
-        $date = $env->post('activity')['date'];
+        $dateObject = new DateTime($env->post('activity')['date'] . ' ' . $env->post('activity')['time']);
+        $event_date = $dateObject->format('Y-m-d H:i:s');
+        $settings = new Settings();
+        $timezone = $settings->getSettingByKey('timezone');
+
+        if (false !== $timezone && date_default_timezone_get() != $timezone) {
+            $utc_date = $this->date_convert($event_date, $timezone, 'Y-m-d H:i:s', 'UTC', 'Y-m-d H:i:s');
+            $date_array = explode(' ', $utc_date);
+        } else {
+            $date_array = explode(' ', $event_date);
+        }
+        $date = $date_array[0];
+        $time = $date_array[1];
+        
         $sql = "INSERT INTO activity_events(activity_id, title, description, date, time) VALUES ($event_id, '$title', '$description', '$date', '$time');";
         $query = $db->query($sql);
         if ($query !== false) {
@@ -171,8 +198,19 @@ class Activity_Event extends Activity {
         $env = Env::getInstance();
         $title = $env->post('activity')['title'];
         $description = $env->post('activity')['content'];
-        $time = $env->post('activity')['time'];
-        $date = $env->post('activity')['date'];
+        $dateObject = new DateTime($env->post('activity')['date'] . ' ' . $env->post('activity')['time']);
+        $event_date = $dateObject->format('Y-m-d H:i:s');
+        $settings = new Settings();
+        $timezone = $settings->getSettingByKey('timezone');
+
+        if (false !== $timezone && date_default_timezone_get() != $timezone) {
+            $utc_date = $this->date_convert($event_date, $timezone, 'Y-m-d H:i:s', 'UTC', 'Y-m-d H:i:s');
+            $date_array = explode(' ', $utc_date);
+        } else {
+            $date_array = explode(' ', $event_date);
+        }
+        $date = $date_array[0];
+        $time = $date_array[1];
 
         $login = new Login();
 
@@ -265,6 +303,28 @@ class Activity_Event extends Activity {
         return $view;
     }
     
+    function date_convert($dt, $tz1, $df1, $tz2, $df2) {
+        $res = '';
+        if (!in_array($tz1, DateTimeZone::listIdentifiers())) { // check source timezone
+            trigger_error(__FUNCTION__ . ': Invalid source timezone ' . $tz1, E_USER_ERROR);
+        } elseif (!in_array($tz2, DateTimeZone::listIdentifiers())) { // check destination timezone
+            trigger_error(__FUNCTION__ . ': Invalid destination timezone ' . $tz2, E_USER_ERROR);
+        } else {
+            // create DateTime object
+            $d = DateTime::createFromFormat($df1, $dt, new DateTimeZone($tz1));
+            // check source datetime
+            if ($d && DateTime::getLastErrors()["warning_count"] == 0 && DateTime::getLastErrors()["error_count"] == 0) {
+                // convert timezone
+                $d->setTimeZone(new DateTimeZone($tz2));
+                // convert dateformat
+                $res = $d->format($df2);
+            } else {
+                trigger_error(__FUNCTION__ . ': Invalid source datetime ' . $dt . ', ' . $df1, E_USER_ERROR);
+            }
+        }
+        return $res;
+    }
+
     public function getActivityView($event_id = NULL, $compact = NULL) {
         $env = Env::getInstance();
         $activityView = new View();
@@ -315,7 +375,8 @@ class Activity_Event extends Activity {
         
         $loopView->addContent('{##activity_content##}',  $content);
 
-        $event_date = $act->date . " @ " . $act->time;
+        $event_date = $act->date . ' ' . $act->time;
+
         $loopView->addContent('{##activity_event_date##}', $event_date);
         $event_datetime = $act->date . " " . $act->time;
         $loopView->addContent('{##activity_event_datetime##}', $event_datetime);
@@ -400,6 +461,7 @@ class Activity_Event extends Activity {
             $content = (!empty($env->post('activity')['content'])) ? $env->post('activity')['content'] : $act->description;
             $date = (isset($env->post('activity')['date'])) ? $env->post('activity')['date'] : $act->date;
             $time = (isset($env->post('activity')['time'])) ? $env->post('activity')['time'] : $act->time;
+
             $comments_checked = (!empty($env->post('activity')['comments'])) ? $env->post('activity')['comments'] : $act->comments_enabled;
 
             $hooks = $env::getHooks('activity_event_form_hook');

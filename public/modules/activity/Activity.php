@@ -67,26 +67,24 @@ abstract class Activity extends Pagination implements IDatabaseModel {
     }
 
     public static function getActivityTypeIDByName($activity_type_name = null) {
+
         if ($activity_type_name === NULL) {
             return false;
         }
         $db = db::getInstance();
         $type_name = $db->real_escape_string(strip_tags($activity_type_name, ENT_QUOTES));
 
-        $sql = "SELECT
-                    activities.type AS type
-                    FROM activities
-                    INNER JOIN activity_types
-                        ON activities.type = activity_types.id
+        $sql = "SELECT * FROM activity_types
                     WHERE
                         activity_types.name = '$type_name'
                     OR
                         activity_types.name_plural = '$type_name'
                     LIMIT 1;";
         $query = $db->query($sql);
+
         if ($query !== false AND $query->num_rows == 1) {
             $result = $query->fetch_object();
-            return $result->type;
+            return $result->id;
         }
         return false;
     }
