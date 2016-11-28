@@ -1,4 +1,4 @@
-<section class="widget">
+<section class="widget upcoming_events_widget">
     {##widget_title##}<h3>{##widget_title_text##}</h3>{/##widget_title##}
     <table>
         <thead>

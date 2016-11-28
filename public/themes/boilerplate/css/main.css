@@ -590,6 +590,11 @@ aside section.widget time {
     float: right;
 }
 
+aside section.widget.upcoming_events_widget {
+    font-size: 85%;
+    line-height: 1.33em;
+}
+
 .clearfix { zoom: 1; }
 .clearfix:before,
 .clearfix:after { content: ""; display: table; }
