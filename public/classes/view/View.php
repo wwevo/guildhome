@@ -142,11 +142,14 @@ class View {
      *            the button's label
      * @return View
      */
-    static function createPrettyButtonForm($action_url, $redirect_url, $text) {
+    static function createPrettyButtonForm($action_url, $redirect_url, $text, $additional_form_elements = NULL) {
         $view = new self();
         $view->setTmpl($view->loadFile('/views/core/widgets/prettybutton.php'));
         $view->setContent('{##action_url##}', $action_url);
         $view->addContent('{##text##}', $text);
+        if (!is_null($additional_form_elements)) {
+            $view->addContent('{##additional_form_elements##}', $additional_form_elements);
+        }
 
         if (isset($redirect_url)) {
             $subView = new View();

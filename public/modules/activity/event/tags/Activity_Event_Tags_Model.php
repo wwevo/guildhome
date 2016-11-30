@@ -25,7 +25,7 @@ class Activity_Event_Tags_Model {
         return false;
     }
 
-    protected function createDatabaseTablesByType($overwriteIfExists) {
+    public function createDatabaseTables($overwriteIfExists) {
         $db = db::getInstance();
         if ($overwriteIfExists) {
             $sqlDropTagsTables = "DROP TABLE IF EXISTS activity_events_tag_event_mapping, activity_events_tags";

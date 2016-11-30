@@ -13,17 +13,17 @@ require_once "identity/Identity.php";
 require_once "activity/Activity.php";
     require_once "activity/shout/Activity_Shout.php";
     require_once "activity/event/Activity_Event.php";
-    require_once "activity/Activity_Stream.php";
-    require_once "activity/event/widgets/Activity_Event_Widgets.php";
-    require_once "activity/event/signups/Activity_Event_Signups.php";
-    require_once "activity/event/signups/widgets/Activity_Event_Signups_Widgets.php";
-    require_once "activity/event/tags/Activity_Event_Tags_Model.php";
-    require_once "activity/event/tags/Activity_Event_Tags_View.php";
-    require_once "activity/event/tags/Activity_Event_Tags.php";
+        require_once "activity/event/widgets/Activity_Event_Widgets.php";
+        require_once "activity/event/signups/Activity_Event_Signups.php";
+            require_once "activity/event/signups/widgets/Activity_Event_Signups_Widgets.php";
+        require_once "activity/event/tags/Activity_Event_Tags_Model.php";
+        require_once "activity/event/tags/Activity_Event_Tags_View.php";
+        require_once "activity/event/tags/Activity_Event_Tags.php";
     require_once "activity/example/Activity_Example.php";
     require_once "activity/actionmsg/Activity_ActionMsg.php";
     require_once "activity/Activity_Comment.php";
     require_once "activity/poll/PollModel.php";
+    require_once "activity/Activity_Stream.php";
 
 require_once "pages/Pages.php";
 
@@ -52,4 +52,5 @@ require_once "gw2api/Gw2Api.php";
         require_once "gw2api/accounts/keys/Gw2Api_Keys.php";
 
 require_once "dev/Dev.php";
+require_once "config/Database_view.php";
 require_once "config/Database.php";
