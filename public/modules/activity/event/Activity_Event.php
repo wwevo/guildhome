@@ -149,7 +149,7 @@ class Activity_Event extends Activity {
             $timezone = $settings->getSettingByKey('timezone');
 
             if (false !== $timezone && date_default_timezone_get() != $timezone) {
-                $utc_date = $this->date_convert($event_date, 'UTC', 'Y-m-d H:i:s', $timezone, 'Y-m-d H:i:s');
+                $utc_date = $this->dateConvert($event_date, 'UTC', 'Y-m-d H:i:s', $timezone, 'Y-m-d H:i:s');
                 $date_array = explode(' ', $utc_date);
             } else {
                 $date_array = explode(' ', $event_date);
@@ -174,7 +174,7 @@ class Activity_Event extends Activity {
         $timezone = $settings->getSettingByKey('timezone');
 
         if (false !== $timezone && date_default_timezone_get() != $timezone) {
-            $utc_date = $this->date_convert($event_date, $timezone, 'Y-m-d H:i:s', 'UTC', 'Y-m-d H:i:s');
+            $utc_date = $this->dateConvert($event_date, $timezone, 'Y-m-d H:i:s', 'UTC', 'Y-m-d H:i:s');
             $date_array = explode(' ', $utc_date);
         } else {
             $date_array = explode(' ', $event_date);
@@ -204,7 +204,7 @@ class Activity_Event extends Activity {
         $timezone = $settings->getSettingByKey('timezone');
 
         if (false !== $timezone && date_default_timezone_get() != $timezone) {
-            $utc_date = $this->date_convert($event_date, $timezone, 'Y-m-d H:i:s', 'UTC', 'Y-m-d H:i:s');
+            $utc_date = $this->dateConvert($event_date, $timezone, 'Y-m-d H:i:s', 'UTC', 'Y-m-d H:i:s');
             $date_array = explode(' ', $utc_date);
         } else {
             $date_array = explode(' ', $event_date);
@@ -303,7 +303,7 @@ class Activity_Event extends Activity {
         return $view;
     }
     
-    function date_convert($dt, $tz1, $df1, $tz2, $df2) {
+    function dateConvert($dt, $tz1, $df1, $tz2, $df2) {
         $res = '';
         if (!in_array($tz1, DateTimeZone::listIdentifiers())) { // check source timezone
             trigger_error(__FUNCTION__ . ': Invalid source timezone ' . $tz1, E_USER_ERROR);

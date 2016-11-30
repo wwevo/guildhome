@@ -17,6 +17,8 @@ require_once "activity/Activity.php";
     require_once "activity/event/widgets/Activity_Event_Widgets.php";
     require_once "activity/event/signups/Activity_Event_Signups.php";
     require_once "activity/event/signups/widgets/Activity_Event_Signups_Widgets.php";
+    require_once "activity/event/tags/Activity_Event_Tags_Model.php";
+    require_once "activity/event/tags/Activity_Event_Tags_View.php";
     require_once "activity/event/tags/Activity_Event_Tags.php";
     require_once "activity/example/Activity_Example.php";
     require_once "activity/actionmsg/Activity_ActionMsg.php";
