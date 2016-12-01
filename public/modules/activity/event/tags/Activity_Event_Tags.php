@@ -25,9 +25,15 @@ class Activity_Event_Tags {
         if (!$login->isLoggedIn()) {
             return false;
         }
+        if (isset($env->post('activity')['tags'])) {
+            echo "<pre>";
+            var_dump($env->post('activity')['tags']);
+            echo "</pre>";
+        }
+        exit;
         switch ($alpha) {
             case 'update' :
-                if (isset($env->post('activity')['submit']['tags'])) {
+                if (isset($env->post('activity')['tags']['submit'])) {
                     $this->model->saveTags($id);
                     header("Location: /activity/event/update/" . $id);
                     exit;

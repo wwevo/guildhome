@@ -33,6 +33,35 @@ class Activity_Event_Tags_View {
 
         $view->addContent('{##target_url##}',$target_url);
         $view->addContent('{##activity_tags_checked##}', ($signups_checked === '1') ? 'checked="checked"' : '');
+        
+        $selectView = new View();
+        $selectView->setTmpl($view->getSubTemplate('{##available_tag_names_select##}'));
+            $optionView = new View();
+            $optionView->setTmpl($view->getSubTemplate('{##available_tag_names_option##}'));
+            $optionView->addContent('{##tag_id##}', '1');
+            $optionView->addContent('{##tag_name##}', 'Tag-1');
+            $optionView->replaceTags();
+            $selectView->addContent('{##available_tag_names_option##}', $optionView);
+            $optionView = new View();
+            $optionView->setTmpl($view->getSubTemplate('{##available_tag_names_option##}'));
+            $optionView->addContent('{##tag_id##}', '3');
+            $optionView->addContent('{##tag_name##}', 'Tag-3');
+            $optionView->replaceTags();
+            $selectView->addContent('{##available_tag_names_option##}', $optionView);
+        $selectView->replaceTags();
+        $view->addContent('{##available_tag_names_select##}', $selectView);
+
+        $selectView = new View();
+        $selectView->setTmpl($view->getSubTemplate('{##selected_tag_names_select##}'));
+            $optionView = new View();
+            $optionView->setTmpl($view->getSubTemplate('{##selected_tag_names_option##}'));
+            $optionView->addContent('{##tag_id##}', '2');
+            $optionView->addContent('{##tag_name##}', 'Tag-2');
+            $optionView->replaceTags();
+            $selectView->addContent('{##selected_tag_names_option##}', $optionView);
+        $selectView->replaceTags();
+        $view->addContent('{##selected_tag_names_select##}', $selectView);
+        
         $view->addContent('{##submit_text##}', 'Update');
         $view->replaceTags();
         
