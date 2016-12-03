@@ -25,21 +25,43 @@ class Activity_Event_Tags {
         if (!$login->isLoggedIn()) {
             return false;
         }
-        if (isset($env->post('activity')['tags'])) {
-            echo "<pre>";
-            var_dump($env->post('activity')['tags']);
-            echo "</pre>";
+        if (isset($env->post('activity')['tags']) && is_array($env->post('activity')['tags'])) {
+            $post_data = $env->post('activity')['tags'];
+            $action = key($post_data['submit']);
+//            echo "<pre>";
+//            var_dump($post_data);
+//            var_dump($action);
+//            echo "</pre>";
         }
-        exit;
+
         switch ($alpha) {
             case 'update' :
-                if (isset($env->post('activity')['tags']['submit'])) {
-                    $this->model->saveTags($id);
-                    header("Location: /activity/event/update/" . $id);
-                    exit;
+                if ($action == 'create') {
+                    $tagObject = new Activity_Event_Tags_Model();
+                    $uxtime = time();
+                    $tagObject->setCreationDate($uxtime)->setName($post_data['name'])->setUserId(Login::currentUserID());
+                    $tagObject->save($id);
+                }
+                if ($action == 'save') {
+                    $this->model->toggleActivation($id);
+                }
+                if ($action == 'select') {
+                    echo "<pre>";
+                    var_dump($post_data);
+                    var_dump($action);
+                    echo "</pre>";
+                }
+                if ($action == 'remove') {
+                    echo "<pre>";
+                    var_dump($post_data);
+                    var_dump($action);
+                    echo "</pre>";
                 }
                 break;
         }
+        exit;
+        header("Location: /activity/event/update/" . $id);
+        exit;
     }
 
 }

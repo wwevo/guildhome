@@ -29,25 +29,29 @@ class Activity_Event_Tags_View {
         $view->addContent('{##form_action##}', '/activity/event/tags/update/' . $id);
         $activity_event = new Activity_Event();
         $act = $activity_event->getActivityByID($id);
-        $signups_checked = (!empty($env->post('activity')['tags'])) ? $env->post('activity')['tags'] : $act->tags_activated;
+        $signups_checked = (!empty($env->post('activity')['tags']['enabled'])) ? $env->post('activity')['tags']['enabled'] : $act->tags_activated;
 
         $view->addContent('{##target_url##}',$target_url);
         $view->addContent('{##activity_tags_checked##}', ($signups_checked === '1') ? 'checked="checked"' : '');
         
         $selectView = new View();
         $selectView->setTmpl($view->getSubTemplate('{##available_tag_names_select##}'));
-            $optionView = new View();
-            $optionView->setTmpl($view->getSubTemplate('{##available_tag_names_option##}'));
-            $optionView->addContent('{##tag_id##}', '1');
-            $optionView->addContent('{##tag_name##}', 'Tag-1');
-            $optionView->replaceTags();
-            $selectView->addContent('{##available_tag_names_option##}', $optionView);
-            $optionView = new View();
-            $optionView->setTmpl($view->getSubTemplate('{##available_tag_names_option##}'));
-            $optionView->addContent('{##tag_id##}', '3');
-            $optionView->addContent('{##tag_name##}', 'Tag-3');
-            $optionView->replaceTags();
-            $selectView->addContent('{##available_tag_names_option##}', $optionView);
+
+        $availableTagsObject_collection = Activity_Event_Tags_Model::getAvailableTagObjects();
+        if (is_array($availableTagsObject_collection)) {
+            $optionView_collection = '';
+            foreach ($availableTagsObject_collection as $tagObject) {
+                $optionView = new View();
+                $optionView->setTmpl($view->getSubTemplate('{##available_tag_names_option##}'));
+                $optionView->setContent('{##tag_id##}', $tagObject->getId());
+                $optionView->setContent('{##tag_name##}', $tagObject->getName());
+                $optionView->setContent('{##tag_description##}', $tagObject->getDescription());
+                $optionView->setContent('{##tag_creation_date##}', $tagObject->getCreationDate());
+                $optionView->replaceTags();
+                $optionView_collection .= $optionView;
+            }
+            $selectView->addContent('{##available_tag_names_option##}', $optionView_collection);
+        }
         $selectView->replaceTags();
         $view->addContent('{##available_tag_names_select##}', $selectView);
 
