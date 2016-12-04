@@ -12,14 +12,12 @@ Tags <a href="#" onclick="toggle('tags');">(+/-)</a>
             <tr>
                 <td>
                     <input type="text" name="activity[tags][name]" placeholder="Tag" /><br />
-                    <input type="submit" name="activity[tags][submit][create]" value="+ Create new Tag" />
                 </td>
                 <td>
                     {##available_tag_names_select##}
                     <select name="activity[tags][select][]" size="7" multiple="multiple">
                         {##available_tag_names_option##}<option value="{##tag_id##}">{##tag_name##}</option>{/##available_tag_names_option##}
                     </select><br />
-                    <input type="submit" name="activity[tags][submit][select]" value="Add Tag &rarr;" />
                     {/##available_tag_names_select##}
                 </td>
                 <td>
@@ -27,8 +25,18 @@ Tags <a href="#" onclick="toggle('tags');">(+/-)</a>
                     <select name="activity[tags][remove][]" size="7" multiple="multiple">
                         {##selected_tag_names_option##}<option value="{##tag_id##}">{##tag_name##}</option>{/##selected_tag_names_option##}
                     </select><br />
-                    <input type="submit" name="activity[tags][submit][remove]" value="&larr; Remove Tag" />
                     {/##selected_tag_names_select##}
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <input type="submit" name="activity[tags][submit][create]" value="+ Create new Tag" />
+                </td>
+                <td class="right">
+                    <input type="submit" name="activity[tags][submit][select]" value="Add Tag &rarr;" />
+                </td>
+                <td>
+                    <input type="submit" name="activity[tags][submit][remove]" value="&larr; Remove Tag" />
                 </td>
             </tr>
         </table>

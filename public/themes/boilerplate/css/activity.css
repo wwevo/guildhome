@@ -1,0 +1,36 @@
+/* 
+    Created on : 03.12.2016, 11:42:05
+    Author     : Christian Voigt <chris at notjustfor.me>
+*/
+
+.main section.form fieldset#general {}
+
+.main section.form fieldset#general blockquote {
+    font-style: italic;
+    font-weight: 400;
+    font-size: 85%; line-height: 1em;
+}
+
+.main section.form fieldset#tags {}
+
+.main section.form fieldset#tags table td {
+    vertical-align: bottom;
+}
+
+.main section.form fieldset#tags table td:nth-child(1) {
+    width: 20%;
+}
+
+.main section.form fieldset#tags table td:nth-child(2),
+.main section.form fieldset#tags table td:nth-child(3) {
+    width: 40%;
+}
+
+.main section.form fieldset#tags select {
+    width: 100%;
+}
+
+.main section.form fieldset#tags select,
+.main section.form fieldset#tags option {
+    margin: 0; padding: 0;
+}

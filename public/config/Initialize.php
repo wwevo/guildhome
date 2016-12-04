@@ -26,7 +26,7 @@ if (isset($_SESSION['discard_after']) && $now > $_SESSION['discard_after']) {
     session_destroy(); // kill it...
     session_start(); // ...and start a brand new one
 }
-$_SESSION['discard_after'] = $now + 3600;
+$_SESSION['discard_after'] = $now + 43200; // make it half a day's work of seconds
 
 // checking for minimum PHP version
 if (version_compare(PHP_VERSION, '5.3.7', '<')) {

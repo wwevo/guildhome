@@ -151,13 +151,15 @@ class Activity_Event extends Activity {
             if (false !== $timezone && date_default_timezone_get() != $timezone) {
                 $utc_date = $this->dateConvert($event_date, 'UTC', 'Y-m-d H:i:s', $timezone, 'Y-m-d H:i:s');
                 $date_array = explode(' ', $utc_date);
+                $date_array[3] = "(LT)";
             } else {
                 $date_array = explode(' ', $event_date);
+                $date_array[3] = "(UTC)";
             }
             $activity->date = $date_array[0];
             $activity->time = $date_array[1];
-
-            
+            $activity->tz = $date_array[3];
+           
             return $activity;
         }
         return false;
@@ -168,11 +170,12 @@ class Activity_Event extends Activity {
         $env = Env::getInstance();
         $title = $env->post('activity')['title'];
         $description = $env->post('activity')['content'];
+
         $dateObject = new DateTime($env->post('activity')['date'] . ' ' . $env->post('activity')['time']);
         $event_date = $dateObject->format('Y-m-d H:i:s');
+
         $settings = new Settings();
         $timezone = $settings->getSettingByKey('timezone');
-
         if (false !== $timezone && date_default_timezone_get() != $timezone) {
             $utc_date = $this->dateConvert($event_date, $timezone, 'Y-m-d H:i:s', 'UTC', 'Y-m-d H:i:s');
             $date_array = explode(' ', $utc_date);
@@ -375,7 +378,7 @@ class Activity_Event extends Activity {
         
         $loopView->addContent('{##activity_content##}',  $content);
 
-        $event_date = $act->date . ' ' . $act->time;
+        $event_date = $act->date . ' ' . $act->time . " " . $act->tz;
 
         $loopView->addContent('{##activity_event_date##}', $event_date);
         $event_datetime = $act->date . " " . $act->time;

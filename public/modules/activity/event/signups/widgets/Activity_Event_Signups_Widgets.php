@@ -33,7 +33,7 @@ class Activity_Event_Signups_Widgets {
                 $subView->addContent('{##activity_title##}', $signup->title);
                 $subView->addContent('{##activity_details_link##}', View::linkFab('/activity/event/details/' . $signup->activity_id, 'Event details'));
                 $subView->addContent('{##activity_event_date##}', $signup->date);
-                $subView->addContent('{##activity_event_time##}', $signup->time);
+                $subView->addContent('{##activity_event_time##}', $signup->time . " " . $signup->tz);
                 $subView->replaceTags();
                 $signup_loop .= $subView;
             }

@@ -10,6 +10,7 @@
         <link rel="stylesheet" href="/themes/boilerplate/css/normalize.min.css">
         <link rel="stylesheet" href="/themes/boilerplate/css/main.css">
         <link rel="stylesheet" href="/themes/boilerplate/css/sidebar.css">
+        <link rel="stylesheet" href="/themes/boilerplate/css/activity.css">
         <!--[if lt IE 9]>
             <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
             <script>window.html5 || document.write('<script src="js/vendor/html5shiv.js"><\/script>')</script>

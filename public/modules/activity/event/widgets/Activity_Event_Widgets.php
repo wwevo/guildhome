@@ -36,9 +36,11 @@ class Activity_Event_Widgets {
                 $subView->addContent('{##activity_title##}', $activity->title);
                 $subView->addContent('{##activity_details_link##}', '/activity/event/details/' . $activity->activity_id);
                 $subView->addContent('{##activity_details_link_text##}', 'Event details');
+                
                 $date = new DateTime($activity->date . ' ' . $activity->time);
+
                 $subView->addContent('{##activity_event_date##}', $date->format('Y-m-d'));
-                $subView->addContent('{##activity_event_time##}', $date->format('H:i'));
+                $subView->addContent('{##activity_event_time##}', $date->format('H:i') . " " . $activity->tz);
                 $subView->addContent('{##activity_event_datetime##}', $date->format('Y-m-d H:i'));
 
                 $subView->replaceTags();
