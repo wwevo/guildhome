@@ -2,6 +2,10 @@ Tags <a href="#" onclick="toggle('tags');">(+/-)</a>
 <form method="post" action="{##form_action##}">
     <fieldset id="tags">
         <legend>Event Tags</legend>
+        <blockquote>
+            In development, please don't use it yet ^^<br />
+            Just have it here to 'show' it so you can comment on it.
+        </blockquote>
         <input type="checkbox" {##activity_tags_checked##} name="activity[tags][enabled]" value="1" /> Allow Tags<br />
         <table>
             <tr>
