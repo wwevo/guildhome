@@ -52,5 +52,5 @@ require_once "gw2api/Gw2Api.php";
         require_once "gw2api/accounts/keys/Gw2Api_Keys.php";
 
 require_once "dev/Dev.php";
-require_once "config/Database_view.php";
+require_once "config/Database_View.php";
 require_once "config/Database.php";
