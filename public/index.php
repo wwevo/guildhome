@@ -14,6 +14,12 @@ require_once ('classes/autoload.php');
 $logpath = dirname(getcwd()) . DIRECTORY_SEPARATOR . 'log' . DIRECTORY_SEPARATOR;
 $log = Logger::getInstance();
 $log::lfile($logpath . 'eol_log.txt');
+function predump($var) {
+    ob_start();
+    var_dump($var);
+    $output = ob_get_clean();
+    return "<pre>$output</pre>";
+}
  
 /*
  * Optional modules
