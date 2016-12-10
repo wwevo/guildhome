@@ -71,7 +71,7 @@ class Register {
             $error = true;
         }
 
-        if ($error === false) {
+        if ($error === true) {
             return false;
         }
 
