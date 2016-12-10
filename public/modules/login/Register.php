@@ -71,9 +71,6 @@ class Register {
             $error = true;
         }
 
-        echo predump($env->post('register'));
-        echo predump($error);
-        exit;
         if ($error === false) {
             return false;
         }
