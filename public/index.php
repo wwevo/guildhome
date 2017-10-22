@@ -70,6 +70,7 @@ $page->addContent('{##user_nav##}', $menu->getMenu('admin'));
 $activity_event_widgets = new Activity_Event_Widgets();
 $page->addContent('{##widgets##}', '<hr />');
 $page->addContent('{##widgets##}', $activity_event_widgets->getUpcomingActivitiesView());
+$page->addContent('{##widgets##}', '<iframe allowtransparency="true" src="http://ts3.notjustfor.me/tsviewpub.php?skey=0&sid=1&showicons=right&bgcolor=ffffff&fontcolor=000000" style="height:100%;width:100%" scrolling="auto" frameborder="0">Your Browser will not show Iframes</iframe>');
 
 $login  = new Login();
 if ($login->isLoggedIn()) {
