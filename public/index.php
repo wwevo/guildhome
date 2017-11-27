@@ -58,7 +58,7 @@ $page->setTmpl($page->loadFile('/page.php'));
  * there's lots of stuff to do. Wanna help? Feel free ^^
  * These menus will be created and managed by a central module soon(ish)
  */
-$page->addContent('{##header##}', '<a href="/">Evolution of Loneliness</a>');
+$page->addContent('{##header##}', '<a href="/">Frame</a>');
 
 $menu = new Menu();
 $page->addContent('{##nav##}', $menu->getMenu('site'));
@@ -66,15 +66,7 @@ $page->addContent('{##user_nav##}', $menu->getMenu('user'));
 $page->addContent('{##user_nav##}', $menu->getMenu('operator'));
 $page->addContent('{##user_nav##}', $menu->getMenu('admin'));
 
-$activity_event_widgets = new Activity_Event_Widgets();
-$page->addContent('{##widgets##}', '<hr />');
-$page->addContent('{##widgets##}', $activity_event_widgets->getUpcomingActivitiesView());
-
 $login  = new Login();
-if ($login->isLoggedIn()) {
-    $page->addContent('{##widgets##}', '<hr />');
-    $page->addContent('{##widgets##}', '<a href="ts3server://ts3.notjustfor.me?port=9987&password=LederhosenBier">Awesome EoL TS3 Server</a>');
-}
 
 $page->addContent('{##footer##}', '<p>created by the community: for the community</p>');
 $page->addContent('{##footer##}', '<p>');
